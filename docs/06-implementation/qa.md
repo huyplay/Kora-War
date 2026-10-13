@@ -1,5 +1,34 @@
 # Kiểm tra bản Three.js sau refactor — 13/10/2026
 
+## Kết quả mới nhất — Tactical MVP
+
+Áp dụng quyết định 4 tướng + 2 phép, mana 4 và PvP chuẩn hóa. Các lượt dưới đây kiểm tra luật mới; phần phía sau giữ làm lịch sử QA của bản trước.
+
+- `npm run check` cuối: **65/65 test**, architecture, TypeScript server/client và Vite production build thành công. Hash `tests/fixtures/three-baseline.json` giữ nguyên; legacy vẫn khớp bốn seed/checkpoint gốc.
+- Bổ sung test phép: deck đúng hai phép, mana/cooldown chung, lệnh sai không đổi tài nguyên, cảnh báo trước tác động, damage vùng/DoT, đẩy lùi và giới hạn slow/stun, seeded deterministic match có kết quả.
+- Bổ sung test PvP: danh tính cookie, người ngoài/cross-origin/lệnh malformed, clock server, state hai góc nhìn, chuẩn hóa level, đầu hàng, timeout/reconnect, phòng hết hạn, phục hồi phòng từ tab mới, lệnh trùng sau hơn 256 lệnh và phản hồi bất đồng bộ khi rời phòng/dispose. Replay phép luyện tập và reward idempotency đạt.
+- Một lượt check trước đó báo test process `backend.test.ts` thất bại mà không có assertion/stack. Chạy riêng tám backend test đạt; chạy lại toàn bộ check đạt, và lượt cuối 65/65 cũng đạt. Chưa xác định nguyên nhân của lần process thất bại đó.
+- C# build thông thường gặp DLL bị service đang chạy khóa. `dotnet build backend/KoraWar.AssetApi/KoraWar.AssetApi.csproj --no-restore --output .data/backend-audit-build`: đạt, 0 warning / 0 error. `npm run backend:check`: đạt PostgreSQL migration, auth, import/retry, immutable IDs, checksum/provenance, binary roundtrip và snapshot idempotency trên database tạm.
+
+### QA trình duyệt đã thực hiện
+
+- Edge + Chrome, profile riêng, production ở server QA port 8788: tạo/vào cùng phòng, bắt đầu 00:00 / 4 mana, triển khai Solan từ hai phía và nhìn thấy quân trên sân. Các góc nhìn đảo phe/tọa độ đúng.
+- Lượt đầu kiểm tra đổi và lưu bộ Băng+Gió ở roster; sáu thẻ hiện đúng sau lưu. Lượt cuối dùng Lửa+Băng.
+- Phép Lửa chọn rồi nhấn lane giữa trong PvP: trừ 4 mana. Trong luyện tập, chọn Lửa và chạm tọa độ phía địch: thấy vùng cảnh báo tại điểm chọn, trừ mana và cooldown thẻ.
+- Reload Edge khi đang PvP quay lại trận; mở một tab Edge mới với cùng cookie, không có mã trong sessionStorage, tự trở lại trận đang ở 01:00 qua endpoint current.
+- Menu PvP ghi rõ trận tiếp tục và rời trận tính đầu hàng. Chrome đầu hàng ở 01:41, Edge nhận kết quả thắng; nút về sảnh của cả hai hoạt động. Không phát vàng PvP.
+- Luyện tập AI trên URL Vite: bắt đầu 4 mana, phép hoạt động, pause và về sảnh hoạt động.
+- Kiểm tra bố cục ngang: đã thử override 844×390 ở lượt trước; lượt cuối đo CSS viewport thực tế 534×300 và 667×375 vì browser zoom. Sửa CSS cũ làm action panel tràn và roster không co; DOM đo scrollWidth bằng viewportWidth ở sảnh và modal roster không tràn ngang. Cuộn roster tới bốn phép được; trên màn nhỏ vẫn vào kho/rèn/rương qua nút vàng và các tab trong kho.
+- Override màn hình dọc 390×844: chỉ hiện yêu cầu xoay ngang, chặn game; reset viewport sau QA.
+- Lượt QA production cuối không ghi nhận console error/warning ở Chrome và tab Edge khôi phục. Có vài thao tác click Chrome bị công cụ điều khiển timeout; dùng thao tác bàn phím và xác nhận trạng thái sau đó. Không coi lỗi công cụ là bằng chứng lỗi gameplay.
+- Ảnh QA cục bộ: `.data/qa/tactical-mvp.jpg` (cache không đưa vào Git).
+
+### Giới hạn của lượt này
+
+Đã kiểm thử phòng riêng trên một Node process và kích thước viewport desktop. Chưa thử tải PvP nhiều phòng thật, WAN, iOS/Android vật lý, matchmaking/ranked hoặc R2 thật. Room chưa persist qua restart; game server được khởi động lại để nạp bản mới nên các phòng thử trước cần tạo lại. Three.js còn cảnh báo chunk lớn hơn 500 kB. Không có cơ sở cam kết hết mọi lỗi hoặc benchmark FPS trên điện thoại.
+
+Chi tiết đối chiếu thiết kế và phân tích project: [PROJECT-REVIEW.md](../PROJECT-REVIEW.md).
+
 ## Tự động — đã đạt
 
 - `npm run check:architecture`: core/data không phụ thuộc UI/Three.js/clock trình duyệt.

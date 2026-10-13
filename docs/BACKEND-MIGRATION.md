@@ -44,7 +44,7 @@ CDN production dùng custom domain và CORS đúng origin game theo [R2 public b
 
 API SignalR truyền command có sequence/tick và snapshot; mỗi trận do một server worker sở hữu. Không ghi vị trí quân vào PostgreSQL mỗi frame. PostgreSQL lưu tài khoản, deck, content revision, ledger và kết quả/command log; object storage giữ replay lớn nếu cần.
 
-Trước khi chuyển luật sang C#, cần bộ fixture chung chứng minh kết quả tương đương TypeScript và xác định một implementation authoritative. Quyết định cân bằng được gắn content revision từ đầu trận, không thay giữa trận. Tiếp đó mới thêm matchmaking, reconnect, chống gửi command lặp và chịu tải. PvP chưa triển khai trong bước này.
+Trước khi chuyển luật sang C#, cần bộ fixture chung chứng minh kết quả tương đương TypeScript và xác định một implementation authoritative. Quyết định cân bằng được gắn content revision từ đầu trận, không thay giữa trận. Tiếp đó mới thêm matchmaking, reconnect, chống gửi command lặp và chịu tải. Đây là lộ trình C#/SignalR. Quyết định MVP sau đó đã bổ sung phòng PvP bằng Node/TypeScript, dùng chính core hiện có; xem [phân tích MVP](PROJECT-REVIEW.md).
 
 ## Kiểm thử
 

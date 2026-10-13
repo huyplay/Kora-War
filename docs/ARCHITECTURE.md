@@ -87,7 +87,7 @@ Các geometry/material dùng chung thuộc World, không bị hủy khi một un
 | Cốt truyện | `data/story.ts` | màn hình mở đầu, hướng dẫn |
 | Chính sách AI | `core/ai/heuristic.ts` | trận seeded, ngân sách mana |
 
-Đã có Content Studio, GLB rigged animation và backend xác minh thưởng từ command log. Chưa có PvP hoặc phục hồi giữa trận. `snapshot()` là ảnh chụp chẩn đoán, không phải save/restore trận đấu hoàn chỉnh. Những phần này cần triển khai riêng khi được chọn làm bước tiếp theo.
+Đã có Content Studio, GLB rigged animation và backend xác minh thưởng từ command log. Đã bổ sung PvP phòng riêng trên Node với reconnect cùng cookie; chưa persist trận qua server restart. `snapshot()` là ảnh chụp chẩn đoán, không phải save/restore trận đấu hoàn chỉnh. Những phần này cần triển khai riêng khi được chọn làm bước tiếp theo.
 
 ## Content Studio / data service
 
@@ -98,3 +98,9 @@ Các geometry/material dùng chung thuộc World, không bị hủy khi một un
 `src/data/media.ts` định nghĩa mixer/cue/texture binding. `Sound` đọc sự kiện và trạng thái, giới hạn voice/cooldown, bộ nhớ decoded 16 MiB, tối đa bốn request đồng thời; pause/mute dừng voice. `TerrainStyle` nạp texture qua asset ID và giữ fallback. Audio và renderer không thay đổi simulation.
 
 `backend/KoraWar.AssetApi` tách metadata PostgreSQL khỏi object storage local/R2. `server/asset-service.ts` là cầu nối nội bộ: upload local trước, ghi pending khi mất kết nối, kiểm tra SHA khi đọc từ service. Xem [lộ trình backend](BACKEND-MIGRATION.md); PostgreSQL hiện chưa là nơi ghi ví/trận chính.
+
+## Tactical MVP và PvP
+
+`core/tactical.ts` tạo luật mới với 4 mana, 4 tướng + 2 phép và chỉ số chuẩn hóa. `core/systems/spells.ts` validate/cast/update vùng phép; `data/spells.ts` giữ thông số. `Battle()` mặc định giữ compatibility với fixture/replay legacy.
+
+`server/pvp.ts` sở hữu Battle và đồng hồ server, nhận command có ID, khóa loadout và xác thực thành viên theo cookie gateway. `core/online-state.ts` trả bản sao state theo góc nhìn phe; `services/pvp-session.ts` poll khoảng 10 Hz, loại packet cũ theo version, giữ mã phòng cho reconnect. App online không gọi `step()`. Renderer đọc spell zones để vẽ cảnh báo. Room không persist; SignalR/PostgreSQL match persistence vẫn là bước sau.

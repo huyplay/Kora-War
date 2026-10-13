@@ -9,6 +9,20 @@ import { GameDatabase } from '../server/database';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { selectAnimationClips } from '../tools/animation-mapping';
+
+test('animation mapping supports champion prefixes and prefers the straight run over side turns', () => {
+  const clips = selectAnimationClips([
+    'Nami_attack2.anm', 'Nami_attack1.anm', 'Idle2_Base', 'Idle1_Base',
+    'Nami_run_L.anm', 'Nami_run.anm', 'Spell3', 'Nami_spell1.anm', 'Death',
+  ]);
+  assert.equal(clips.walk, 'Nami_run.anm');
+  assert.equal(clips.attack, 'Nami_attack1.anm');
+  assert.equal(clips.cast, 'Nami_spell1.anm');
+  assert.equal(clips.idle, 'Idle1_Base');
+  assert.equal(clips.spawn, clips.idle);
+  assert.deepEqual(selectAnimationClips([]), {});
+});
 
 function fixture() {
   const values = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 2, 0, 9, 9, 9, 8, 8, 8]);

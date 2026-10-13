@@ -4,6 +4,7 @@ import { GameDatabase } from '../server/database';
 import { importAsset, inspectGLB } from '../server/assets';
 import { compactGLB } from './compact-glb';
 import { createHash } from 'node:crypto';
+import { selectAnimationClips } from './animation-mapping';
 const manifest = JSON.parse(readFileSync('assets/riot/manifest.json', 'utf8')) as {
   author: string;
   license: string;
@@ -44,19 +45,7 @@ try {
     const original = readFileSync(file);
     verifySource(original, url);
     const info = inspectGLB(original);
-    const find = (patterns: RegExp[]) =>
-      patterns.map((pattern) => info.clips.find((name: string) => pattern.test(name))).find(Boolean);
-    const clips = Object.fromEntries(
-      Object.entries({
-        idle: find([/^idle1(?:_|$)/i, /^idle/i]),
-        walk: find([/^run(?:_|$)/i, /^run/i, /walk/i]),
-        attack: find([/^attack1(?:_|$)/i, /^attack/i]),
-        cast: find([/^spell1(?:_|$)/i, /^spell/i]),
-        stunned: find([/stun/i, /idle/i]),
-        spawn: find([/respawn/i, /idle/i]),
-        death: find([/^death/i]),
-      }).filter(([, name]) => name),
-    );
+    const clips = selectAnimationClips(info.clips);
     const bytes = compactGLB(original, Object.values(clips) as string[]),
       hash = createHash('sha256').update(bytes).digest('hex');
     const existing = store.assets().find((a) => a.sha256 === hash);

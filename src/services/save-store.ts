@@ -7,7 +7,8 @@ export interface SaveData {
     sound: boolean;
     quality: 'high' | 'low';
 }
-const KEY = 'aetherfall-save';
+const KEY = 'kora-war-save';
+const LEGACY_KEY = 'aetherfall-save';
 export function parseSave(raw: string | null): SaveData {
     let value: Partial<SaveData> = {};
     try {
@@ -26,7 +27,7 @@ export function parseSave(raw: string | null): SaveData {
 }
 export function loadSave(storage: Pick<Storage, 'getItem'>): SaveData {
     try {
-        return parseSave(storage.getItem(KEY));
+        return parseSave(storage.getItem(KEY) ?? storage.getItem(LEGACY_KEY));
     }
     catch {
         return parseSave(null);

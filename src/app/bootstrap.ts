@@ -334,7 +334,7 @@ $('#debug-lose').onclick = () => {
         battle.debugUsed = true;
     }
 };
-$('#debug-export').onclick = () => { const data = { version: 'aetherfall-0.1', seed: battle.seed, deck, difficulty, performance: { fps, simMs, ...world.stats }, snapshot: battle.snapshot() }; const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = `aetherfall-match-${battle.seed}.json`; a.click(); URL.revokeObjectURL(url); };
+$('#debug-export').onclick = () => { const data = { version: 'kora-war-0.1', seed: battle.seed, deck, difficulty, performance: { fps, simMs, ...world.stats }, snapshot: battle.snapshot() }; const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = `kora-war-match-${battle.seed}.json`; a.click(); URL.revokeObjectURL(url); };
 document.addEventListener('keydown', e => {
     if (e.key === 'F3') {
         e.preventDefault();

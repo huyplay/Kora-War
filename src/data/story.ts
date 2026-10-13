@@ -1,7 +1,7 @@
 /** Cốt truyện Aetherfall của bản chơi được ban đầu. Không phụ thuộc engine. */
 export const CHAPTER_ONE = Object.freeze({
     id: 'first-core',
-    chronicle: 'BIÊN NIÊN SỬ AETHERFALL',
+    chronicle: 'BIÊN NIÊN SỬ KORA WAR',
     chapter: 'CHƯƠNG I · LÕI ĐẦU TIÊN',
     title: ['Ánh sáng không tự', 'giữ được chính mình.'],
     paragraphs: [

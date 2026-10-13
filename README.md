@@ -1,4 +1,4 @@
-# Aetherfall — Core Wars
+# Kora War
 
 Bản chơi đơn 3D trong trình duyệt, triển khai theo yêu cầu gameplay mới ngày 13/10/2026. Bố cục ba lane lấy cảm hứng từ Castle Crush; đây là **ruleset và thế giới riêng**, không phải bản tái tạo chính xác Castle Crush, Liên Quân hoặc TFT.
 

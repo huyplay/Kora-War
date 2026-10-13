@@ -1,4 +1,4 @@
-# Kiến trúc Aetherfall — Three.js
+# Kiến trúc Kora War — Three.js
 
 Bản refactor ngày 13/10/2026 tiếp tục bản chơi được tại commit `e792b00`. Không viết lại gameplay và không thay renderer. Mục tiêu là chỉnh cân bằng, thêm kỹ năng hoặc nâng đồ họa mà không phải sửa cùng một file lớn.
 

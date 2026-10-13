@@ -38,3 +38,11 @@ test('diagnostic snapshots cannot mutate live battle statistics or entities', ()
   const snapshot=b.snapshot();snapshot.stats[0].deployed=99;snapshot.units[0].hp=0;snapshot.towers[0].hp=0;
   assert.equal(b.stats[0].deployed,1);assert.ok(b.units[0].hp>0);assert.equal(b.towers[0].hp,400);
 });
+
+test('Kora War loads the old save and writes only the new key', () => {
+  const storage = new Map([['aetherfall-save', JSON.stringify({wins:7})]]);
+  const adapter = {getItem:(key:string)=>storage.get(key) ?? null,setItem:(key:string,value:string)=>{storage.set(key,value);}};
+  const data=loadSave(adapter);assert.equal(data.wins,7);saveGame(adapter,data);
+  assert.equal(JSON.parse(storage.get('kora-war-save')!).wins,7);
+  assert.ok(storage.has('aetherfall-save'));
+});

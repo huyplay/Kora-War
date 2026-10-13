@@ -2,7 +2,7 @@ import { icon } from './icons';
 export function renderShell() {
     return `
  <header class="topbar">
-  <a class="brand" href="#" aria-label="Aetherfall — về sảnh"><span class="brand-gem">◈</span><span>AETHERFALL<small>CORE WARS</small></span></a>
+  <a class="brand" href="#" aria-label="Kora War — về sảnh"><span class="brand-gem">◈</span><span>KORA WAR<small>CORE WARS</small></span></a>
   <nav aria-label="Điều hướng"><button class="nav-item active" id="nav-battle" aria-label="Chiến trường">${icon('sword')}<span>Chiến trường</span></button><button class="nav-item" id="nav-heroes" aria-label="Tướng và đội hình">${icon('shield')}<span>Tướng & đội hình</span><em>10</em></button><button class="nav-item" id="nav-story" aria-label="Biên niên sử">${icon('book')}<span>Biên niên sử</span></button></nav>
   <div class="header-right"><span class="solo-badge"><i></i> CHƠI ĐƠN · AI</span><button class="icon-button" id="settings" aria-label="Cài đặt">${icon('settings')}</button></div>
  </header>
@@ -25,7 +25,7 @@ export function renderShell() {
    <div class="action-panel" id="lobby-actions"><span class="ready-tag">${icon('shield')} SẴN SÀNG CHINH PHẠT</span><button class="primary start-button" id="start">VÀO CHIẾN TRƯỜNG ${icon('chevron')}</button><div class="match-details"><span>1 người vs AI</span><i></i><span>3–4 phút</span></div><button class="text-button" id="tutorial-open">${icon('info')} Lần đầu chơi? Bắt đầu hướng dẫn</button></div>
    <div class="action-panel battle-actions" hidden><button id="pulse" class="pulse-button"><span class="pulse-symbol">✧</span><span>CỘNG HƯỞNG LÕI<small id="pulse-value">Đang tích năng lượng · 0%</small></span><kbd>Q</kbd><i id="pulse-fill"></i></button><p id="selection-hint">Chọn thẻ <kbd>1</kbd>–<kbd>4</kbd>, rồi thả vào vùng bên trái.</p><button class="text-button" id="cancel-select">Hủy chọn <kbd>Esc</kbd></button></div>
   </section>
-  <footer class="statusbar"><span><i class="status-dot"></i> AETHERFALL · BẢN CHƠI THỬ 0.1</span><span id="best-record"></span><button id="debug-toggle">${icon('chart')} <span id="fps-mini">60 FPS</span><span class="debug-label">Hiệu năng / F3</span></button></footer>
+  <footer class="statusbar"><span><i class="status-dot"></i> KORA WAR · BẢN CHƠI THỬ 0.1</span><span id="best-record"></span><button id="debug-toggle">${icon('chart')} <span id="fps-mini">60 FPS</span><span class="debug-label">Hiệu năng / F3</span></button></footer>
   <div id="hero-tooltip" hidden></div><div id="drag-ghost" hidden></div>
   <aside id="debug-panel" hidden><div class="debug-title">BATTLE INSPECTOR <button id="debug-close" aria-label="Đóng debug">×</button></div><pre id="debug-stats"></pre><div class="debug-controls"><label>Tốc độ <select id="debug-speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select></label><button id="debug-mana">+ Mana</button><button id="debug-auto">Tự đấu: tắt</button><button id="debug-win">Thử thắng</button><button id="debug-lose">Thử thua</button><button id="debug-export">Xuất trạng thái</button></div><small>Can thiệp debug đánh dấu trận thử nghiệm, không cộng chiến thắng.</small></aside>
  </main>

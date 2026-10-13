@@ -1,5 +1,9 @@
 # Các quyết định đang áp dụng
 
+## Tên và nền tảng chơi mới
+
+Tên sản phẩm được người dùng chốt là **Kora War**. Cốt truyện Elyndra/lõi Aether và gameplay không đổi. Save mới dùng `kora-war-save`, tự đọc key `aetherfall-save` khi chưa có save mới; không xóa dữ liệu cũ. Ưu tiên mobile màn hình ngang, ít chữ và điều khiển chạm/kéo. Commit và push riêng theo từng task đã kiểm thử.
+
 ## 13/10/2026 — Tiếp tục bản Three.js ban đầu
 
 Yêu cầu cuối của người dùng: “sử dụng full Three.js + TypeScript + Vite đã chơi được như lúc đầu để triển khai tiếp … vẫn giữ nguyên cốt truyện chính như lúc đầu”. Quyết định này thay thế hướng PlayCanvas và cốt truyện Heartstone trong các tin nhắn trước.

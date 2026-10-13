@@ -1,4 +1,4 @@
-# Quy tắc triển khai Aetherfall
+# Quy tắc triển khai Kora War
 
 ## Các quyết định đã chốt ngày 13/10/2026
 
@@ -28,3 +28,7 @@
 - Không đưa cache, `node_modules` hay `dist` vào Git.
 
 Xem [kiến trúc](docs/ARCHITECTURE.md) và [quyết định](docs/DECISIONS.md).
+
+- Tên sản phẩm: Kora War. Giữ lore Elyndra/lõi Aether; tên cũ trong tài liệu lịch sử không phải tên sản phẩm hiện tại.
+- Mobile-first, chỉ chơi ở màn hình ngang; thao tác chạm/kéo thả, ít chữ.
+- Commit từng task đã kiểm thử và push lên origin hiện có theo yêu cầu người dùng.

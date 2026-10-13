@@ -1,0 +1,163 @@
+[
+  {
+    "repo": "BOSS-BigOpenSourceSibling/realtimecardgame",
+    "url": "https://github.com/BOSS-BigOpenSourceSibling/realtimecardgame",
+    "head": "9b812a84ccbc9a552244a9905c5fd0ad965b086b",
+    "stars": 0,
+    "commits_default_branch": 45,
+    "pushed_at": "2020-11-08T00:45:55Z",
+    "updated_at": "2025-08-25T16:54:42Z",
+    "archived": false,
+    "stack": "Unity2019.4/C#",
+    "license_assessment": "Không có license repo rõ; asset vendors riêng",
+    "systems": "GameRoom local, dummy deck, deploy, projectile, multi-deploy, animation; sau chơi rút bù ngay khác documented CC",
+    "notes": "Chưa chạy Unity; cần editor2019.4.9f1. Không tìm thấy network trong files đã review. Fork của pedrodelyra; không phải hai foundation độc lập.",
+    "scores": [
+      4,
+      2,
+      2,
+      1,
+      0,
+      0
+    ],
+    "weighted_score": 41.0
+  },
+  {
+    "repo": "pedrodelyra/realtimecardgame",
+    "url": "https://github.com/pedrodelyra/realtimecardgame",
+    "head": "f7d0731462e2c0418074a2312d47e192f242ff04",
+    "stars": 0,
+    "commits_default_branch": 19,
+    "pushed_at": "2020-09-30T19:11:34Z",
+    "updated_at": "2020-09-23T11:02:49Z",
+    "archived": false,
+    "stack": "Unity2019.4/C#",
+    "license_assessment": "Không có license repo rõ",
+    "systems": "Core lane/dealer/hand/attack/visual scripts; scaffold local",
+    "notes": "19 commits default branch; chưa chạy Unity; thiếu production account/PvP/economy. Tham khảo cấu trúc, không copy.",
+    "scores": [
+      4,
+      1,
+      2,
+      1,
+      0,
+      0
+    ],
+    "weighted_score": 37.0
+  },
+  {
+    "repo": "ciro-unity/UnityRoyale-Public",
+    "url": "https://github.com/ciro-unity/UnityRoyale-Public",
+    "head": "d51081a323d73164866042a38dc93a3fecef2834",
+    "stars": 1178,
+    "commits_default_branch": 5,
+    "pushed_at": "2021-05-02T13:44:38Z",
+    "updated_at": "2026-10-11T09:59:22Z",
+    "archived": false,
+    "stack": "Unity2020.3/URP/C#",
+    "license_assessment": "Assets/License.pdf: personal/non-commercial, non-distribution",
+    "systems": "CardData, CPUOpponent, projectile, particle pool, Addressables, toon shading, Timeline",
+    "notes": "README nói simplified AI và demo mobile; không có bằng chứng PvP server. License hạn chế xung đột lời quảng bá; không foundation thương mại.",
+    "scores": [
+      2,
+      2,
+      3,
+      2,
+      0,
+      0
+    ],
+    "weighted_score": 35.0
+  },
+  {
+    "repo": "baderkamal-dev/Crown-Clash",
+    "url": "https://github.com/baderkamal-dev/Crown-Clash",
+    "head": "cf6575689dacc7edc53b31c271b5379b67886c01",
+    "stars": 0,
+    "commits_default_branch": 4,
+    "pushed_at": "2026-09-01T23:19:33Z",
+    "updated_at": "2026-09-01T23:20:37Z",
+    "archived": false,
+    "stack": "JavaScript/Canvas2D",
+    "license_assessment": "MIT (đã đọc LICENSE)",
+    "systems": "Procedural art/audio, fixed-step loop, AI, cards/combat/UI; không online",
+    "notes": "Đã build46 modules/2365KiB và node --check bundle pass; chưa chơi browser. Ba tower/elixir và rules Clash Royale khác game đích; lấy pattern có attribution, không giữ tên/nhận diện.",
+    "scores": [
+      2,
+      3,
+      3,
+      5,
+      0,
+      5
+    ],
+    "weighted_score": 58.0
+  },
+  {
+    "repo": "ironiamison/clash-arena",
+    "url": "https://github.com/ironiamison/clash-arena",
+    "head": "19d0654f3824a2c62da8e2d7f79795733f4e9a51",
+    "stars": 1,
+    "commits_default_branch": 3,
+    "pushed_at": "2026-06-27T16:55:25Z",
+    "updated_at": "2026-09-19T01:23:46Z",
+    "archived": false,
+    "stack": "TypeScript/Phaser/Vite/Node ws",
+    "license_assessment": "Không có root license; vài asset pack CC0 không cấp phép code",
+    "systems": "Pure sim, modes, collection/economy, relay tick/input, result từ client",
+    "notes": "Đọc server/index.mjs: relay không tính battle combat; không đạt server authority. Chưa install/run, asset bundle lớn và root rights chưa rõ.",
+    "scores": [
+      2,
+      3,
+      2,
+      5,
+      1,
+      0
+    ],
+    "weighted_score": 47.0
+  },
+  {
+    "repo": "ataberkus/age-of-war-clone",
+    "url": "https://github.com/ataberkus/age-of-war-clone",
+    "head": "f986be20a689da243981af1a7b37b8447bc6def0",
+    "stars": 1,
+    "commits_default_branch": 29,
+    "pushed_at": "2026-07-18T11:00:22Z",
+    "updated_at": "2026-08-25T05:33:20Z",
+    "archived": false,
+    "stack": "React/TS/Canvas/Supabase",
+    "license_assessment": "Không có root license",
+    "systems": "HostSync áp input, gửi state0.125s; guest vẽ shadow; unit queue, AI, ages",
+    "notes": "Có multiplayer code nhưng host là client, không trusted server; một lane, không card deck. Chưa chạy cần Supabase configuration.",
+    "scores": [
+      1,
+      3,
+      3,
+      5,
+      1,
+      0
+    ],
+    "weighted_score": 44.0
+  },
+  {
+    "repo": "BizachiCode/ClashBattle-Server",
+    "url": "https://github.com/BizachiCode/ClashBattle-Server",
+    "head": "2b61894901c5040380bffa495cf07bf867985b02",
+    "stars": 1,
+    "commits_default_branch": 1,
+    "pushed_at": "2026-09-30T13:17:13Z",
+    "updated_at": "2026-09-30T13:17:18Z",
+    "archived": false,
+    "stack": "Node/TS/Colyseus/Express/TypeORM/MySQL",
+    "license_assessment": "MIT (đã đọc LICENSE)",
+    "systems": "BattleRoom setSimulationInterval → session.step; authoritative combat, room validation hooks, result settlement; nhiều meta systems",
+    "notes": "Một commit nên chưa chứng minh maintenance history. Source review có authority, chưa runtime/load/security audit; data export và Unity client ngoài scope repo. Thích hợp tham khảo protocol/modules, không dùng nguyên ruleset.",
+    "scores": [
+      2,
+      4,
+      3,
+      4,
+      4,
+      5
+    ],
+    "weighted_score": 67.0
+  }
+]

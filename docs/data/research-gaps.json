@@ -1,0 +1,114 @@
+[
+  {
+    "id": "U01",
+    "priority": "P0",
+    "topic": "Live baseline / Android version",
+    "reason": "Listing không chứng minh server hoạt động",
+    "method": "Cài bản store hợp pháp; ghi version, OS, locale; đăng nhập và hoàn tất 3 PvP",
+    "status": "Open"
+  },
+  {
+    "id": "U02",
+    "priority": "P0",
+    "topic": "Rút bài, double và crystals",
+    "reason": "WP 7–10s/7s; support 5 draws vs WP45s",
+    "method": "Quay 60fps 10 trận; tay full/empty, draw trả phí, Extra Crystal ở12; ghi mana/cursor",
+    "status": "Open"
+  },
+  {
+    "id": "U03",
+    "priority": "P0",
+    "topic": "Vùng đặt quân",
+    "reason": "Chỉ wiki nói frontier",
+    "method": "Grid thử 20 vị trí/lane, trước/sau quân chết, pushback và qua giữa sân",
+    "status": "Open"
+  },
+  {
+    "id": "U04",
+    "priority": "P0",
+    "topic": "Roster và stats mọi level",
+    "reason": "68 lịch sử; catalog wiki thiếu, có mâu thuẫn",
+    "method": "Chụp toàn collection/build và detail mọi thẻ; đọc stat base/Forge/NFT; kiểm tra alias",
+    "status": "Open"
+  },
+  {
+    "id": "U05",
+    "priority": "P0",
+    "topic": "Target, collision và hit timing",
+    "reason": "Không biết tie/retarget/cooldown",
+    "method": "Friendly battle scripted: hai mục tiêu ngang range, unit vượt nhau, target chết giữa projectile",
+    "status": "Open"
+  },
+  {
+    "id": "U06",
+    "priority": "P0",
+    "topic": "Overtime và cùng chết",
+    "reason": "Có 4 phút; chưa có damage curve/tie-break",
+    "method": "10 trận overtime, hai HP bằng nhau; log tick damage và kết quả frame-by-frame",
+    "status": "Open"
+  },
+  {
+    "id": "U07",
+    "priority": "P1",
+    "topic": "Upgrade/XP/trophy/loot/reset",
+    "reason": "Không đủ bảng chi phí, rounding, odds",
+    "method": "Ghi nhiều delta và từng level; không suy Elo hay drop rate từ vài chest",
+    "status": "Open"
+  },
+  {
+    "id": "U08",
+    "priority": "P1",
+    "topic": "Mode và social đang hoạt động",
+    "reason": "Support chủ yếu 2023",
+    "method": "Kiểm tra nhiều mức account, full event cycle/season và locale",
+    "status": "Open"
+  },
+  {
+    "id": "U09",
+    "priority": "P1",
+    "topic": "NFT/Founder hiện hành",
+    "reason": "Tài liệu hiện diện không chứng minh marketplace hoạt động",
+    "method": "Quan sát read-only UI/announcement; không giao dịch để nghiên cứu",
+    "status": "Open"
+  },
+  {
+    "id": "U10",
+    "priority": "P0",
+    "topic": "Camera/animation hiện hành",
+    "reason": "Chưa xem video có build",
+    "method": "Thu capture 3 arena, 10 abilities, giấy phép chỉ tham chiếu",
+    "status": "Open"
+  },
+  {
+    "id": "U11",
+    "priority": "P0",
+    "topic": "Disconnect/reconnect/surrender",
+    "reason": "Không có đặc tả công khai đủ",
+    "method": "Ngắt 5/15/30/60s trên hai client do mình kiểm soát",
+    "status": "Open"
+  },
+  {
+    "id": "U12",
+    "priority": "P0",
+    "topic": "Engine performance",
+    "reason": "Chưa benchmark",
+    "method": "Chạy fixture giống nhau Babylon/Three/Phaser trên thiết bị thật",
+    "status": "Open"
+  },
+  {
+    "id": "U13",
+    "priority": "P1",
+    "topic": "AI nội bộ",
+    "reason": "Không công khai",
+    "method": "Đề xuất utility bot; so phân phối hành động, không tuyên bố cùng thuật toán",
+    "status": "Open"
+  },
+  {
+    "id": "U14",
+    "priority": "P1",
+    "topic": "License assets/repo",
+    "reason": "Thiếu license hoặc asset terms khác code",
+    "method": "Kiểm tra từng file/bundle, xin quyền nếu cần; không copy khi chưa rõ",
+    "status": "Open"
+  }
+]

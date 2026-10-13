@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:castle-reimplementation:command:v0",
+  "title": "Proposed client command envelope; not original protocol",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocolVersion",
+    "matchId",
+    "commandId",
+    "clientSeq",
+    "observedTick",
+    "type",
+    "payload"
+  ],
+  "properties": {
+    "protocolVersion": {
+      "const": 1
+    },
+    "matchId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "commandId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "clientSeq": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "observedTick": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "type": {
+      "enum": [
+        "PlayCard",
+        "BuyDraw"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "PlayCard"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "handInstanceId",
+              "lane",
+              "xFixed"
+            ],
+            "properties": {
+              "handInstanceId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "lane": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2
+              },
+              "xFixed": {
+                "type": "integer",
+                "minimum": -2147483648,
+                "maximum": 2147483647
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "BuyDraw"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "maxProperties": 0
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,532 @@
+{
+  "documented_battle": [
+    {
+      "id": "T01",
+      "area": "Battlefield",
+      "setup": "Khởi tạo trận1v1 documented profile",
+      "expected": "Hai phía đối địch, ba lane dùng để triển khai/tấn công",
+      "source_id": "WP21",
+      "features": [
+        "F001",
+        "F069"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T02",
+      "area": "Shared castle HP",
+      "setup": "Gây damage D1 ở lane0, D2 ở lane2 vào cùng castle; D đã đo",
+      "expected": "Một HP pool giảm tổng damage hợp lệ; không có ba tower HP riêng",
+      "source_id": "WP21",
+      "features": [
+        "F002"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T03",
+      "area": "Passive castle",
+      "setup": "Đưa một attacker đến castle, không có defender/buff",
+      "expected": "Castle không tự bắn/phản công; không thêm tower attack từ game khác",
+      "source_id": "WP21",
+      "features": [
+        "F003"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T04",
+      "area": "Lane endpoint",
+      "setup": "Cho một unit tự đi hết lane không gặp địch",
+      "expected": "Unit đến cuối lane tấn công castle, không biến mất chỉ vì chạm endpoint",
+      "source_id": "WP21",
+      "features": [
+        "F006",
+        "F004"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T05",
+      "area": "Victory",
+      "setup": "Đưa một castle HP xuống0 bằng hit hợp lệ, castle kia cònHP",
+      "expected": "Bên phá castle thắng; match terminal; không tiếp tục trận sau kết quả",
+      "source_id": "WP21",
+      "features": [
+        "F004"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T06",
+      "area": "Opening hand",
+      "setup": "Bắt đầu trận deck14, quan sát trước timed draw đầu",
+      "expected": "Mỗi người có5 lá trên tay",
+      "source_id": "SUP-12684698308625",
+      "features": [
+        "F025"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T07",
+      "area": "Normal draw",
+      "setup": "Tay5, trước Double Cards, chờ lần draw kế",
+      "expected": "Tay thành6 nếu không play giữa chừng",
+      "source_id": "SUP-12684698308625",
+      "features": [
+        "F025"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T08",
+      "area": "Full hand burn",
+      "setup": "Tay6, tới normal draw",
+      "expected": "Tay vẫn6; lá định rút mất, không xếp hàng để tự nhận sau",
+      "source_id": "SUP-12684698308625",
+      "features": [
+        "F027"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T09",
+      "area": "One deck permutation",
+      "setup": "Theo dõi đủ14 lá cycle, luôn chừa chỗ trên tay",
+      "expected": "Multiset14 lần rút đúng deck14, không weighted random independent",
+      "source_id": "SUP-12684698308625",
+      "features": [
+        "F026"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T10",
+      "area": "Duplicate count",
+      "setup": "Deck có đúng2Dwarfs, theo dõi14 lá khôngburn",
+      "expected": "Đúng2Dwarfs trong cycle đó; thứ tự ngẫu nhiên chưa cần biết PRNG gốc",
+      "source_id": "SUP-12684698308625",
+      "features": [
+        "F026",
+        "F023"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T11",
+      "area": "Next cycle",
+      "setup": "Tiếp tục quan sát14 lá cycle kế, chừa chỗ",
+      "expected": "Multiset lại bằng deck; không buộc thứ tự phải khác vì random có thể trùng",
+      "source_id": "SUP-12684698308625",
+      "features": [
+        "F026"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T12",
+      "area": "Buy draw",
+      "setup": "Tay0, mana ít nhất5, bấm rút thêm một lần",
+      "expected": "Rút một extra card và tiêu5mana; cursor/christal side effects cònU02",
+      "source_id": "SUP-12684698308625",
+      "features": [
+        "F028"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T13",
+      "area": "Timed simultaneous draw",
+      "setup": "Hai phía trong cùng trận, khôngExtraCrystal/paidDraw",
+      "expected": "Timed draw/crystal event xảy ra cho cả hai trong cùng chu kỳ; latency UI không đổi luật",
+      "source_id": "SUP-12684698308625",
+      "features": [
+        "F030"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T14",
+      "area": "Double draw roomy",
+      "setup": "Mode Double Cards đã xác nhận active, tay3",
+      "expected": "Một cycle nhận2lá, hand5; không tự chọn45s làm trigger live",
+      "source_id": "SUP-12684758851089",
+      "features": [
+        "F029"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T15",
+      "area": "Double draw one slot",
+      "setup": "Double Cards active, tay5",
+      "expected": "Chỉ1lá được nhận, tay6; lá thứhai consume cursor hay không cònUnknown",
+      "source_id": "SUP-12684758851089",
+      "features": [
+        "F029",
+        "F025"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T16",
+      "area": "Double draw cap",
+      "setup": "Double Cards active, tay6",
+      "expected": "Không vượt6lá; chi tiết double burn cursor phải đoU02",
+      "source_id": "SUP-12684758851089",
+      "features": [
+        "F029",
+        "F027"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T17",
+      "area": "Starting crystals",
+      "setup": "Trận mới trước hiệu ứng extra",
+      "expected": "Mana crystal capacity khởi đầu2",
+      "source_id": "SUP-12684758284689",
+      "features": [
+        "F030"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T18",
+      "area": "Crystal progression",
+      "setup": "Timed crystal event khi cap dưới12",
+      "expected": "Capacity tăng1; không tự cho mana hiện có đầy ngay nếu chưa đo",
+      "source_id": "SUP-12684758284689",
+      "features": [
+        "F030"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T19",
+      "area": "Maximum crystals",
+      "setup": "Cho timed crystal events tiếp tục khi capacity12",
+      "expected": "Capacity không tăng quá12",
+      "source_id": "SUP-12684758284689",
+      "features": [
+        "F030"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T20",
+      "area": "Extra Crystal below cap",
+      "setup": "ChơiExtraCrystal hợp lệ ở capacity<12",
+      "expected": "Thêm1crystal; numeric cost vẫn cần verified catalog",
+      "source_id": "SUP-12684758284689",
+      "features": [
+        "F030"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T21",
+      "area": "Extra Crystal at cap",
+      "setup": "ChơiExtraCrystal khi cap12 và đủ chỗ hand",
+      "expected": "Rút thêm card thay vì tăngcapacity13; side effects khác không suy đoán",
+      "source_id": "SUP-12684758284689",
+      "features": [
+        "F030"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T22",
+      "area": "First target enters range",
+      "setup": "Một eligible enemy vào range trước enemy khác, không tie/specialability",
+      "expected": "Unit tấn công eligible enemy đầu vào range; masking/range numeric từfixture",
+      "source_id": "WP21",
+      "features": [
+        "F007"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T23",
+      "area": "Movement toward enemy",
+      "setup": "Một normal unit, lane trống, khôngroot/stun/target",
+      "expected": "Vị trí tiến về thành đối phương theo lane; tốc độ cụ thể từverified card",
+      "source_id": "WP21",
+      "features": [
+        "F006"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T24",
+      "area": "Overtime entry",
+      "setup": "Giữ trận chưaterminal đến4phút, khôngcastleattack quanhmốc",
+      "expected": "Bắt đầu cơ chếcastle tự mấtmáu sau4phút theo support; firsttickexact cầncapture",
+      "source_id": "SUP-12694401083537",
+      "features": [
+        "F020"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T25",
+      "area": "Overtime escalation",
+      "setup": "Tiếp tục trận overtime, tách damage unit khỏi tựdamage",
+      "expected": "Mức tựdamage tăng theo thời gian; chưa đặt curve/cadence cụ thể",
+      "source_id": "SUP-12694401083537",
+      "features": [
+        "F020"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T26",
+      "area": "Metamorph level",
+      "setup": "ChơiMetamorph vào battlefield có eligible cards",
+      "expected": "Copy card ngẫu nhiên trênfield; level theoMetamorph, mappingrarity phảiverified",
+      "source_id": "SUP-12684727124113",
+      "features": [
+        "F018"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T27",
+      "area": "Mana Ritual level cap",
+      "setup": "DùngManaRitual rồi card ởlevelcao hơn mức ritual hỗtrợ",
+      "expected": "Effective card level chịu giới hạn ritual; không chỉ giảm cost rồi giữlevel vôđiềukiện",
+      "source_id": "SUP-12684727124113",
+      "features": [
+        "F013"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T28",
+      "area": "Giant Growth level cap",
+      "setup": "DùngGiantGrowth lêncardlevelvượt ngưỡng hỗtrợ",
+      "expected": "Level bịgiớihạn theoGiantGrowth; exactmapping/buffamount chờfixture",
+      "source_id": "SUP-12684727124113",
+      "features": [
+        "F013"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T29",
+      "area": "Meteor upgrade",
+      "setup": "Cùng eligible target/setup, soMeteor hai level kề đã đo",
+      "expected": "Levelcao tăng damage; không tự áp10% nếu không có bảng",
+      "source_id": "SUP-12684766514577",
+      "features": [
+        "F036"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T30",
+      "area": "Blizzard upgrade",
+      "setup": "Cùng targets, soBlizzard hai level kề đã đo",
+      "expected": "Upgrade tăng duration hiệu ứng; không tự biến thành tăngdamage",
+      "source_id": "SUP-12684766514577",
+      "features": [
+        "F013",
+        "F036"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T31",
+      "area": "Practice result",
+      "setup": "Hoàn tất một battle Practice",
+      "expected": "Không đổi trophy, không cấpchest từ kếtquảtrận; opponent làTrainer bot",
+      "source_id": "SUP-12684746317201",
+      "features": [
+        "F076"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T32",
+      "area": "Friendly result",
+      "setup": "Clan friendly đượcaccept và hoàn tất",
+      "expected": "Không đổi trophy/gold, không cấpchest",
+      "source_id": "SUP-12684695238289",
+      "features": [
+        "F071"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T33",
+      "area": "Equal-trophy win",
+      "setup": "Ranked với hai người trophy ngangnhau theo snapshot",
+      "expected": "Thắngđược+30 theo support; floor/reset ngoài fixture",
+      "source_id": "SUP-12684773222289",
+      "features": [
+        "F048"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    },
+    {
+      "id": "T34",
+      "area": "Championship effective level",
+      "setup": "Vào Championship với collectionlevelkhác nhau",
+      "expected": "Deck mode có Common9/Rare7/Epic4/Legendary1; chỉcardđãunlock",
+      "source_id": "SUP-12684749806609",
+      "features": [
+        "F085"
+      ],
+      "status": "Not run",
+      "oracle_scope": "Documented property; exact numeric/live oracle pending where noted"
+    }
+  ],
+  "proposed_engine_network": [
+    {
+      "id": "N01",
+      "area": "Determinism",
+      "setup": "Cùng seed/config/acceptedcommands chạy100seeds tại30/60/120renderFPS và headless",
+      "expected": "Per-tick statehash identical; hash loại cosmetic",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N02",
+      "area": "Retry",
+      "setup": "Gửi lại cùngPlayCard20lần sau timeout",
+      "expected": "Mộtcard/mana debit; cùngreceipt; payloadkhác cùngkey bịreject",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N03",
+      "area": "Forged combat",
+      "setup": "Client thêmdamage/HP/winner/owner trongcommand",
+      "expected": "Schema reject hoặc ignore invalidextra theo schema strict; khôngstatechange",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N04",
+      "area": "Hidden state",
+      "setup": "Inspect own snapshots/events/logs/live replay/API",
+      "expected": "Khôngopponent hand/futuredeck/RNG; filterauthorization",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N05",
+      "area": "Snapshot gap",
+      "setup": "Dropdelta và deliverdelta phụthuộcbaseđãmất",
+      "expected": "Requestfullresync; khôngapplydiffsai; reconnecthandđúng",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N06",
+      "area": "Network impairments",
+      "setup": "RTT300ms,jitter80ms,loss5%,disconnect15s",
+      "expected": "Servercontinues; onecardpercommand;fullrecovery; latencyreport",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N07",
+      "area": "Economy retry",
+      "setup": "50parallelclaim cùngchest/result plus DBtimeoutaftercommit",
+      "expected": "Mộtgrant; mộtreceipt; wallet/copiesconsistent",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N08",
+      "area": "Concurrent spend",
+      "setup": "Haiupgrades mỗi cái đủcost riêng nhưng tổngvượtgold",
+      "expected": "Chỉcácoperationđượcaffordcommitted; balancekhôngâm",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N09",
+      "area": "Fencing",
+      "setup": "Oldhost và newhost gửi hairesultkhác cho match",
+      "expected": "Chỉ currentepoch và mộtterminalresultđượcsettle",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N10",
+      "area": "Crash recovery",
+      "setup": "Killmatchhost trước/sau terminalcommit",
+      "expected": "Recoverdurablecheckpointđúng hoặcvoid; khônggrantclientwinner",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N11",
+      "area": "Mobile UX",
+      "setup": "Pointercancel/rotate/background/lowmana",
+      "expected": "Khôngplayngoàiýđịnh;safearea;networkresync;HUDmanafollowsserver",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N12",
+      "area": "Invite concurrency",
+      "setup": "Hai clanmateaccept mộtinvite cùnglúc;creatorcancelrace",
+      "expected": "Mộtacceptorhoặc cancelwinsCAS; không3-playerroom",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N13",
+      "area": "Version skew",
+      "setup": "Oldclient/stalerules/contenthash và savedreplayoldcore",
+      "expected": "Khôngsilentmix; updateprompt hoặc archiveplayerđúngversion",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    },
+    {
+      "id": "N14",
+      "area": "Input boundaries",
+      "setup": "NaN/Infinity/out-of-bounds/replayedseq/oversizepayload",
+      "expected": "Rejectbeforemutation; no crash;rate-limit;auditkhônglộsecrets",
+      "status": "Not run",
+      "oracle_scope": "Proposed web design"
+    }
+  ]
+}

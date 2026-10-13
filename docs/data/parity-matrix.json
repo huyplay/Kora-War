@@ -1,0 +1,1490 @@
+[
+  {
+    "feature_id": "F001",
+    "name": "Ba lane",
+    "original_behavior": "Ba lane nối hai phía; kích thước tương đối chưa đo.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F002",
+    "name": "HP thành chung",
+    "original_behavior": "Một pool HP cho mỗi thành, nhận sát thương từ cả ba lane.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F003",
+    "name": "Thành không tự tấn công",
+    "original_behavior": "Thành không tự phòng thủ bằng đòn tấn công theo whitepaper.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F004",
+    "name": "Phá thành thắng trận",
+    "original_behavior": "Phá thành đối phương thắng; simultaneous lethal chưa rõ.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F005",
+    "name": "Vùng triển khai tiến theo quân",
+    "original_behavior": "Wiki nói vùng đặt tiến theo quân tới nửa sân; chưa có live evidence.",
+    "confidence": "Unverified",
+    "evidence_ids": [
+      "WIKI-DEPLOY"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F006",
+    "name": "Quân tự di chuyển",
+    "original_behavior": "Unit tự tiến theo lane về phía thành địch.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F007",
+    "name": "Target đầu tiên vào tầm",
+    "original_behavior": "Whitepaper nói tấn công đối tượng đầu vào tầm; tie/retarget chưa rõ.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F008",
+    "name": "Melee/ranged",
+    "original_behavior": "Store mô tả melee và ranged; range/cooldown từng thẻ thiếu.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "STORE-IOS"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F009",
+    "name": "Projectiles/hit timing",
+    "original_behavior": "Chưa xác minh projectile speed, homing, hit tick và windup.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F010",
+    "name": "Collision/retarget",
+    "original_behavior": "Chưa xác minh body blocking, overlap, retarget và collision radius.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F011",
+    "name": "AOE/splash",
+    "original_behavior": "Wiki mô tả sát thương vùng; shape/radius/falloff chưa rõ.",
+    "confidence": "Unverified",
+    "evidence_ids": [
+      "WIKI-Bomb"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F012",
+    "name": "Healing",
+    "original_behavior": "Store có healer; amount/priority/overheal/death interaction chưa rõ.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "STORE-IOS"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F013",
+    "name": "Buff/debuff",
+    "original_behavior": "Support có hiệu ứng tăng/giới hạn level và Blizzard duration; bảng status thiếu.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684766514577"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F014",
+    "name": "Knockback/đổi lane",
+    "original_behavior": "Knockback/lane change có đầu mối cộng đồng; điều kiện chưa verified.",
+    "confidence": "Unverified",
+    "evidence_ids": [
+      "WIKI-DEPLOY"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F015",
+    "name": "Stun/freeze",
+    "original_behavior": "Wiki Ice Elemental nhắc freeze; duration/stacking thiếu.",
+    "confidence": "Unverified",
+    "evidence_ids": [
+      "WIKI-Ice_Elemental"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F016",
+    "name": "Shield/armor",
+    "original_behavior": "Tên Protection/Fortify không đủ xác nhận công thức shield/armor.",
+    "confidence": "Unverified",
+    "evidence_ids": [
+      "WIKI-Cards"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F017",
+    "name": "Summon/multi-lane",
+    "original_behavior": "Wiki mô tả summon và clone nhiều lane; stats/timing chưa rõ.",
+    "confidence": "Unverified",
+    "evidence_ids": [
+      "WIKI-Shaman"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F018",
+    "name": "Copy/transformation",
+    "original_behavior": "Metamorph copy card ngẫu nhiên trên field, level theo Metamorph.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684727124113"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F019",
+    "name": "Death/resurrection",
+    "original_behavior": "Có tên Resurrection/Phoenix; death trigger/revive ordering chưa đo.",
+    "confidence": "Unverified",
+    "evidence_ids": [
+      "WIKI-Cards"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F020",
+    "name": "Overtime",
+    "original_behavior": "Sau4phút thành tự mất máu tăng dần; cadence/curve chưa biết.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12694401083537"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F021",
+    "name": "Không hòa; tie-break chưa rõ",
+    "original_behavior": "Whitepaper nói không có hòa; luật khi hai thành cùng0HP chưa biết.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Core fixed-step + ability policies; gate U03/U05/U06",
+    "spec": "../02-feature-specs/combat-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F022",
+    "name": "Deck 7→14",
+    "original_behavior": "New deck7 không trùng; đạt200trophy mở deck14.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684724253329"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F023",
+    "name": "Duplicate limit",
+    "original_behavior": "Deck14 tối đa2 bản một non-Legendary và1 Legendary.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684724253329"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F024",
+    "name": "Năm deck slots",
+    "original_behavior": "Lưu5decks; trận dùng deck đang chọn.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684724253329"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F025",
+    "name": "Tay 5 tối đa 6",
+    "original_behavior": "Opening hand5, hand cap6.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684698308625"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F026",
+    "name": "Shuffle theo deck cycle",
+    "original_behavior": "Mỗi14 lá là một permutation của deck rồi shuffle chu kỳ tiếp.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684698308625"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F027",
+    "name": "Burn khi tay đầy",
+    "original_behavior": "Tay đầy làm mất lá định rút; double overflow cursor chưa rõ.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684698308625"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F028",
+    "name": "Rút trả 5 mana khi tay rỗng",
+    "original_behavior": "Tay rỗng có thể tiêu5mana để rút một extra card.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684698308625"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F029",
+    "name": "Double cards",
+    "original_behavior": "Sau5draws chuyển nhận2/cycle, tay5 chỉ nhận1; trigger counting còn mâu thuẫn.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684758851089"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F030",
+    "name": "Mana/crystals/Extra Crystal",
+    "original_behavior": "Capacity2→12, thêm crystal theo draw; Extra Crystal ở12 rút card.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684758284689"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F031",
+    "name": "Discard thẻ",
+    "original_behavior": "Discard chưa xác minh thao tác, phí và ảnh hưởng cycle.",
+    "confidence": "Unverified",
+    "evidence_ids": [
+      "WIKI-Cards"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F032",
+    "name": "Collection/detail",
+    "original_behavior": "Có collection/card detail/upgrade; toàn bộ UI states chưa capture.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684766514577"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F033",
+    "name": "Bốn rarity base",
+    "original_behavior": "Common, Rare, Epic, Legendary; tier NFT là trục khác.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F034",
+    "name": "Roster 68 lịch sử",
+    "original_behavior": "68thẻ được tài liệu lịch sử nêu; chưa chứng minh roster6.8.0.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12680882809105"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F035",
+    "name": "Stats từng thẻ/level",
+    "original_behavior": "Canonical cost/HP/damage/range/scaling chưa có dữ liệu live đủ.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F036",
+    "name": "Upgrade cards+gold",
+    "original_behavior": "Upgrade cần copies+gold; tăng HP/attack troops, Meteor damage, Blizzard duration.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684766514577"
+    ],
+    "web_design": "Catalog versioned + deck/hand reducers; gate U02/U04",
+    "spec": "../02-feature-specs/card-system.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F037",
+    "name": "Tutorial",
+    "original_behavior": "Có tutorial trước khi xem PlayerID trong Settings.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684589127825"
+    ],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F038",
+    "name": "Guest trước liên kết",
+    "original_behavior": "Progress có trước liên kết provider, guest lifecycle chỉ suy luận.",
+    "confidence": "Strongly Inferred",
+    "evidence_ids": [
+      "SUP-12684767583249"
+    ],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F039",
+    "name": "Save/restore account",
+    "original_behavior": "Có restore qua provider; cross-platform theo hướng dẫn Facebook lịch sử.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684767547665"
+    ],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F040",
+    "name": "Player ID",
+    "original_behavior": "PlayerID xem sau tutorial qua Settings.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684589127825"
+    ],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F041",
+    "name": "Tên không sửa",
+    "original_behavior": "Support nói không đổi tên đã đặt.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684752821649"
+    ],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F042",
+    "name": "Flag theo locale",
+    "original_behavior": "Flag theo locale, không phải lựa chọn quốc tịch được xác minh.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684767612689"
+    ],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F043",
+    "name": "Avatar/profile cosmetics",
+    "original_behavior": "Chưa xác minh avatar/cosmetic customization.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F044",
+    "name": "Player XP/level",
+    "original_behavior": "Nâng thẻ tạo XP, XP liên quan level người chơi; bảng thiếu.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F045",
+    "name": "Player level ảnh hưởng castle HP",
+    "original_behavior": "Whitepaper nói castle HP tăng10%/level; base/rounding thiếu.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F046",
+    "name": "Profile statistics",
+    "original_behavior": "Chưa biết toàn bộ statistics hiển thị.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F047",
+    "name": "Account deletion",
+    "original_behavior": "Settings có Delete Account, confirmation chờ15s và xóa không khôi phục.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12679594402577"
+    ],
+    "web_design": "Identity/progress/UI + domain constraints; gate U01/U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F048",
+    "name": "Trophy gain/loss",
+    "original_behavior": "Thắng đối thủ ngang trophy +30; chênh trophy điều chỉnh, formula thiếu.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684773222289"
+    ],
+    "web_design": "Lookup tables + transactional progression; gate U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F049",
+    "name": "Castles unlock",
+    "original_behavior": "Trophy mở castle và pool thẻ/phần thưởng; bảng ngưỡng hiện tại thiếu.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684760339601"
+    ],
+    "web_design": "Lookup tables + transactional progression; gate U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F050",
+    "name": "Leagues",
+    "original_behavior": "Support liệt kê league từ3800 đến7000trophy.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684758554769"
+    ],
+    "web_design": "Lookup tables + transactional progression; gate U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F051",
+    "name": "Season reset",
+    "original_behavior": "Season3tuần; reset/reward có mô tả, formula đầy đủ thiếu.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684758554769"
+    ],
+    "web_design": "Lookup tables + transactional progression; gate U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F052",
+    "name": "Forge boost tạm",
+    "original_behavior": "Forge có +1level tạm24h theo crystal phù hợp.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684776797201"
+    ],
+    "web_design": "Lookup tables + transactional progression; gate U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F053",
+    "name": "Forge mở max level",
+    "original_behavior": "Forge mở cap vĩnh viễn; vẫn cần copies+gold để nâng thực tế.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684732708113"
+    ],
+    "web_design": "Lookup tables + transactional progression; gate U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F054",
+    "name": "Leaderboard global",
+    "original_behavior": "Store quảng bá bảng xếp hạng; tie/update cadence thiếu.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "STORE-IOS"
+    ],
+    "web_design": "Lookup tables + transactional progression; gate U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F055",
+    "name": "Battle history/replay",
+    "original_behavior": "Support clan có chia sẻ replay; full history/private visibility chưa rõ.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684817694481"
+    ],
+    "web_design": "Lookup tables + transactional progression; gate U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F056",
+    "name": "Achievements trong game",
+    "original_behavior": "Chưa xác minh achievements nội bộ, không suy từ platform badges.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Lookup tables + transactional progression; gate U07",
+    "spec": "../02-feature-specs/progression.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F057",
+    "name": "Gold",
+    "original_behavior": "Gold dùng nâng thẻ, tạo clan và có phần thưởng.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684766514577"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F058",
+    "name": "Gems",
+    "original_behavior": "Gems dùng một số shop/continue/perks; giá phụ thuộc sản phẩm/vùng.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684817774993"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F059",
+    "name": "Forge crystals",
+    "original_behavior": "Forge crystals gồm rarity và magic; khác mana crystals.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684776797201"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F060",
+    "name": "Shop cards/chests",
+    "original_behavior": "Có shop cards/chests; Legendary tại castle cuối theo support.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684752380945"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F061",
+    "name": "Battle chest slots/unlock",
+    "original_behavior": "Whitepaper có4battle chest slots, unlock1/lần, Silver3h.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F062",
+    "name": "Free/Victory chests",
+    "original_behavior": "Free Chest4h, Victory Chest24h; mỗi loại stack2.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684731365521"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F063",
+    "name": "Daily coin limit",
+    "original_behavior": "Có giới hạn daily win coins, giá trị/reset timezone chưa biết.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684722867985"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F064",
+    "name": "Piggy Bank",
+    "original_behavior": "Piggy tích lũy qua chest; đầy mở bằng gems trong24h, không carry overflow.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684752705169"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F065",
+    "name": "Gem Capsule",
+    "original_behavior": "Capsule từ Victory Chest, tích tiêu gems trong24h, đầy mở miễn phí.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684817656721"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F066",
+    "name": "IAP/subscription",
+    "original_behavior": "Có IAP/subscription perks theo support; entitlement live chưa thử.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684817774993"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F067",
+    "name": "Daily shop reshuffle/reroll",
+    "original_behavior": "Subscription có shop reshuffle và chest perks; phạm vi cần đối chiếu.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684817774993"
+    ],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F068",
+    "name": "Drop odds/current prices",
+    "original_behavior": "Chưa có bảng giá/loot odds/reset/current caps đủ để triển khai exact.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Server ledger/chest/offer policy; gate U07/U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F069",
+    "name": "Online 1v1",
+    "original_behavior": "Realtime online1v1 được store mô tả; live server chưa thử.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "STORE-ANDROID"
+    ],
+    "web_design": "Authoritative rooms + command receipts; gate U01/U11",
+    "spec": "../02-feature-specs/multiplayer.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F070",
+    "name": "Trophy-based matchmaking",
+    "original_behavior": "Trophy là cơ sở ghép trận; expansion/latency/bot-fill chưa công khai.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "WP21"
+    ],
+    "web_design": "Authoritative rooms + command receipts; gate U01/U11",
+    "spec": "../02-feature-specs/multiplayer.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F071",
+    "name": "Friendly clan battles",
+    "original_behavior": "Clan invitation friendly; không gold/trophy/chest; invite pending chặn queue.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684695238289"
+    ],
+    "web_design": "Authoritative rooms + command receipts; gate U01/U11",
+    "spec": "../02-feature-specs/multiplayer.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F072",
+    "name": "Casual standalone queue",
+    "original_behavior": "Chưa tìm bằng chứng standalone casual queue.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Authoritative rooms + command receipts; gate U01/U11",
+    "spec": "../02-feature-specs/multiplayer.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F073",
+    "name": "Reconnect behavior gốc",
+    "original_behavior": "Chưa có reconnect/forfeit/timeouts của bản gốc.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Authoritative rooms + command receipts; gate U01/U11",
+    "spec": "../02-feature-specs/multiplayer.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F074",
+    "name": "Surrender/rematch",
+    "original_behavior": "Chưa xác minh surrender/rematch controls hoặc rules.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Authoritative rooms + command receipts; gate U01/U11",
+    "spec": "../02-feature-specs/multiplayer.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F075",
+    "name": "Result/reward",
+    "original_behavior": "Ranked result liên quan trophy/reward; grant algorithm chưa công khai.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684773222289"
+    ],
+    "web_design": "Authoritative rooms + command receipts; gate U01/U11",
+    "spec": "../02-feature-specs/multiplayer.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F076",
+    "name": "Practice bots",
+    "original_behavior": "Practice đấu Trainer theo trophy, không trophy/chest.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684746317201"
+    ],
+    "web_design": "Authoritative rooms + command receipts; gate U01/U11",
+    "spec": "../02-feature-specs/multiplayer.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F077",
+    "name": "Bot difficulty selector",
+    "original_behavior": "Không có bằng chứng selector độ khó bot.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Authoritative rooms + command receipts; gate U01/U11",
+    "spec": "../02-feature-specs/multiplayer.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F078",
+    "name": "Bot policy nội bộ",
+    "original_behavior": "Không công khai scoring/policy/decision rate của bot.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Authoritative rooms + command receipts; gate U01/U11",
+    "spec": "../02-feature-specs/multiplayer.md",
+    "priority": "P0",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F079",
+    "name": "Clan create/join/roles",
+    "original_behavior": "Level3 mở clan, tạo1000gold, open/invite/closed và roles.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684817694481"
+    ],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F080",
+    "name": "Clan chat",
+    "original_behavior": "Có clan chat; history/moderation/rate limits chưa rõ.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684817694481"
+    ],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F081",
+    "name": "Card donations",
+    "original_behavior": "Donate card đổi gold; quota và XP table thiếu.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684689322385"
+    ],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F082",
+    "name": "Clan leaderboard",
+    "original_behavior": "Có top clans; score aggregation/tie chưa rõ.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684817694481"
+    ],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F083",
+    "name": "Friend list riêng",
+    "original_behavior": "Chưa xác minh friend list riêng ngoài clan.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F084",
+    "name": "Daily game modes",
+    "original_behavior": "Castle4 mở daily mode; một mode/ngày, first-win reward, chuỗi7ngày.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684689584017"
+    ],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F085",
+    "name": "Championship/tournaments",
+    "original_behavior": "Grand/Master,10rounds, continue window1h; mode level9/7/4/1.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684749806609"
+    ],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F086",
+    "name": "Stickers/mute",
+    "original_behavior": "Sticker hiển thị3s, tối đa5 rồi khoảng2s throttle; Practice không dùng.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684689867537"
+    ],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F087",
+    "name": "Daily/weekly quests",
+    "original_behavior": "Chưa xác minh daily/weekly quests riêng.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F088",
+    "name": "Battle pass",
+    "original_behavior": "Chưa xác minh battle pass.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F089",
+    "name": "Push notifications",
+    "original_behavior": "Chưa xác minh push notification permission/settings/trigger.",
+    "confidence": "Unknown",
+    "evidence_ids": [],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F090",
+    "name": "Inbox",
+    "original_behavior": "Support Practice định vị icon cạnh inbox; nội dung inbox chưa rõ.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12684746317201"
+    ],
+    "web_design": "Clan/mode workflows theo config; gate U08",
+    "spec": "../02-feature-specs/screen-flow.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F091",
+    "name": "Ascended/Founder tier",
+    "original_behavior": "Tài liệu mô tả Ascended/Mythical/Founder; tình trạng2026 Unknown.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12680882809105"
+    ],
+    "web_design": "Adapter tách tier/combat/ownership; chặn production tới U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F092",
+    "name": "NFT stats/skins/animation",
+    "original_behavior": "Tier NFT có chỉ số/skin/animation đặc biệt, không chỉ cosmetic.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12680882809105"
+    ],
+    "web_design": "Adapter tách tier/combat/ownership; chặn production tới U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P1",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F093",
+    "name": "ACS/AP rewards",
+    "original_behavior": "AP/ACS rewards lịch sử; ví dụ support có bất thường, không dùng formula.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12680883480849"
+    ],
+    "web_design": "Adapter tách tier/combat/ownership; chặn production tới U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F094",
+    "name": "NFT upgrade reward rate",
+    "original_behavior": "NFT upgrade1–5 tăng reward rate, không tăng combat stats theo support.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12680837016721"
+    ],
+    "web_design": "Adapter tách tier/combat/ownership; chặn production tới U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  },
+  {
+    "feature_id": "F095",
+    "name": "Marketplace/rent/mint",
+    "original_behavior": "Có tài liệu marketplace/acquisition/rent/mint; hiện hành chưa xác minh.",
+    "confidence": "Confirmed",
+    "evidence_ids": [
+      "SUP-12680836810129"
+    ],
+    "web_design": "Adapter tách tier/combat/ownership; chặn production tới U09",
+    "spec": "../02-feature-specs/economy.md",
+    "priority": "P2",
+    "implementation": "Not started",
+    "verified_parity": "Not tested",
+    "research_ready": false,
+    "live_verified": false
+  }
+]

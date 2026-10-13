@@ -1,0 +1,1300 @@
+[
+  {
+    "id": "F001",
+    "group": "Battle",
+    "name": "Ba lane",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F002",
+    "group": "Battle",
+    "name": "HP thành chung",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F003",
+    "group": "Battle",
+    "name": "Thành không tự tấn công",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F004",
+    "group": "Battle",
+    "name": "Phá thành thắng trận",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F005",
+    "group": "Battle",
+    "name": "Vùng triển khai tiến theo quân",
+    "source_ids": [
+      "WIKI-DEPLOY"
+    ],
+    "confidence": "Unverified",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F006",
+    "group": "Battle",
+    "name": "Quân tự di chuyển",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F007",
+    "group": "Battle",
+    "name": "Target đầu tiên vào tầm",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F008",
+    "group": "Battle",
+    "name": "Melee/ranged",
+    "source_ids": [
+      "STORE-IOS"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F009",
+    "group": "Battle",
+    "name": "Projectiles/hit timing",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F010",
+    "group": "Battle",
+    "name": "Collision/retarget",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F011",
+    "group": "Battle",
+    "name": "AOE/splash",
+    "source_ids": [
+      "WIKI-Bomb"
+    ],
+    "confidence": "Unverified",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F012",
+    "group": "Battle",
+    "name": "Healing",
+    "source_ids": [
+      "STORE-IOS"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F013",
+    "group": "Battle",
+    "name": "Buff/debuff",
+    "source_ids": [
+      "SUP-12684766514577"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F014",
+    "group": "Battle",
+    "name": "Knockback/đổi lane",
+    "source_ids": [
+      "WIKI-DEPLOY"
+    ],
+    "confidence": "Unverified",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F015",
+    "group": "Battle",
+    "name": "Stun/freeze",
+    "source_ids": [
+      "WIKI-Ice_Elemental"
+    ],
+    "confidence": "Unverified",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F016",
+    "group": "Battle",
+    "name": "Shield/armor",
+    "source_ids": [
+      "WIKI-Cards"
+    ],
+    "confidence": "Unverified",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F017",
+    "group": "Battle",
+    "name": "Summon/multi-lane",
+    "source_ids": [
+      "WIKI-Shaman"
+    ],
+    "confidence": "Unverified",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F018",
+    "group": "Battle",
+    "name": "Copy/transformation",
+    "source_ids": [
+      "SUP-12684727124113"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F019",
+    "group": "Battle",
+    "name": "Death/resurrection",
+    "source_ids": [
+      "WIKI-Cards"
+    ],
+    "confidence": "Unverified",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F020",
+    "group": "Battle",
+    "name": "Overtime",
+    "source_ids": [
+      "SUP-12694401083537"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F021",
+    "group": "Battle",
+    "name": "Không hòa; tie-break chưa rõ",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F022",
+    "group": "Cards",
+    "name": "Deck 7→14",
+    "source_ids": [
+      "SUP-12684724253329"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F023",
+    "group": "Cards",
+    "name": "Duplicate limit",
+    "source_ids": [
+      "SUP-12684724253329"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F024",
+    "group": "Cards",
+    "name": "Năm deck slots",
+    "source_ids": [
+      "SUP-12684724253329"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F025",
+    "group": "Cards",
+    "name": "Tay 5 tối đa 6",
+    "source_ids": [
+      "SUP-12684698308625"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F026",
+    "group": "Cards",
+    "name": "Shuffle theo deck cycle",
+    "source_ids": [
+      "SUP-12684698308625"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F027",
+    "group": "Cards",
+    "name": "Burn khi tay đầy",
+    "source_ids": [
+      "SUP-12684698308625"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F028",
+    "group": "Cards",
+    "name": "Rút trả 5 mana khi tay rỗng",
+    "source_ids": [
+      "SUP-12684698308625"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F029",
+    "group": "Cards",
+    "name": "Double cards",
+    "source_ids": [
+      "SUP-12684758851089"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F030",
+    "group": "Cards",
+    "name": "Mana/crystals/Extra Crystal",
+    "source_ids": [
+      "SUP-12684758284689"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F031",
+    "group": "Cards",
+    "name": "Discard thẻ",
+    "source_ids": [
+      "WIKI-Cards"
+    ],
+    "confidence": "Unverified",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F032",
+    "group": "Cards",
+    "name": "Collection/detail",
+    "source_ids": [
+      "SUP-12684766514577"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F033",
+    "group": "Cards",
+    "name": "Bốn rarity base",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F034",
+    "group": "Cards",
+    "name": "Roster 68 lịch sử",
+    "source_ids": [
+      "SUP-12680882809105"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F035",
+    "group": "Cards",
+    "name": "Stats từng thẻ/level",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F036",
+    "group": "Cards",
+    "name": "Upgrade cards+gold",
+    "source_ids": [
+      "SUP-12684766514577"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F037",
+    "group": "Player",
+    "name": "Tutorial",
+    "source_ids": [
+      "SUP-12684589127825"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F038",
+    "group": "Player",
+    "name": "Guest trước liên kết",
+    "source_ids": [
+      "SUP-12684767583249"
+    ],
+    "confidence": "Strongly Inferred",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F039",
+    "group": "Player",
+    "name": "Save/restore account",
+    "source_ids": [
+      "SUP-12684767547665"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F040",
+    "group": "Player",
+    "name": "Player ID",
+    "source_ids": [
+      "SUP-12684589127825"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F041",
+    "group": "Player",
+    "name": "Tên không sửa",
+    "source_ids": [
+      "SUP-12684752821649"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F042",
+    "group": "Player",
+    "name": "Flag theo locale",
+    "source_ids": [
+      "SUP-12684767612689"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F043",
+    "group": "Player",
+    "name": "Avatar/profile cosmetics",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F044",
+    "group": "Player",
+    "name": "Player XP/level",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F045",
+    "group": "Player",
+    "name": "Player level ảnh hưởng castle HP",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F046",
+    "group": "Player",
+    "name": "Profile statistics",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F047",
+    "group": "Player",
+    "name": "Account deletion",
+    "source_ids": [
+      "SUP-12679594402577"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F048",
+    "group": "Progression",
+    "name": "Trophy gain/loss",
+    "source_ids": [
+      "SUP-12684773222289"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F049",
+    "group": "Progression",
+    "name": "Castles unlock",
+    "source_ids": [
+      "SUP-12684760339601"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F050",
+    "group": "Progression",
+    "name": "Leagues",
+    "source_ids": [
+      "SUP-12684758554769"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F051",
+    "group": "Progression",
+    "name": "Season reset",
+    "source_ids": [
+      "SUP-12684758554769"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F052",
+    "group": "Progression",
+    "name": "Forge boost tạm",
+    "source_ids": [
+      "SUP-12684776797201"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F053",
+    "group": "Progression",
+    "name": "Forge mở max level",
+    "source_ids": [
+      "SUP-12684732708113"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F054",
+    "group": "Progression",
+    "name": "Leaderboard global",
+    "source_ids": [
+      "STORE-IOS"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F055",
+    "group": "Progression",
+    "name": "Battle history/replay",
+    "source_ids": [
+      "SUP-12684817694481"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F056",
+    "group": "Progression",
+    "name": "Achievements trong game",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F057",
+    "group": "Economy",
+    "name": "Gold",
+    "source_ids": [
+      "SUP-12684766514577"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F058",
+    "group": "Economy",
+    "name": "Gems",
+    "source_ids": [
+      "SUP-12684817774993"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F059",
+    "group": "Economy",
+    "name": "Forge crystals",
+    "source_ids": [
+      "SUP-12684776797201"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F060",
+    "group": "Economy",
+    "name": "Shop cards/chests",
+    "source_ids": [
+      "SUP-12684752380945"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F061",
+    "group": "Economy",
+    "name": "Battle chest slots/unlock",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F062",
+    "group": "Economy",
+    "name": "Free/Victory chests",
+    "source_ids": [
+      "SUP-12684731365521"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F063",
+    "group": "Economy",
+    "name": "Daily coin limit",
+    "source_ids": [
+      "SUP-12684722867985"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F064",
+    "group": "Economy",
+    "name": "Piggy Bank",
+    "source_ids": [
+      "SUP-12684752705169"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F065",
+    "group": "Economy",
+    "name": "Gem Capsule",
+    "source_ids": [
+      "SUP-12684817656721"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F066",
+    "group": "Economy",
+    "name": "IAP/subscription",
+    "source_ids": [
+      "SUP-12684817774993"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F067",
+    "group": "Economy",
+    "name": "Daily shop reshuffle/reroll",
+    "source_ids": [
+      "SUP-12684817774993"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F068",
+    "group": "Economy",
+    "name": "Drop odds/current prices",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F069",
+    "group": "Multiplayer",
+    "name": "Online 1v1",
+    "source_ids": [
+      "STORE-ANDROID"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F070",
+    "group": "Multiplayer",
+    "name": "Trophy-based matchmaking",
+    "source_ids": [
+      "WP21"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F071",
+    "group": "Multiplayer",
+    "name": "Friendly clan battles",
+    "source_ids": [
+      "SUP-12684695238289"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F072",
+    "group": "Multiplayer",
+    "name": "Casual standalone queue",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F073",
+    "group": "Multiplayer",
+    "name": "Reconnect behavior gốc",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F074",
+    "group": "Multiplayer",
+    "name": "Surrender/rematch",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F075",
+    "group": "Multiplayer",
+    "name": "Result/reward",
+    "source_ids": [
+      "SUP-12684773222289"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F076",
+    "group": "Multiplayer",
+    "name": "Practice bots",
+    "source_ids": [
+      "SUP-12684746317201"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F077",
+    "group": "Multiplayer",
+    "name": "Bot difficulty selector",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F078",
+    "group": "Multiplayer",
+    "name": "Bot policy nội bộ",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P0",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F079",
+    "group": "Social/LiveOps",
+    "name": "Clan create/join/roles",
+    "source_ids": [
+      "SUP-12684817694481"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F080",
+    "group": "Social/LiveOps",
+    "name": "Clan chat",
+    "source_ids": [
+      "SUP-12684817694481"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F081",
+    "group": "Social/LiveOps",
+    "name": "Card donations",
+    "source_ids": [
+      "SUP-12684689322385"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F082",
+    "group": "Social/LiveOps",
+    "name": "Clan leaderboard",
+    "source_ids": [
+      "SUP-12684817694481"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F083",
+    "group": "Social/LiveOps",
+    "name": "Friend list riêng",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F084",
+    "group": "Social/LiveOps",
+    "name": "Daily game modes",
+    "source_ids": [
+      "SUP-12684689584017"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F085",
+    "group": "Social/LiveOps",
+    "name": "Championship/tournaments",
+    "source_ids": [
+      "SUP-12684749806609"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F086",
+    "group": "Social/LiveOps",
+    "name": "Stickers/mute",
+    "source_ids": [
+      "SUP-12684689867537"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F087",
+    "group": "Social/LiveOps",
+    "name": "Daily/weekly quests",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F088",
+    "group": "Social/LiveOps",
+    "name": "Battle pass",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F089",
+    "group": "Social/LiveOps",
+    "name": "Push notifications",
+    "source_ids": [],
+    "confidence": "Unknown",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Needs verification"
+  },
+  {
+    "id": "F090",
+    "group": "Social/LiveOps",
+    "name": "Inbox",
+    "source_ids": [
+      "SUP-12684746317201"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F091",
+    "group": "Ascension",
+    "name": "Ascended/Founder tier",
+    "source_ids": [
+      "SUP-12680882809105"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F092",
+    "group": "Ascension",
+    "name": "NFT stats/skins/animation",
+    "source_ids": [
+      "SUP-12680882809105"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P1",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F093",
+    "group": "Ascension",
+    "name": "ACS/AP rewards",
+    "source_ids": [
+      "SUP-12680883480849"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F094",
+    "group": "Ascension",
+    "name": "NFT upgrade reward rate",
+    "source_ids": [
+      "SUP-12680837016721"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  },
+  {
+    "id": "F095",
+    "group": "Ascension",
+    "name": "Marketplace/rent/mint",
+    "source_ids": [
+      "SUP-12680836810129"
+    ],
+    "confidence": "Confirmed",
+    "live_2026_verified": false,
+    "priority": "P2",
+    "implementation": "Not started",
+    "parity": "Not tested",
+    "scope": "Documented/historical"
+  }
+]

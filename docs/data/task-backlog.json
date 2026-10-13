@@ -1,0 +1,733 @@
+[
+  {
+    "id": "R01",
+    "priority": "P0",
+    "phase": "R",
+    "dependencies": [
+      "none"
+    ],
+    "task": "Ghi app build/account/OS/locale và thử live PvP",
+    "traceability": "U01",
+    "done_when": "Evidence manifest;3 trận complete hoặc lý do inaccessible",
+    "status": "Not started"
+  },
+  {
+    "id": "R02",
+    "priority": "P0",
+    "phase": "R",
+    "dependencies": [
+      "R01"
+    ],
+    "task": "Đo draw/crystal/mana và cursor overflow",
+    "traceability": "U02",
+    "done_when": "10 captures; resolve 7/8/7–10s,45s vs5draw; dữ liệu sai số",
+    "status": "Not started"
+  },
+  {
+    "id": "R03",
+    "priority": "P0",
+    "phase": "R",
+    "dependencies": [
+      "R01"
+    ],
+    "task": "Đo deployment frontier và lane geometry",
+    "traceability": "U03",
+    "done_when": "20 vị trí/lane; valid/invalid bounds, push/retreat",
+    "status": "Not started"
+  },
+  {
+    "id": "R04",
+    "priority": "P0",
+    "phase": "R",
+    "dependencies": [
+      "R01"
+    ],
+    "task": "Thu roster/detail và normalize aliases",
+    "traceability": "U04",
+    "done_when": "66 candidates đối chiếu68 lịch sử; mọi tên có evidence",
+    "status": "Not started"
+  },
+  {
+    "id": "R05",
+    "priority": "P0",
+    "phase": "R",
+    "dependencies": [
+      "R04"
+    ],
+    "task": "Chốt stats8–12 thẻ cho playable slice",
+    "traceability": "U04",
+    "done_when": "Required fields đủ; source version/level/units, no default unknown",
+    "status": "Not started"
+  },
+  {
+    "id": "R06",
+    "priority": "P0",
+    "phase": "R",
+    "dependencies": [
+      "R03",
+      "R05"
+    ],
+    "task": "Đo target/collision/hit/projectile",
+    "traceability": "U05",
+    "done_when": "Equal-range/target death traces và temporal error",
+    "status": "Not started"
+  },
+  {
+    "id": "R07",
+    "priority": "P0",
+    "phase": "R",
+    "dependencies": [
+      "R01"
+    ],
+    "task": "Đo overtime/simultaneous lethal",
+    "traceability": "U06",
+    "done_when": "Curve+cadence+winner precedence hoặc block verified profile",
+    "status": "Not started"
+  },
+  {
+    "id": "R08",
+    "priority": "P0",
+    "phase": "R",
+    "dependencies": [
+      "R01"
+    ],
+    "task": "Đo disconnect/rejoin/loading fail",
+    "traceability": "U11",
+    "done_when": "Hai controlled clients,5/15/30/60s interruptions",
+    "status": "Not started"
+  },
+  {
+    "id": "R09",
+    "priority": "P1",
+    "phase": "R",
+    "dependencies": [
+      "R01"
+    ],
+    "task": "Thu meta/modes/NFT current availability",
+    "traceability": "U07,U08,U09",
+    "done_when": "Existence lịch sử/live tách; announcement link; không giao dịch NFT",
+    "status": "Not started"
+  },
+  {
+    "id": "R10",
+    "priority": "P0",
+    "phase": "R",
+    "dependencies": [
+      "R01"
+    ],
+    "task": "Camera/animation/mobile interaction captures",
+    "traceability": "U10",
+    "done_when": "Timestamps và layout metrics3arenas,10abilities",
+    "status": "Not started"
+  },
+  {
+    "id": "A01",
+    "priority": "P0",
+    "phase": "A",
+    "dependencies": [
+      "R02",
+      "R03",
+      "R05",
+      "R06"
+    ],
+    "task": "Scaffold frontend/core/backend/test projects",
+    "traceability": "Architecture",
+    "done_when": "CI build, lint, contract version; chưa mock luật unknown làm thật",
+    "status": "Not started"
+  },
+  {
+    "id": "A02",
+    "priority": "P0",
+    "phase": "A",
+    "dependencies": [
+      "A01"
+    ],
+    "task": "C# WASM deterministic/load spike",
+    "traceability": "A-WASM",
+    "done_when": "Server/WASM hashes equal, payload/time measured hoặc TS ADR",
+    "status": "Not started"
+  },
+  {
+    "id": "A03",
+    "priority": "P0",
+    "phase": "A",
+    "dependencies": [
+      "R10",
+      "A01"
+    ],
+    "task": "Ba renderer benchmark với art hợp pháp",
+    "traceability": "U12,U14",
+    "done_when": "Report B0; choose engine bằng số liệu",
+    "status": "Not started"
+  },
+  {
+    "id": "A04",
+    "priority": "P0",
+    "phase": "A",
+    "dependencies": [
+      "A03"
+    ],
+    "task": "Battle shell/loading/error/resize",
+    "traceability": "S01,S06",
+    "done_when": "Mobile safe area, DPR,30/60 profile,context restore",
+    "status": "Not started"
+  },
+  {
+    "id": "A05",
+    "priority": "P0",
+    "phase": "A",
+    "dependencies": [
+      "A04",
+      "R03"
+    ],
+    "task": "Touch drag/drop/cancel + accessibility controls",
+    "traceability": "S06",
+    "done_when": "Invalid zone/low mana clear;pointercancel no play",
+    "status": "Not started"
+  },
+  {
+    "id": "A06",
+    "priority": "P0",
+    "phase": "A",
+    "dependencies": [
+      "R05",
+      "A01"
+    ],
+    "task": "Content schema/validator/versioned manifest",
+    "traceability": "F035",
+    "done_when": "Unknown stats reject parity publication; lab namespace separate",
+    "status": "Not started"
+  },
+  {
+    "id": "B01",
+    "priority": "P0",
+    "phase": "B",
+    "dependencies": [
+      "A02",
+      "A06"
+    ],
+    "task": "Fixed-step state/RNG/event queue",
+    "traceability": "C01–C20",
+    "done_when": "Replay deterministic across runtimes, integer overflow tests",
+    "status": "Not started"
+  },
+  {
+    "id": "B02",
+    "priority": "P0",
+    "phase": "B",
+    "dependencies": [
+      "B01",
+      "R02"
+    ],
+    "task": "Deck/hand/shuffle/mana reducer",
+    "traceability": "F022–F036",
+    "done_when": "Documented tests T06–T19/T28–T31 mapped",
+    "status": "Not started"
+  },
+  {
+    "id": "B03",
+    "priority": "P0",
+    "phase": "B",
+    "dependencies": [
+      "B01",
+      "R03"
+    ],
+    "task": "Lane spawn/movement/target/collision",
+    "traceability": "C01–C04",
+    "done_when": "Swept range and mirrored lane tests; measured target policy",
+    "status": "Not started"
+  },
+  {
+    "id": "B04",
+    "priority": "P0",
+    "phase": "B",
+    "dependencies": [
+      "B03",
+      "R06"
+    ],
+    "task": "Melee/ranged/projectile/HP/death",
+    "traceability": "C05–C10",
+    "done_when": "Attack semantic ticks; no damage animation side effects",
+    "status": "Not started"
+  },
+  {
+    "id": "B05",
+    "priority": "P0",
+    "phase": "B",
+    "dependencies": [
+      "B04",
+      "R05"
+    ],
+    "task": "Spell/status/heal/summon/copy slice",
+    "traceability": "C11–C19",
+    "done_when": "Validated ability parameters; overlapping effects fixtures",
+    "status": "Not started"
+  },
+  {
+    "id": "B06",
+    "priority": "P0",
+    "phase": "B",
+    "dependencies": [
+      "B05",
+      "R07"
+    ],
+    "task": "Castle/OT/result state machine",
+    "traceability": "F001–F021",
+    "done_when": "Shared HP,terminal once,simultaneous lethal verified or blocked",
+    "status": "Not started"
+  },
+  {
+    "id": "B07",
+    "priority": "P0",
+    "phase": "B",
+    "dependencies": [
+      "B02",
+      "B06",
+      "A05"
+    ],
+    "task": "Connect renderer/HUD/audio to core",
+    "traceability": "S06",
+    "done_when": "30/60/120 renderFPS same simhash; private view schema",
+    "status": "Not started"
+  },
+  {
+    "id": "B08",
+    "priority": "P0",
+    "phase": "B",
+    "dependencies": [
+      "B07"
+    ],
+    "task": "Local full match/reset/replay",
+    "traceability": "MVP",
+    "done_when": "20 match soak; deterministic replay; no listener/texture leaks",
+    "status": "Not started"
+  },
+  {
+    "id": "C01",
+    "priority": "P0",
+    "phase": "C",
+    "dependencies": [
+      "B08"
+    ],
+    "task": "Utility AI via legal command API",
+    "traceability": "U13",
+    "done_when": "No hidden info; seeded policy tests; blocked action fallback",
+    "status": "Not started"
+  },
+  {
+    "id": "C02",
+    "priority": "P1",
+    "phase": "C",
+    "dependencies": [
+      "C01"
+    ],
+    "task": "Deck collection/detail/local persistence UI",
+    "traceability": "F024,F032",
+    "done_when": "5 slots validation; corrupt save reset/export path",
+    "status": "Not started"
+  },
+  {
+    "id": "C03",
+    "priority": "P1",
+    "phase": "C",
+    "dependencies": [
+      "C02"
+    ],
+    "task": "Tutorial/practice/result flow",
+    "traceability": "F037,F076",
+    "done_when": "First battle completable touch; practice no ranked rewards",
+    "status": "Not started"
+  },
+  {
+    "id": "D01",
+    "priority": "P0",
+    "phase": "D",
+    "dependencies": [
+      "C03"
+    ],
+    "task": "Identity/session/provider link",
+    "traceability": "Player",
+    "done_when": "Token rotate/revoke; ownership tests; account conflict UI",
+    "status": "Not started"
+  },
+  {
+    "id": "D02",
+    "priority": "P0",
+    "phase": "D",
+    "dependencies": [
+      "D01"
+    ],
+    "task": "Postgres migrations/deck snapshots",
+    "traceability": "Database",
+    "done_when": "Empty+upgrade migration; transactional revision constraints",
+    "status": "Not started"
+  },
+  {
+    "id": "D03",
+    "priority": "P0",
+    "phase": "D",
+    "dependencies": [
+      "D02"
+    ],
+    "task": "Match actor lifecycle/fencing",
+    "traceability": "Authority",
+    "done_when": "Single writer,terminal guard,host epoch checked",
+    "status": "Not started"
+  },
+  {
+    "id": "D04",
+    "priority": "P0",
+    "phase": "D",
+    "dependencies": [
+      "D03"
+    ],
+    "task": "SignalR command/receipt + filtered snapshots",
+    "traceability": "API",
+    "done_when": "Seq/dedup/rate limit; forged owner/damage rejected",
+    "status": "Not started"
+  },
+  {
+    "id": "D05",
+    "priority": "P0",
+    "phase": "D",
+    "dependencies": [
+      "D04"
+    ],
+    "task": "Interpolation/resync/mobile network recovery",
+    "traceability": "U11",
+    "done_when": "Jitter/loss/resume tests; full snapshot recovery; no duplicate card",
+    "status": "Not started"
+  },
+  {
+    "id": "D06",
+    "priority": "P0",
+    "phase": "D",
+    "dependencies": [
+      "D03",
+      "D02"
+    ],
+    "task": "Queue tickets/trophy range/loading",
+    "traceability": "Matchmaking",
+    "done_when": "No duplicate assignment; cancel/assign race",
+    "status": "Not started"
+  },
+  {
+    "id": "D07",
+    "priority": "P0",
+    "phase": "D",
+    "dependencies": [
+      "D04",
+      "D02"
+    ],
+    "task": "Result settlement/reward ledger/outbox",
+    "traceability": "Economy",
+    "done_when": "Replay50 retries=one grant; old worker cannot settle",
+    "status": "Not started"
+  },
+  {
+    "id": "D08",
+    "priority": "P0",
+    "phase": "D",
+    "dependencies": [
+      "D05",
+      "D06",
+      "D07"
+    ],
+    "task": "Online duel acceptance",
+    "traceability": "PvP",
+    "done_when": "2 real clients complete10 matches; network/security tests",
+    "status": "Not started"
+  },
+  {
+    "id": "E01",
+    "priority": "P1",
+    "phase": "E",
+    "dependencies": [
+      "R09",
+      "D08"
+    ],
+    "task": "Complete upgrade/XP/trophy/arena tables",
+    "traceability": "U07",
+    "done_when": "No invented Elo/cost/drop odds; lookup source coverage",
+    "status": "Not started"
+  },
+  {
+    "id": "E02",
+    "priority": "P1",
+    "phase": "E",
+    "dependencies": [
+      "E01"
+    ],
+    "task": "Collection upgrade and transactional wallet",
+    "traceability": "F036",
+    "done_when": "Concurrent spends no negative balance; UI receipt",
+    "status": "Not started"
+  },
+  {
+    "id": "E03",
+    "priority": "P1",
+    "phase": "E",
+    "dependencies": [
+      "E02"
+    ],
+    "task": "Battle/free/victory chest state machines",
+    "traceability": "F061,F062",
+    "done_when": "Stack/unlock timers,retry,full slots tested",
+    "status": "Not started"
+  },
+  {
+    "id": "E04",
+    "priority": "P1",
+    "phase": "E",
+    "dependencies": [
+      "E03"
+    ],
+    "task": "Shop offers/piggy/capsule/subscription gates",
+    "traceability": "Economy",
+    "done_when": "Price version; eligibility; unknown thresholds disable feature",
+    "status": "Not started"
+  },
+  {
+    "id": "E05",
+    "priority": "P1",
+    "phase": "E",
+    "dependencies": [
+      "E04"
+    ],
+    "task": "Payment sandbox webhook entitlement/refund",
+    "traceability": "F066",
+    "done_when": "Provider signatures,duplicate/reordered callbacks,refund receipt",
+    "status": "Not started"
+  },
+  {
+    "id": "E06",
+    "priority": "P0",
+    "phase": "E",
+    "dependencies": [
+      "R04",
+      "B05"
+    ],
+    "task": "Implement remainder of verified roster",
+    "traceability": "U04",
+    "done_when": "Each card levels/abilities/animation links; interaction fixtures",
+    "status": "Not started"
+  },
+  {
+    "id": "E07",
+    "priority": "P1",
+    "phase": "E",
+    "dependencies": [
+      "E02",
+      "R09"
+    ],
+    "task": "Forge expiry/permanent cap/season reset",
+    "traceability": "Progression",
+    "done_when": "Time boundary+frozen match snapshot; idempotent award",
+    "status": "Not started"
+  },
+  {
+    "id": "E08",
+    "priority": "P1",
+    "phase": "E",
+    "dependencies": [
+      "E06",
+      "E07"
+    ],
+    "task": "Economy/progression end-to-end review",
+    "traceability": "Meta",
+    "done_when": "Chest→upgrade→arena→battle acceptance plus audit export",
+    "status": "Not started"
+  },
+  {
+    "id": "F01",
+    "priority": "P1",
+    "phase": "F",
+    "dependencies": [
+      "E08",
+      "R09"
+    ],
+    "task": "Clans memberships/roles/chat",
+    "traceability": "Social",
+    "done_when": "Permission matrix,capacity race,report/mute",
+    "status": "Not started"
+  },
+  {
+    "id": "F02",
+    "priority": "P1",
+    "phase": "F",
+    "dependencies": [
+      "F01"
+    ],
+    "task": "Donations ledger/quotas",
+    "traceability": "F081",
+    "done_when": "Donor/recipient balances atomic;limit config verified",
+    "status": "Not started"
+  },
+  {
+    "id": "F03",
+    "priority": "P1",
+    "phase": "F",
+    "dependencies": [
+      "F01",
+      "D06"
+    ],
+    "task": "Friendly invitation/accept/cancel",
+    "traceability": "F071",
+    "done_when": "CAS accept;no trophy/chest/gold; queue excluded while pending",
+    "status": "Not started"
+  },
+  {
+    "id": "F04",
+    "priority": "P1",
+    "phase": "F",
+    "dependencies": [
+      "F01",
+      "E07"
+    ],
+    "task": "Leaderboards/seasons projections",
+    "traceability": "F054,F082",
+    "done_when": "Stable paging/watermark;rebuild from authoritative scores",
+    "status": "Not started"
+  },
+  {
+    "id": "F05",
+    "priority": "P1",
+    "phase": "F",
+    "dependencies": [
+      "D08",
+      "F01"
+    ],
+    "task": "Replay recording/authorized playback",
+    "traceability": "F055",
+    "done_when": "Same core version;hidden state policy;seek checkpoints",
+    "status": "Not started"
+  },
+  {
+    "id": "F06",
+    "priority": "P1",
+    "phase": "F",
+    "dependencies": [
+      "R09",
+      "F03"
+    ],
+    "task": "Daily modes/championship rules",
+    "traceability": "U08",
+    "done_when": "Per-mode rules+reward tests;no guessing fees/caps",
+    "status": "Not started"
+  },
+  {
+    "id": "F07",
+    "priority": "P1",
+    "phase": "F",
+    "dependencies": [
+      "A03",
+      "E06"
+    ],
+    "task": "Final original models/atlases/rig/VFX/audio",
+    "traceability": "Asset pipeline",
+    "done_when": "License ledger,clip semantics,mobile budget for full roster",
+    "status": "Not started"
+  },
+  {
+    "id": "F08",
+    "priority": "P1",
+    "phase": "F",
+    "dependencies": [
+      "F07",
+      "F06"
+    ],
+    "task": "25-screen UI states/accessibility/device pass",
+    "traceability": "S01–S25",
+    "done_when": "Loading/empty/error/offline/permission each screen",
+    "status": "Not started"
+  },
+  {
+    "id": "G01",
+    "priority": "P0",
+    "phase": "G",
+    "dependencies": [
+      "F08",
+      "D08"
+    ],
+    "task": "Cross-browser and thermal performance",
+    "traceability": "B01–B12",
+    "done_when": "Measured budgets;no unexplained>10% regression",
+    "status": "Not started"
+  },
+  {
+    "id": "G02",
+    "priority": "P0",
+    "phase": "G",
+    "dependencies": [
+      "D08",
+      "E08"
+    ],
+    "task": "Concurrency/fault/security/load suite",
+    "traceability": "N01–N14",
+    "done_when": "Result/wallet consistency after retries/crash;capacity documented",
+    "status": "Not started"
+  },
+  {
+    "id": "G03",
+    "priority": "P0",
+    "phase": "G",
+    "dependencies": [
+      "G02"
+    ],
+    "task": "Docker/staging/CDN/metrics/secrets",
+    "traceability": "Deployment",
+    "done_when": "One command deploy immutable version;health/drain config",
+    "status": "Not started"
+  },
+  {
+    "id": "G04",
+    "priority": "P0",
+    "phase": "G",
+    "dependencies": [
+      "G03"
+    ],
+    "task": "Backup restore/migration/rollback drill",
+    "traceability": "Ops",
+    "done_when": "RPO/RTO measured;ledger reconciliation pass",
+    "status": "Not started"
+  },
+  {
+    "id": "G05",
+    "priority": "P0",
+    "phase": "G",
+    "dependencies": [
+      "G01",
+      "G02",
+      "G04"
+    ],
+    "task": "Parity evidence audit + legal asset audit",
+    "traceability": "Acceptance",
+    "done_when": "Every claimed feature links passing evidence;deviations disclosed",
+    "status": "Not started"
+  },
+  {
+    "id": "G06",
+    "priority": "P0",
+    "phase": "G",
+    "dependencies": [
+      "G05"
+    ],
+    "task": "Production release with canary/drain",
+    "traceability": "Release",
+    "done_when": "Error/latency alarms;rollback rehearsed;support/runbook",
+    "status": "Not started"
+  },
+  {
+    "id": "X01",
+    "priority": "P2",
+    "phase": "Extension",
+    "dependencies": [
+      "R09",
+      "U09 resolved"
+    ],
+    "task": "Ascension/marketplace equivalent feasibility",
+    "traceability": "U09",
+    "done_when": "Scope/live proof;separate40–80day estimate;no claim omitted parity",
+    "status": "Not started"
+  }
+]

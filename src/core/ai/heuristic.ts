@@ -1,4 +1,4 @@
-import { HERO_MAP, LANES } from '../../data/index';
+import { LANES } from '../../data/index';
 import type { Battle } from '../Battle';
 import type { Side } from '../types';
 export function runAI(battle: Battle, side: Side = 1) {
@@ -12,8 +12,8 @@ export function runAI(battle: Battle, side: Side = 1) {
     const lane = lanes[0].lane;
     if (battle.resonance[side] >= 100 && battle.units.filter(u => u.side !== side && u.lane === lane).length >= 2)
         battle.pulse(side, lane);
-    const front = battle.units.some(u => u.side === side && u.lane === lane && HERO_MAP[u.heroId].range < 2);
-    const affordable = battle.decks[side].filter(id => !battle.canPlay(side, id, lane)).map(id => ({ id, score: battle.random() + (front ? (HERO_MAP[id].range > 2 ? 1 : 0) : (HERO_MAP[id].hp > 300 ? 1 : 0)) })).sort((a, b) => b.score - a.score);
+    const front = battle.units.some(u => u.side === side && u.lane === lane && battle.heroes[u.heroId].range < 2);
+    const affordable = battle.decks[side].filter(id => !battle.canPlay(side, id, lane)).map(id => ({ id, score: battle.random() + (front ? (battle.heroes[id].range > 2 ? 1 : 0) : (battle.heroes[id].hp > 300 ? 1 : 0)) })).sort((a, b) => b.score - a.score);
     if (affordable.length)
         battle.play(side, affordable[0].id, lane);
 }

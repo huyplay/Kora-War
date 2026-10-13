@@ -1,4 +1,4 @@
-import { ABILITIES, type TargetQuery } from '../../data/abilities';
+import type { TargetQuery } from '../../data/abilities';
 import type { Hero } from '../../data/index';
 import type { Battle } from '../Battle';
 import type { Unit } from '../types';
@@ -31,7 +31,7 @@ function selectTargets(query: TargetQuery, ctx: AbilityContext): Unit[] {
 export function castAbility(battle: Battle, caster: Unit, hero: Hero, enemies: Unit[]): boolean {
     if (caster.hp <= 0)
         return false;
-    const definition = ABILITIES[hero.id];
+    const definition = battle.content.abilities[hero.id];
     if (!definition)
         return false;
     const near = enemies.filter(unit => unit.lane === caster.lane && Math.abs(unit.x - caster.x) < caster.range + 2.5)

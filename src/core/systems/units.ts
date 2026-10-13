@@ -1,4 +1,4 @@
-import { HERO_MAP, STEP } from '../../data/index';
+import { STEP } from '../../data/index';
 import type { Battle } from '../Battle';
 import { advanceAlongLane } from '../physics/lane-space';
 import type { Side } from '../types';
@@ -20,7 +20,7 @@ export function updateUnits(battle: Battle) {
             continue;
         }
         const enemies = battle.units.filter(e => e.side !== u.side && e.hp > 0);
-        const h = HERO_MAP[u.heroId];
+        const h = battle.heroes[u.heroId];
         if (u.skillCd <= 0 && battle.skill(u, h, enemies))
             u.skillCd = h.skillCooldown * ((h.role === 'mage' && battle.has(u.side, 'mage')) || (h.role === 'support' && battle.has(u.side, 'support')) ? .75 : 1);
         const dir = u.side === 0 ? 1 : -1;

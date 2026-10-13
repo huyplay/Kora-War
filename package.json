@@ -10,12 +10,16 @@
     "test": "tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
     "check:architecture": "node tools/check-architecture.mjs",
-    "check": "npm run check:architecture && npm test && npm run build"
+    "check": "npm run check:architecture && npm run typecheck:server && npm test && npm run build",
+    "server": "tsx server/index.ts",
+    "start": "npm run build && npm run server",
+    "typecheck:server": "tsc --noEmit -p tsconfig.server.json"
   },
   "dependencies": {
     "three": "0.180.0"
   },
   "devDependencies": {
+    "@types/node": "24.19.2",
     "@types/three": "0.180.0",
     "tsx": "4.20.6",
     "typescript": "5.9.3",

@@ -1,8 +1,8 @@
-import { RULES, STEP } from '../../data/index';
+import { STEP } from '../../data/index';
 import type { Battle } from '../Battle';
 export function updateVictory(battle: Battle) {
-    if (battle.time >= RULES.overtimeAt) {
-        const decay = (RULES.overtimeBaseDamage + (battle.time - RULES.overtimeAt) * RULES.overtimeAcceleration) * STEP;
+    if (battle.time >= battle.content.rules.overtimeAt) {
+        const decay = (battle.content.rules.overtimeBaseDamage + (battle.time - battle.content.rules.overtimeAt) * battle.content.rules.overtimeAcceleration) * STEP;
         battle.cores = battle.cores.map(v => Math.max(0, v - decay));
     }
     if (battle.cores.some(v => v <= 0)) {

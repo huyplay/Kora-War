@@ -6,3 +6,5 @@ test-results/
 *.log
 .npm-cache/
 playwright-report/
+.data/
+.env

@@ -9,6 +9,7 @@ import { updateTowers } from './systems/towers';
 import { updateUnits } from './systems/units';
 import { updateVictory } from './systems/victory';
 import type { Difficulty, GameEvent, Phase, Side, Stats, Tower, Unit } from './types';
+import { defaultContent, validateContent, type ContentConfig } from '../data/content';
 const freshStats = (): Stats => ({ deployed: 0, kills: 0, damage: 0, healed: 0, skills: 0, towers: 0, spent: 0 });
 /** Original single-player ruleset Aetherfall v0.1. Renderer never owns combat. */
 export class Battle {
@@ -36,7 +37,18 @@ export class Battle {
     aiAt = 2.5;
     maxUnits: number = RULES.maxUnits;
     debugUsed = false;
-    constructor(deck = DEFAULT_DECK, difficulty: Difficulty = 'normal', seed = 20261013, enemyDeck = ENEMY_DECK) {
+    readonly content: ContentConfig;
+    readonly heroes: Record<string, Hero>;
+    readonly levels: Record<string, number>;
+    constructor(deck = DEFAULT_DECK, difficulty: Difficulty = 'normal', seed = 20261013, enemyDeck = ENEMY_DECK, content = defaultContent(), levels: Record<string,number> = {}) {
+        validateContent(content);
+        this.content = structuredClone(content);
+        this.heroes = Object.fromEntries(this.content.heroes.map(h => [h.id,h]));
+        this.levels = { ...levels };
+        this.mana = [content.rules.startingMana, content.rules.startingMana];
+        this.cores = [content.rules.coreHp,content.rules.coreHp];
+        this.maxCore = content.rules.coreHp;
+        this.maxUnits = content.rules.maxUnits;
         for (const d of [deck, enemyDeck])
             if (d.length !== 4 || new Set(d).size !== 4 || d.some(id => !Object.hasOwn(HERO_MAP, id)))
                 throw new Error('Deck cần đúng 4 tướng khác nhau.');
@@ -47,7 +59,7 @@ export class Battle {
         this.rng = this.seed || 1;
         for (const side of [0, 1] as const)
             for (let lane = 0; lane < LANES.length; lane++)
-                this.towers.push({ id: `${side}-${lane}`, side, lane, x: side === 0 ? -9 : 9, hp: RULES.towerHp, maxHp: RULES.towerHp, cooldown: 0 });
+                this.towers.push({ id: `${side}-${lane}`, side, lane, x: side === 0 ? -9 : 9, hp: this.content.rules.towerHp, maxHp: this.content.rules.towerHp, cooldown: 0 });
     }
     random() { let x = this.rng; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; this.rng = x >>> 0; return this.rng / 4294967296; }
     start() {
@@ -56,8 +68,8 @@ export class Battle {
     }
     emit(event: Omit<GameEvent, 'id' | 'time'>) {
         this.events.push({ ...event, id: this.eventId++, time: this.time });
-        if (this.events.length > RULES.eventLimit)
-            this.events.splice(0, this.events.length - RULES.eventLimit);
+        if (this.events.length > this.content.rules.eventLimit)
+            this.events.splice(0, this.events.length - this.content.rules.eventLimit);
     }
     has(side: Side, trait: string) { return (this.synergies[side][trait] || 0) >= 2; }
     canPlay(side: Side, heroId: string, lane: number, x = side === 0 ? -12 : 12): string | null { return validateDeployment(this, side, heroId, lane, x); }

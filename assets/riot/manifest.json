@@ -1,0 +1,17 @@
+{
+  "source": "Khada Model Viewer",
+  "author": "Riot Games",
+  "license": "Project owner confirmed permission to use Riot assets in Kora War on 2026-10-13; scope supplied by owner, not independently verified",
+  "models": [
+    {"hero":"solan","champion":"garen","modelId":86000,"height":2.25},
+    {"hero":"aurelia","champion":"lux","modelId":99000,"height":2.15},
+    {"hero":"lyra","champion":"ashe","modelId":22000,"height":2.15},
+    {"hero":"brann","champion":"maokai","modelId":57000,"height":2.7},
+    {"hero":"nyx","champion":"katarina","modelId":55000,"height":2.1},
+    {"hero":"vesper","champion":"morgana","modelId":25000,"height":2.5},
+    {"hero":"kael","champion":"braum","modelId":201000,"height":2.5},
+    {"hero":"mira","champion":"nami","modelId":267000,"height":2.4},
+    {"hero":"raiko","champion":"kennen","modelId":85000,"height":1.7},
+    {"hero":"orin","champion":"ornn","modelId":516000,"height":2.6}
+  ]
+}

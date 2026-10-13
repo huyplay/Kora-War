@@ -4,7 +4,7 @@ Bản chơi đơn 3D trong trình duyệt, triển khai theo yêu cầu gameplay
 
 ## Chạy thử
 
-Yêu cầu Node.js 22.12+ hoặc 24 LTS, trình duyệt hỗ trợ WebGL2.
+Yêu cầu Node.js 24 LTS, trình duyệt hỗ trợ WebGL2.
 
 ```sh
 npm ci
@@ -13,6 +13,15 @@ npm run dev
 
 Mở URL Vite in ra, mặc định `http://127.0.0.1:5173/`.
 
+Để chạy đầy đủ database, dashboard và economy:
+
+```sh
+npm run assets:import
+npm run start
+```
+
+Game: `http://127.0.0.1:8787/` · Dashboard: `http://127.0.0.1:8787/admin`. Lần đầu tạo mật khẩu admin trong `.data/admin-setup.txt`. Xem [hướng dẫn admin/database](docs/ADMIN.md) và [pipeline asset](assets/README.md). Khi phát triển, chạy `npm run server` và `npm run dev` ở hai terminal; Vite proxy `/api` sang backend.
+
 ```sh
 npm test
 npm run check
@@ -20,7 +29,7 @@ npm run build
 npm run preview
 ```
 
-`dist/` là bản static build. Có thể phục vụ thư mục này qua Laragon hoặc web server; không mở trực tiếp bằng `file://`. `base: './'` hỗ trợ phục vụ trong subdirectory. Không cần PHP, tài khoản, API key hoặc database. Google Fonts là tài nguyên ngoài duy nhất; khi offline sử dụng font hệ thống. Bundle game/asset thủ tục nằm trong build.
+`dist/` chứa frontend game và admin; backend Node phục vụ API, upload và SQLite. Không mở trực tiếp bằng `file://`. Bản static không có API vẫn chạy demo với asset thủ tục và luật gốc; economy cần backend. Google Fonts có fallback font hệ thống. Asset đã nhập được phục vụ cục bộ; chỉ pipeline import cần kết nối nguồn CDN.
 
 ## Đã triển khai
 
@@ -34,6 +43,9 @@ npm run preview
 - Tạm dừng khi chuyển tab, âm thanh tổng hợp, high/low graphics và tự hạ chất lượng khi FPS thấp kéo dài.
 - Giao diện ngang dành cho mobile, bốn thẻ luôn hiện, HUD gọn, kéo/vuốt thẻ để thả quân; tự pause và yêu cầu xoay khi màn hình dọc.
 - Module vật lý lane, asset registry, prefab tướng, animation theo trạng thái và sprite VFX dùng pool; quản lý vòng đời tài nguyên tập trung.
+- 10 model rigged từ Khada, trụ/lõi nhập ngoài, clip animation có ánh xạ, map prop và sprite CommunityDragon; bản mobile bỏ dữ liệu animation không dùng.
+- Content Studio: upload/preview/ẩn/khôi phục asset, sửa chỉ số và chuỗi kỹ năng, map/VFX/economy, ví người chơi, lưu nháp/phát hành/khôi phục revision.
+- Ví vàng, mảnh thẻ, rương, cửa hàng và nâng cấp lưu SQLite; server mô phỏng lại command log để xác minh thưởng trận.
 - F3: FPS/frame p95/simulation time/draw calls/triangles/units; debug mana, auto-play, 2×/4×, thử kết quả và xuất JSON trạng thái. Debug không cộng chiến thắng.
 
 ## Điều khiển
@@ -56,10 +68,12 @@ npm run preview
 - `src/app/`: điều phối phiên chơi, input/HUD/debug và fixed-step runner 20 Hz.
 - `src/services/`: lưu game có kiểm tra dữ liệu và âm thanh Web Audio.
 - `src/engine/`: lifetime, asset registry, object pool và nhận diện gesture; không quyết định luật chiến đấu.
-- `tests/`: 33 bài test, gồm 20 trận AI-v-AI và đối chiếu bốn seed với bản gốc trước refactor.
+- `server/`: HTTP API, SQLite, auth admin, asset ingestion và giao dịch economy.
+- `src/admin/`: Content Studio và preview 3D.
+- `tests/`: 42 bài test, gồm 20 trận AI-v-AI và đối chiếu bốn seed với bản gốc trước refactor.
 - [Module engine](docs/ENGINE.md), [quy ước asset](assets/README.md), [mobile UX](docs/MOBILE-UX.md), [kết quả QA](docs/06-implementation/qa.md).
 - [Kiến trúc và điểm mở rộng](docs/ARCHITECTURE.md), [hướng dẫn bảo trì](docs/DEVELOPMENT.md), [các quyết định đã chốt](docs/DECISIONS.md).
 - [Ghi chú triển khai](docs/06-implementation/aetherfall-v0.1.md): luật chính xác và giới hạn.
 - [Hồ sơ nghiên cứu Castle Crush trước đó](docs/README.md): tài liệu tham khảo lịch sử, không phải cam kết parity của Aetherfall.
 
-Đây là playable prototype. Mô hình low-poly thủ tục, animation đơn giản; chưa phải bộ asset MOBA thành phẩm. Chưa có PvP/server-authority, progression kinh tế hoặc benchmark trên thiết bị iOS/Android thật. Số FPS trong inspector là số đo runtime của thiết bị đang mở, không phải cam kết 60 FPS trên mọi máy.
+Đây là bản chơi đơn có editor và economy cục bộ. Chưa có PvP, tài khoản đa thiết bị hoặc benchmark trên thiết bị iOS/Android thật. Server xác minh thưởng sau trận; trận vẫn mô phỏng trên client. Số FPS trong inspector là số đo runtime, không phải cam kết 60 FPS trên mọi máy.

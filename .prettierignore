@@ -1,0 +1,6 @@
+node_modules
+dist
+.data
+.npm-cache
+public/decoders
+tests/fixtures

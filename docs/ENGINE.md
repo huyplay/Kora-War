@@ -8,9 +8,11 @@ Kora War dùng Three.js + TypeScript + Vite. Các module sau đang được gọ
 | `engine/lifecycle.ts` | Sở hữu resource, dispose ngược thứ tự, dọn cả khi một resource lỗi | App session |
 | `engine/assets/asset-registry.ts` | Đăng ký ID, tải lười, cache và dispose asset | Hero prefab registry |
 | `rendering/assets/hero-prefabs.ts` | Factory cho 10 tướng, mỗi instance có rig riêng | World portrait và spawn |
+| `rendering/assets/model-library.ts` | Cache GLTF, clone skeleton, normalization, AnimationMixer/clip mapping, palette cấu trúc | Model Khada, trụ/lõi và map prop |
+| `rendering/terrain-style.ts` | Texture nguyên bản tạo một lần, gán cho terrain đã batch | Địa hình và đường đá |
 | `rendering/animation/unit-animator.ts` | Trạng thái spawn/idle/walk/attack/cast/stunned | Mỗi unit visual |
 | `engine/object-pool.ts` | Pool có giới hạn, tái sử dụng, hủy đúng một lần | Sprite VFX |
-| `rendering/vfx/sprite-effects.ts` | Atlas 8 frame tự tạo, phát theo combat event, pool tối đa 48 | Spawn/skill/heal/death/pulse |
+| `rendering/vfx/sprite-effects.ts` | Atlas mặc định hoặc sprite nhập ngoài, phát theo combat event, pool tối đa 48 | Spawn/skill/heal/death/pulse |
 
 ## Vật lý
 
@@ -18,7 +20,7 @@ Kora War dùng Three.js + TypeScript + Vite. Các module sau đang được gọ
 
 ## Asset và animation
 
-Mesh/texture hiện tự tạo trong mã, không tải tài sản từ Castle Crush hoặc Liên Quân. Sprite atlas là hiệu ứng nguyên bản tạo bằng Canvas2D. Model prefab có các bộ phận tay/chân/thân/áo choàng riêng; clip driver hiện là procedural, chưa phải skeleton/GLB AnimationMixer. Thay bằng model GLB tại ranh giới prefab/animator, không đổi core.
+Game dùng GLB rigged từ Khada theo binding trong content revision. `ModelLibrary` cache nguồn; `SkeletonUtils.clone` và `AnimationMixer` tách skeleton/clip state cho từng quân. Wrapper chuẩn hóa chiều cao/hướng để keyframe không ghi đè transform đặt quân. Model thủ tục và Canvas atlas vẫn là fallback. Sprite nhập từ CommunityDragon có provenance; tham khảo [asset pipeline](../assets/README.md). Thay ngoại hình/animation không sửa core; animation GLB ngoài phải cùng rig, chưa tự retarget.
 
 ## Thứ tự nâng cấp
 
@@ -28,4 +30,4 @@ Mesh/texture hiện tự tạo trong mã, không tải tài sản từ Castle Cr
 4. Bind combat event vào VFX; giới hạn số instance trên mobile.
 5. Gắn dispose vào lifetime. Reset trận chỉ reset instance, không xóa asset dùng chung.
 
-Kiểm thử: pool exhaustion/double release, registry lazy cache/ID trùng, cleanup lỗi, biên vùng thả và golden regression. `npm run check` gồm 32 test tại mốc task này.
+Kiểm thử: pool exhaustion/double release, registry lazy cache/ID trùng, cleanup lỗi, biên vùng thả, GLB compaction giữ vertex/keyframe, normalization không bị clip ghi đè và golden regression. `npm run check` hiện gồm 42 test, typecheck client/server và build hai entry game/admin.

@@ -17,3 +17,14 @@ Người dùng yêu cầu dashboard/database và xác nhận thêm nhận vàng,
 Người dùng xác nhận đã có giấy phép dùng toàn bộ asset LoL trong game. Đây là xác nhận do người dùng cung cấp, chưa phải giấy phép đã được kiểm chứng độc lập. [Khada](https://modelviewer.lol/) là nguồn export model được ưu tiên; [Riot Legal](https://www.riotgames.com/en/legal) và [Khada terms](https://modelviewer.lol/privacy/terms-of-use) được kiểm tra trước khi nhập. Không coi model tải từ Sketchfab hoặc CommunityDragon là tự động được phép tái sử dụng; ghi nguồn/quyền cho từng file.
 
 Backend kiểm thử draft/publish/version conflict, auth/origin/cookie, ví/ledger/rollback, replay thưởng, kiểm tra GLB và isolation per battle. Baseline fixture `e792b00` được giữ nguyên.
+
+## Thao tác trong dashboard
+
+- Nhân vật: chỉ số, tên/mô tả kỹ năng, điều kiện kích hoạt và danh sách hiệu ứng; model, chiều cao, hướng xoay, clip theo từng trạng thái. JSON nâng cao dùng cùng schema với các form.
+- Asset: upload GLB/ảnh, xem 3D và từng clip, ghi provenance. Ẩn/khôi phục là thao tác có thể đảo ngược; không được ẩn asset đang được draft hoặc published sử dụng.
+- Màn chơi: chọn prefab trụ/lõi, đặt prop theo tọa độ, màu sương/exposure, luật trụ/mana/quá tải. Một màn ba lane hiện được hỗ trợ, chưa có campaign nhiều chương hoặc chỉnh địa hình bằng kéo đỉnh mesh.
+- Hiệu ứng: palette hai phe/hồi máu, kích thước, sprite/atlas và số cột/hàng.
+- Vật phẩm & tiền: danh mục bán mảnh, giá/đơn vị, thưởng trận/rương/nâng cấp. Người chơi: điều chỉnh ví có lý do và audit log.
+- Phiên bản: xem audit/revisions, đưa bản cũ về draft rồi phát hành khi sẵn sàng. Khi khôi phục revision có asset đã ẩn, khôi phục asset trước khi publish.
+
+Pipeline Khada: `npm run assets:import`. Repo chỉ lưu manifest, checksum và tool; file nguồn/upload ở `.data/`. Pipeline kiểm tra checksum nguồn trước khi tái nhập; nếu CDN thay file, dừng để xem lại asset mới. Script này gán bộ ngoại hình mặc định và phát hành cấu hình, nên không dùng để chỉ tải file khi đang có binding tùy chỉnh cần giữ.

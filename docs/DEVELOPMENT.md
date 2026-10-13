@@ -8,7 +8,7 @@ npm run dev
 npm run check
 ```
 
-`check` chạy kiểm tra ranh giới dependency, 33 test và build production. `npm run preview` phục vụ `dist` để kiểm tra bundle thực tế. Nếu đổi source sau khi build, phải build lại trước khi preview.
+`check` chạy kiểm tra ranh giới dependency, 42 test và build production. `npm run preview` phục vụ `dist` để kiểm tra bundle thực tế. Nếu đổi source sau khi build, phải build lại trước khi preview.
 
 ## Chỉnh dữ liệu
 
@@ -39,3 +39,9 @@ Xem [module engine](ENGINE.md), [asset](../assets/README.md) và [giao diện mo
 - `Battle.snapshot()` dùng cho chẩn đoán và regression; không chứa đủ trạng thái để resume/replay trận.
 - Hệ số synergy được triển khai trong các combat system; tên/mô tả ở data. Thêm một hiệu ứng synergy mới cần triển khai và test logic tương ứng.
 - Mô hình thủ tục có chuyển động bộ phận; chưa phải skeletal animation từ GLB.
+
+## Content Studio và backend
+
+Chạy Node 24. `npm run server` phục vụ SQLite/API và `npm run dev` phục vụ Vite có proxy. `npm run start` build rồi phục vụ cả game/admin tại cổng 8787. Xem [Admin](ADMIN.md) và [asset](../assets/README.md) để import nguồn hoặc quản lý revision. `npm run check` còn typecheck server/tools và kiểm tra auth, giao dịch, replay thưởng, upload/provenance, GLB compaction và animation normalization. Database runtime nằm trong `.data/`, không phải fixture hay migration được commit.
+
+`npm run format` dùng Prettier với cấu hình trong repo. Tránh đưa decoder bên thứ ba hoặc fixture vào formatter; `.prettierignore` đã loại chúng.

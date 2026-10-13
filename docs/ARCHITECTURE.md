@@ -87,4 +87,10 @@ Các geometry/material dùng chung thuộc World, không bị hủy khi một un
 | Cốt truyện | `data/story.ts` | màn hình mở đầu, hướng dẫn |
 | Chính sách AI | `core/ai/heuristic.ts` | trận seeded, ngân sách mana |
 
-Chưa có server/PvP, GLB rigged animation, replay command log đầy đủ hoặc Editor. `snapshot()` là ảnh chụp chẩn đoán, không phải save/restore trận đấu hoàn chỉnh. Những phần này cần triển khai riêng khi được chọn làm bước tiếp theo.
+Đã có Content Studio, GLB rigged animation và backend xác minh thưởng từ command log. Chưa có PvP hoặc phục hồi giữa trận. `snapshot()` là ảnh chụp chẩn đoán, không phải save/restore trận đấu hoàn chỉnh. Những phần này cần triển khai riêng khi được chọn làm bước tiếp theo.
+
+## Content Studio / data service
+
+`server/database.ts` quản lý SQLite và transaction; `server/assets.ts` kiểm tra/nhập file; `server/game-service.ts` thực thi ví, cửa hàng, nâng cấp và replay thưởng; `server/http.ts` chịu trách nhiệm HTTP/auth/origin. `src/data/content.ts` là schema dùng chung, không import server/DOM. `src/services/game-session.ts` nối app với API; mỗi Battle nhận bản sao content và levels tại lúc bắt đầu. Core không tự fetch hoặc đọc database.
+
+`src/admin` tách controller, views, ability editor, HTML helpers và preview 3D. `src/rendering/assets/model-library.ts` cache GLTF, clone skeleton và tạo AnimationMixer theo instance. `tools/compact-glb.ts` đóng gói model cho mobile; manifest/provenance ở `assets/riot/`. Xem [vận hành admin](ADMIN.md).

@@ -1,0 +1,245 @@
+[
+  {
+    "hero": "solan",
+    "champion": "garen",
+    "url": "https://cdn.modelviewer.lol/lol/models/garen/86000/model.glb",
+    "sha256": "0aefcaa5e041ed379bd66da1fcb0fa91edff11d486286a9cc9c38ec9d9503c03",
+    "sourceSha256": "2b352f423e7d08733f4976bd054588444e303f4288913d32aa534c14e65d58cb",
+    "sourceBytes": 3152664,
+    "bytes": 1118368,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Garen_2013_Idle_LeadIn",
+      "Idle1_Base",
+      "Run_Base",
+      "Spell1",
+      "Respawn_Base"
+    ],
+    "triangles": 6336,
+    "nodes": 70,
+    "skins": 1
+  },
+  {
+    "hero": "aurelia",
+    "champion": "lux",
+    "url": "https://cdn.modelviewer.lol/lol/models/lux/99000/model.glb",
+    "sha256": "38e2decf5c1ad782fd08cb4013a52b9b0733cfc49f5388a28940c57cd6827356",
+    "sourceSha256": "7519fe49f92d9118bd1d2b9ad95109ddeda7a63d4e2456d21e163d253abb6f8e",
+    "sourceBytes": 6768752,
+    "bytes": 1200160,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle1",
+      "Spell1",
+      "Respawn",
+      "Run"
+    ],
+    "triangles": 4926,
+    "nodes": 81,
+    "skins": 1
+  },
+  {
+    "hero": "lyra",
+    "champion": "ashe",
+    "url": "https://cdn.modelviewer.lol/lol/models/ashe/22000/model.glb",
+    "sha256": "0b1819d45f4a4c54460df542989ec9628016006728e71ada6ab76bebe9b80fb7",
+    "sourceSha256": "293211db7dd74c1574e735bcbff99c0e72600f719d29e20714797ecef4a8153f",
+    "sourceBytes": 2423140,
+    "bytes": 1014232,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle1",
+      "Run",
+      "Spell1"
+    ],
+    "triangles": 7406,
+    "nodes": 87,
+    "skins": 1
+  },
+  {
+    "hero": "brann",
+    "champion": "maokai",
+    "url": "https://cdn.modelviewer.lol/lol/models/maokai/57000/model.glb",
+    "sha256": "2568f7bc32415f826754896aa9f75b4dea971730e40cdb738c509394219f3ff7",
+    "sourceSha256": "a8b75876d6370a78f9b5702384fdd488e9b21f6de8cced2293d18278599fe30b",
+    "sourceBytes": 4239716,
+    "bytes": 2048544,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle1_Base",
+      "Run",
+      "Spell1"
+    ],
+    "triangles": 6944,
+    "nodes": 84,
+    "skins": 1
+  },
+  {
+    "hero": "nyx",
+    "champion": "katarina",
+    "url": "https://cdn.modelviewer.lol/lol/models/katarina/55000/model.glb",
+    "sha256": "1103b6162cda18e698d21805a5b979da9cc270c8a1d8cd694da4f2dfe6d86b89",
+    "sourceSha256": "87fd6ff254aa4670e414fc005e4fff4604b94623491a9545905ab0b7a3118262",
+    "sourceBytes": 2329348,
+    "bytes": 1211840,
+    "clips": [
+      "Death",
+      "Idle1",
+      "Run1",
+      "Spell1",
+      "Attack1"
+    ],
+    "triangles": 15106,
+    "nodes": 83,
+    "skins": 1
+  },
+  {
+    "hero": "vesper",
+    "champion": "morgana",
+    "url": "https://cdn.modelviewer.lol/lol/models/morgana/25000/model.glb",
+    "sha256": "1ed361d461b81f99bf8e787564f56be0065d94cecf34cc62d94e5ddc6ec82efd",
+    "sourceSha256": "6849c2e8d9ee555b85a3adc43a9fd8aaa58b6a1d7d26c44616be7c812c051473",
+    "sourceBytes": 17419616,
+    "bytes": 3905312,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle2",
+      "Spell1_0",
+      "Idle1",
+      "Run_Homeguard",
+      "Respawn"
+    ],
+    "triangles": 12580,
+    "nodes": 185,
+    "skins": 1
+  },
+  {
+    "hero": "kael",
+    "champion": "braum",
+    "url": "https://cdn.modelviewer.lol/lol/models/braum/201000/model.glb",
+    "sha256": "f7935e4c0b4ed501cf0355ea564db996dfae70211032cf3cee40dc209f53763a",
+    "sourceSha256": "7ad3643a7c5f7b134469a96042fff0f32a2ff304e99562846b0c33d71d149b5c",
+    "sourceBytes": 6581076,
+    "bytes": 1773476,
+    "clips": [
+      "Run",
+      "Attack1",
+      "Braum_Idle_in.anm",
+      "Spell1",
+      "Death",
+      "Idle_01_In"
+    ],
+    "triangles": 13392,
+    "nodes": 99,
+    "skins": 1
+  },
+  {
+    "hero": "mira",
+    "champion": "nami",
+    "url": "https://cdn.modelviewer.lol/lol/models/nami/267000/model.glb",
+    "sha256": "7a37bf538b68cd4846acfe43a1639cc5c3eab66001ddd24619ed8a3134018d82",
+    "sourceSha256": "d1808012fcc642abb061e020d52f6ccf9b4ffef737500fdb9660d8bd417bc636",
+    "sourceBytes": 3947136,
+    "bytes": 1067052,
+    "clips": [
+      "Idle1_Base",
+      "Death",
+      "Spell3"
+    ],
+    "triangles": 8846,
+    "nodes": 105,
+    "skins": 1
+  },
+  {
+    "hero": "raiko",
+    "champion": "kennen",
+    "url": "https://cdn.modelviewer.lol/lol/models/kennen/85000/model.glb",
+    "sha256": "b99b12a464aa73e7dcf0b31da13b25dd8c43ca0602794cb159f9ce63869e9995",
+    "sourceSha256": "04a3db2fc65038f00475f373d81b4b8e0a033f4222213a5f0359d081f97e49b7",
+    "sourceBytes": 1370544,
+    "bytes": 640188,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle1",
+      "Run",
+      "Spell1"
+    ],
+    "triangles": 2604,
+    "nodes": 58,
+    "skins": 1
+  },
+  {
+    "hero": "orin",
+    "champion": "ornn",
+    "url": "https://cdn.modelviewer.lol/lol/models/ornn/516000/model.glb",
+    "sha256": "6e2bd8b8a53a220639369265ef224533ff03893c800bd9c071a0191c4310cfd1",
+    "sourceSha256": "24c51af556a0d1ad03a319e7111247aa55911f650a9fc5bbfb328dcec07c68dd",
+    "sourceBytes": 12094788,
+    "bytes": 2614464,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle1_Base",
+      "Run_Fast",
+      "Spell1",
+      "Respawn"
+    ],
+    "triangles": 13050,
+    "nodes": 134,
+    "skins": 1
+  },
+  {
+    "structure": "turret",
+    "url": "https://cdn.modelviewer.lol/extras/models/turret/0/model.glb",
+    "sourceSha256": "e5e501986ca98201b1fe0a788be6a6c45a0e746c81db0d4f56e3a34cfe381f0c",
+    "sha256": "d2ab1f771dd675306c37ccefc883c6d811a32d4023915c51451bd410baddc43d",
+    "sourceBytes": 2215068,
+    "bytes": 2083176,
+    "clips": [
+      "Idle1"
+    ],
+    "triangles": 16499,
+    "nodes": 60,
+    "skins": 1
+  },
+  {
+    "structure": "nexus",
+    "url": "https://cdn.modelviewer.lol/extras/models/nexus/0/model.glb",
+    "sourceSha256": "e18927f86f96b41628ab712a1431d26b68835f56b6f595f35408de986496844f",
+    "sha256": "071f550d72ffde8d14751a6248dbae7caec760a6135fcd5a155f5392eb10b8c4",
+    "sourceBytes": 3258804,
+    "bytes": 2880960,
+    "clips": [
+      "Idle1_Base"
+    ],
+    "triangles": 11136,
+    "nodes": 48,
+    "skins": 1
+  },
+  {
+    "structure": "inhibitor",
+    "url": "https://cdn.modelviewer.lol/extras/models/inhibitor/0/model.glb",
+    "sourceSha256": "fe9d40c18d659f28d5f106a3cf224d28c88a06d26895c73ef84106a9ab8cb344",
+    "sha256": "792214366468153e2463b003ddfb88a809ca08c9d182f58006ec218111a5b191",
+    "sourceBytes": 1598616,
+    "bytes": 1106824,
+    "clips": [
+      "Idle_Normal1"
+    ],
+    "triangles": 5406,
+    "nodes": 27,
+    "skins": 1
+  },
+  {
+    "sprite": "aether-star",
+    "url": "https://raw.communitydragon.org/latest/game/assets/shared/particles/3026_items_star.png",
+    "bytes": 7866,
+    "sha256": "3d6bbb816e6282060e564ff919bde9eac05305025c1feb6560aa08732cd4422a"
+  }
+]

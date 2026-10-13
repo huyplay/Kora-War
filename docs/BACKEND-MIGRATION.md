@@ -22,11 +22,15 @@ flowchart LR
 
 ## Cấu hình và chạy
 
-1. Copy `.env.example` thành `.env.local`; đặt connection string database `kora_war` và token ngẫu nhiên ít nhất 32 ký tự. Database/user do bạn tạo trong PostgreSQL; migration chỉ tạo schema `kora` trong database đã chỉ định. `.env.local` bị loại khỏi Git. Các biến môi trường đã đặt có ưu tiên hơn file.
+1. Copy `.env.example` thành `.env.local`; đặt connection string database `kora_war` và token ngẫu nhiên ít nhất 32 ký tự. Migration chỉ tạo schema `kora` trong database đã chỉ định. Nếu database riêng chưa có, sau `backend:build` chạy `dotnet backend/KoraWar.AssetApi/bin/Debug/net10.0/KoraWar.AssetApi.dll --create-database` từ thư mục gốc bằng tài khoản có quyền tạo database. Lệnh chỉ tạo `kora_war`, không xóa hay sửa database khác. `.env.local` bị loại khỏi Git. Các biến môi trường đã đặt có ưu tiên hơn file.
 2. `npm run backend:build`, rồi `npm run backend:dev` trong terminal riêng. Dừng service bằng Ctrl+C.
 3. `npm run assets:sync` sao chép asset và snapshot hiện tại, kiểm tra checksum từng file. Có thể chạy lại. Không tự chuyển ví/trận hay xóa SQLite. Asset upload/ẩn/khôi phục qua dashboard sau đó tự đồng bộ khi service đã cấu hình.
-4. Có thể đổi `KORA_ASSET_READ_SOURCE=service` và khởi động lại Node để đọc binary từ service. Gateway kiểm tra checksum khi đọc, dùng local khi service chưa có file hoặc mất kết nối. Giữ bản local trong giai đoạn chuyển.
+4. Chạy `npm run assets:verify` để đọc lại toàn thư viện và xác minh SHA-256 qua service. Sau đó có thể đổi `KORA_ASSET_READ_SOURCE=service` và khởi động lại Node để đọc binary từ service. Gateway kiểm tra checksum khi đọc, dùng local khi service chưa có file hoặc mất kết nối. Giữ bản local trong giai đoạn chuyển.
 5. Dashboard cho biết service asset đang dùng PostgreSQL/local/R2. Upload được lưu local trước; nếu đồng bộ thất bại có trạng thái pending trong database và thông báo. `assets:sync` thử đồng bộ lại toàn thư viện.
+
+`backend:dev` build rồi chạy DLL từ thư mục gốc; tránh `dotnet run` đổi working directory và đọc sai `.env.local`/object root. Nếu PostgreSQL không kết nối được, service thoát với SQLSTATE và thông báo đã lọc, không in connection string.
+
+Ngày 13/10/2026: đã tạo database riêng `kora_war`, chạy schema migration và đồng bộ 37 asset cùng snapshot SQLite bằng cấu hình local được người dùng cung cấp. Đọc lại 84,69 MiB của toàn thư viện (gồm cả bản nguồn/bản nhập trước đây) khớp SHA-256; đây không phải dung lượng tải mỗi trận. Đã bật service reads trong cấu hình local. Ví/trận vẫn ghi SQLite. Thông tin đăng nhập và service token chỉ nằm trong `.env.local`.
 
 Service token cần truyền nội bộ qua `X-Kora-Service-Token`; không mở API này trực tiếp làm API đăng nhập public. Ngoài loopback, cần HTTPS và mạng riêng/reverse proxy. API chỉ nhận asset đã được gateway kiểm tra ngân sách mesh/audio; lớp C# kiểm tra lại checksum, magic, loại file và provenance.
 

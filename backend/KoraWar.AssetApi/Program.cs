@@ -16,6 +16,23 @@ var token = LocalEnvironment.Required("KORA_ASSET_API_TOKEN");
 if (token.Length < 32) throw new InvalidOperationException("Asset API token must have at least 32 characters.");
 var tokenHash = SHA256.HashData(Encoding.UTF8.GetBytes(token));
 var connectionString = LocalEnvironment.Required("KORA_POSTGRES_CONNECTION");
+if (args.Contains("--create-database"))
+{
+    var configured = new NpgsqlConnectionStringBuilder(connectionString);
+    if (configured.Database != "kora_war") throw new InvalidOperationException("Database initialization only supports the dedicated kora_war database.");
+    configured.Database = "postgres";
+    await using var connection = new NpgsqlConnection(configured.ConnectionString);
+    await connection.OpenAsync();
+    await using var exists = new NpgsqlCommand("SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname='kora_war')", connection);
+    if (!(bool)(await exists.ExecuteScalarAsync())!)
+    {
+        await using var create = new NpgsqlCommand("CREATE DATABASE kora_war", connection);
+        await create.ExecuteNonQueryAsync();
+        Console.WriteLine("Created the dedicated kora_war database.");
+    }
+    else Console.WriteLine("The dedicated kora_war database already exists.");
+    return;
+}
 builder.Services.AddSingleton(NpgsqlDataSource.Create(connectionString));
 builder.Services.AddSingleton<AssetRepository>();
 builder.Services.AddSingleton<AssetService>();
@@ -26,7 +43,14 @@ builder.Services.AddSingleton<IObjectStorage>(_ => (Environment.GetEnvironmentVa
     _ => throw new InvalidOperationException("Unsupported object storage provider.")
 });
 var app = builder.Build();
-await app.Services.GetRequiredService<AssetRepository>().MigrateAsync();
+try { await app.Services.GetRequiredService<AssetRepository>().MigrateAsync(); }
+catch (NpgsqlException error)
+{
+    var code = (error as PostgresException)?.SqlState ?? "unavailable";
+    Console.Error.WriteLine($"PostgreSQL startup failed ({code}). Check .env.local; for a missing dedicated database use --create-database. No credentials were logged.");
+    Environment.ExitCode = 1;
+    return;
+}
 
 // This service is a backend-to-backend API. Browser login remains with the game gateway.
 app.Use(async (context, next) =>

@@ -19,6 +19,7 @@
     "assets:media:download": "python tools/download-media.py",
     "assets:media:import": "tsx tools/import-media-assets.ts",
     "assets:sync": "tsx tools/sync-asset-service.ts",
+    "assets:verify": "tsx tools/verify-asset-service.ts",
     "backend:build": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/build-backend.ps1",
     "backend:check": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/test-asset-api.ps1",
     "backend:dev": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-backend.ps1"

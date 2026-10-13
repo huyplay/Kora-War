@@ -2,6 +2,7 @@ import { Battle, type Difficulty } from '../core/index';
 import { HEROES, HERO_MAP, ORIGINS, ROLES, traits, type Hero } from '../data/index';
 import { RULES } from '../data/rules';
 import { validateGameData } from '../data/validate';
+import { Lifetime } from '../engine/lifecycle';
 import { World } from '../rendering/World';
 import { Sound } from '../services/audio';
 import { loadSave, parseSave, saveGame } from '../services/save-store';
@@ -16,7 +17,9 @@ import { result as resultScreen } from '../ui/screens/result';
 import { settings as settingsScreen } from '../ui/screens/settings';
 import { renderShell } from '../ui/shell';
 import { FixedStepRunner } from './fixed-step-runner';
+const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
+lifetime.defer(() => inputLifetime.abort());
 validateGameData();
 let saved = parseSave(null);
 try {
@@ -47,6 +50,8 @@ catch (e) {
     $('.fatal pre').textContent = String(e);
     throw e;
 }
+lifetime.own(world);
+lifetime.own(sound);
 if (saved.quality === 'low')
     world.setQuality('low');
 const portraits = Object.fromEntries(HEROES.map(h => [h.id, world.portrait(h)]));

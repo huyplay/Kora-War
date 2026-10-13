@@ -1,14 +1,15 @@
-import { HERO_MAP, LANES, RULES } from '../../data/index';
+import { HERO_MAP, RULES } from '../../data/index';
 import type { Battle } from '../Battle';
+import { canDeployAt, isLane } from '../physics/lane-space';
 import type { Side, Unit } from '../types';
 export function validateDeployment(battle: Battle, side: Side, heroId: string, lane: number, x = side === 0 ? -12 : 12): string | null {
     if (side !== 0 && side !== 1)
         return 'Phe không hợp lệ.';
     if (battle.phase !== 'playing')
         return 'Trận đấu chưa sẵn sàng.';
-    if (!Number.isInteger(lane) || lane < 0 || lane >= LANES.length || !Number.isFinite(x))
+    if (!isLane(lane) || !Number.isFinite(x))
         return 'Vị trí không hợp lệ.';
-    if ((side === 0 && (x < -13.5 || x > -5.8)) || (side === 1 && (x > 13.5 || x < 5.8)))
+    if (!canDeployAt(side, x))
         return 'Triển khai trong vùng sáng bên mình.';
     const h = HERO_MAP[heroId];
     if (!h || !battle.decks[side].includes(heroId))

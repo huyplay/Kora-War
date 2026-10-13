@@ -1,9 +1,12 @@
 import * as THREE from 'three';
 import type { Battle, GameEvent, Unit } from '../core/index';
+import { pickDeployment } from '../core/physics/lane-space';
 import { HERO_MAP, LANES, type Hero } from '../data/index';
+import { animateUnit } from './animation/unit-animator';
+import { createHeroPrefabs } from './assets/hero-prefabs';
 import { buildEnvironment } from './environment';
-import { createHero } from './hero-model';
 import { disposeSharedResources, healthGeometry, healthMaterial, part } from './resources';
+import { SpriteEffects } from './vfx/sprite-effects';
 interface Visual {
     group: THREE.Group;
     bar: THREE.Mesh;
@@ -21,6 +24,8 @@ interface Effect {
     side: number;
 }
 export class World {
+    private prefabs = createHeroPrefabs();
+    private sprites = new SpriteEffects();
     private resizeObserver: ResizeObserver;
     private disposed = false;
     scene = new THREE.Scene();
@@ -81,6 +86,7 @@ export class World {
         rim.position.set(6, 10, -14);
         this.scene.add(rim);
         this.buildEnvironment();
+        this.scene.add(this.sprites.root);
         for (let lane = 0; lane < 3; lane++) {
             const zone = new THREE.Mesh(new THREE.PlaneGeometry(7.7, 2.9), new THREE.MeshBasicMaterial({ color: 0x77e9c4, transparent: true, opacity: .15, side: THREE.DoubleSide, depthWrite: false }));
             zone.rotation.x = -Math.PI / 2;
@@ -118,7 +124,7 @@ export class World {
     portrait(h: Hero) {
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1b343b);
-        const model = createHero(h);
+        const model = this.prefabs.get(h.id)();
         model.rotation.y = -.3;
         scene.add(model);
         scene.add(new THREE.HemisphereLight(0xe3ffff, 0x3a4045, 3));
@@ -144,8 +150,7 @@ export class World {
         const hit = this.ray.ray.intersectPlane(this.plane, new THREE.Vector3());
         if (!hit)
             return null;
-        const lane = LANES.reduce((best, l, i) => Math.abs(hit.z - l) < Math.abs(hit.z - LANES[best]) ? i : best, 0);
-        return { x: hit.x, z: hit.z, lane, valid: hit.x >= -13.5 && hit.x <= -5.8 && Math.abs(hit.z - LANES[lane]) < 1.55 };
+        return pickDeployment(hit.x, hit.z);
     }
     setHover(clientX: number, clientY: number, ability = false) {
         const p = this.pick(clientX, clientY);
@@ -158,6 +163,7 @@ export class World {
     }
     setQuality(q: 'high' | 'low') { this.quality = q; this.renderer.setPixelRatio(Math.min(devicePixelRatio, q === 'high' ? 1.25 : .85)); this.renderer.shadowMap.enabled = q === 'high'; this.renderer.shadowMap.needsUpdate = true; }
     reset() {
+        this.sprites.reset();
         this.clock = 0;
         this.hoverRing.visible = false;
         this.deployZone.visible = false;
@@ -186,6 +192,9 @@ export class World {
             return;
         this.disposed = true;
         this.resizeObserver.disconnect();
+        this.sprites.dispose();
+        this.scene.remove(this.sprites.root);
+        this.prefabs.dispose();
         this.reset();
         const geometries = new Set<THREE.BufferGeometry>();
         const materials = new Set<THREE.Material>();
@@ -211,7 +220,7 @@ export class World {
         this.canvas.remove();
     }
     addUnit(u: Unit) {
-        const group = createHero(HERO_MAP[u.heroId], u.side);
+        const group = this.prefabs.get(u.heroId)(u.side);
         group.rotation.y = u.side === 0 ? Math.PI / 2 : -Math.PI / 2;
         const bar = new THREE.Mesh(healthGeometry, healthMaterial);
         bar.position.set(0, 2.6, 0);
@@ -269,6 +278,7 @@ export class World {
         }
     }
     effect(e: GameEvent) {
+        this.sprites.emit(e);
         const color = e.type === 'heal' ? 0x83ffc2 : e.side === 0 ? 0xb4ffde : 0xffb4a0;
         if (e.type === 'hit' || e.type === 'core')
             return;
@@ -299,14 +309,7 @@ export class World {
             v.group.position.z = z;
             const born = Math.min(1, (battle.time - u.born) * 3 + .15);
             v.group.scale.setScalar(born);
-            const d = v.group.userData, moving = u.state === 'move' && battle.phase === 'playing', t = battle.time * 9 + u.id;
-            d.leftLeg.rotation.x = moving ? Math.sin(t) * .45 : 0;
-            d.rightLeg.rotation.x = moving ? -Math.sin(t) * .45 : 0;
-            d.body.position.y = moving ? Math.abs(Math.sin(t)) * .06 : Math.sin(this.clock * 2 + u.id) * .025;
-            const strike = Math.max(0, 1 - (battle.time - u.attackAt) / .35);
-            d.armR.rotation.x = -strike * 1.5;
-            d.armL.rotation.x = -strike * .4;
-            d.cape.rotation.x = -.15 + Math.sin(this.clock * 3 + u.id) * .08;
+            animateUnit(v.group, u, battle.time, this.clock, battle.phase);
             v.bar.position.set(v.group.position.x, 2.6, z);
             v.bar.quaternion.copy(this.camera.quaternion);
             v.bar.scale.x = .94 * Math.max(.001, u.hp / u.maxHp);
@@ -342,6 +345,7 @@ export class World {
                 e.mesh.position.y = .2 + p * .45;
             }
         }
+        this.sprites.update(dt);
         this.syncUnitBatches();
         this.renderer.render(this.scene, this.camera);
         const info = this.renderer.info;

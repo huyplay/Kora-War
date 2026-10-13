@@ -1,5 +1,6 @@
 import { HERO_MAP, STEP } from '../../data/index';
 import type { Battle } from '../Battle';
+import { advanceAlongLane } from '../physics/lane-space';
 import type { Side } from '../types';
 export function updateUnits(battle: Battle) {
     const ordered = battle.tick % 2 ? battle.units.slice() : battle.units.slice().reverse();
@@ -59,7 +60,7 @@ export function updateUnits(battle: Battle) {
         else {
             u.state = 'move';
             const speed = u.speed * (u.slowUntil > battle.time ? u.slowFactor : 1);
-            u.x = Math.max(-14, Math.min(14, u.x + dir * speed * STEP));
+            u.x = advanceAlongLane(u.x, dir, speed, STEP);
         }
     }
 }

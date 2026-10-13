@@ -1,0 +1,57 @@
+export type Side = 0 | 1;
+export type Phase = 'ready' | 'playing' | 'paused' | 'ended';
+export type Difficulty = 'story' | 'normal' | 'hard';
+export interface Unit {
+    id: number;
+    heroId: string;
+    side: Side;
+    lane: number;
+    x: number;
+    previousX: number;
+    hp: number;
+    maxHp: number;
+    shield: number;
+    attack: number;
+    range: number;
+    speed: number;
+    attackCd: number;
+    skillCd: number;
+    slowUntil: number;
+    slowFactor: number;
+    stunUntil: number;
+    born: number;
+    attackAt: number;
+    skillAt: number;
+    state: 'move' | 'attack' | 'stunned';
+}
+export interface Tower {
+    id: string;
+    side: Side;
+    lane: number;
+    x: number;
+    hp: number;
+    maxHp: number;
+    cooldown: number;
+}
+export interface GameEvent {
+    id: number;
+    time: number;
+    type: 'spawn' | 'hit' | 'projectile' | 'skill' | 'heal' | 'death' | 'tower' | 'core' | 'pulse' | 'finish';
+    side: Side;
+    lane: number;
+    x: number;
+    toX?: number;
+    targetId?: number;
+    value?: number;
+    heroId?: string;
+    label?: string;
+}
+export interface Stats {
+    deployed: number;
+    kills: number;
+    damage: number;
+    healed: number;
+    skills: number;
+    towers: number;
+    spent: number;
+}

@@ -7,7 +7,10 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "check:architecture": "node tools/check-architecture.mjs",
+    "check": "npm run check:architecture && npm test && npm run build"
   },
   "dependencies": {
     "three": "0.180.0"

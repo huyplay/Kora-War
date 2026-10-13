@@ -1,0 +1,205 @@
+{
+  "commit": "e792b00",
+  "fixtures": [
+    {
+      "seed": 1,
+      "checkpoints": [
+        {
+          "tick": 100,
+          "hash": "1834823e68109e2f0bab4c7cf5d1746ad2915c412d23e243debba01cda881020"
+        },
+        {
+          "tick": 200,
+          "hash": "a622c8e94bbb23d9f5ef01aeb8c82779e254110ba383cba2ffb182ae33b0102e"
+        },
+        {
+          "tick": 300,
+          "hash": "b08b775c13e987f83390ebc77c175cf558259cea5b40d0a3b1a2c6295cb6fd49"
+        },
+        {
+          "tick": 400,
+          "hash": "7698b0297e416c9ab852771290bb58854c721c350e7a2370ba6b655263b48d6d"
+        },
+        {
+          "tick": 500,
+          "hash": "dff0a316f38acf056a2de0be13d1646a7f3ebc7da8b3d262cbbab1ba2cf9534b"
+        },
+        {
+          "tick": 600,
+          "hash": "a78893e5fb521aa832293eb3bef9901830e1b6be181788f555a1f6da832c439c"
+        },
+        {
+          "tick": 700,
+          "hash": "50c74136d4374e4ae26fe53f1375f29562d5f2e5053c6718334d125c277c2f65"
+        },
+        {
+          "tick": 800,
+          "hash": "be7233f9842785facf406e01c8f2752186493ea1c61df071d1bb4eae461a4086"
+        },
+        {
+          "tick": 900,
+          "hash": "7bb8dced4580037c924ac0fedd6595a17b659b58bd2b5e74961380c81dde0f2b"
+        },
+        {
+          "tick": 1000,
+          "hash": "8a0de76d119c6ac1a6e190755210863a8b5aafcdf03435aa164881007ddb5d1e"
+        },
+        {
+          "tick": 1100,
+          "hash": "1239ae42733b3aec4997ccc1125c45c935f904976098ee470762a67971684dc4"
+        },
+        {
+          "tick": 1128,
+          "hash": "0257b6a03d1ee26bf40d9cd1719606d740a805f0f169a6699d0cb8014cd09671"
+        }
+      ]
+    },
+    {
+      "seed": 7,
+      "checkpoints": [
+        {
+          "tick": 100,
+          "hash": "83f3f95814c7504bd791315e199033b6c9862c1f119b3bfa8e8cbb228369db41"
+        },
+        {
+          "tick": 200,
+          "hash": "9a11b7a27c2e49d47fd7bfba948d2e5b4a6a8b4cf85e33eb9f7fa6f9535d3da0"
+        },
+        {
+          "tick": 300,
+          "hash": "3971c6d8640038a2789f5233e81424a9d058d832ee10f4690ba4540ee15cd71b"
+        },
+        {
+          "tick": 400,
+          "hash": "11384da6d83404db77e591dbb3510e208e59946bbc80bff3ecec1b77c3559fef"
+        },
+        {
+          "tick": 500,
+          "hash": "f089a484305ec20ec9c69e3a8a1c73d17c9a722062a63502f9de71b39c0bc64e"
+        },
+        {
+          "tick": 600,
+          "hash": "40459d01a77285dddba0e28deb94a43cb60d6fba7e9045a54ae4fad1cfab0dc8"
+        },
+        {
+          "tick": 700,
+          "hash": "8b81fec13078975d3e301567ceab11fb641c8952b7f6a50d205841c6663c2d68"
+        },
+        {
+          "tick": 800,
+          "hash": "e7d148ffc790c87032935a7fa69dc6c8dfdfb9c21667eaf43c1b755156941028"
+        },
+        {
+          "tick": 900,
+          "hash": "c6e998be513dd1542f684144a388576a5e9ac15b689b1f0735889f23742eaea0"
+        },
+        {
+          "tick": 1000,
+          "hash": "2c9b40f1a189b1492d2c939711f1eb2cdb09f12aebbc56d14a8cca4b9759b1ff"
+        },
+        {
+          "tick": 1055,
+          "hash": "14c1d2c238c2ff43977d0aed45ece7546f8b316630955aa4124b57ce9799aca6"
+        }
+      ]
+    },
+    {
+      "seed": 42,
+      "checkpoints": [
+        {
+          "tick": 100,
+          "hash": "7ea42e72cf7d2db77030aa5f665bf42aa7196ea44537a66e71394d2dbc9321b5"
+        },
+        {
+          "tick": 200,
+          "hash": "3a0752aad0f144a0c6a32cd3a6cb52cdd4aa81e996b2bc606cad652f74bf79ad"
+        },
+        {
+          "tick": 300,
+          "hash": "fa401eeb75c90aa093f80d9a24ec21877f2d7ff3f92c0d8aa77f7649f4eb6fd3"
+        },
+        {
+          "tick": 400,
+          "hash": "936737e634ac742aaa50e78c3d70380f4ca14bfeadc6f2b2845f220caa4b170e"
+        },
+        {
+          "tick": 500,
+          "hash": "87f6e8c652b55e7cd818d618b32a8c74d6cfa08ce77313317eb89fe400b27f1d"
+        },
+        {
+          "tick": 600,
+          "hash": "07949b6ae27ad01d7b29ef682bd0f2b88f20c281c434334d419761907a9961c2"
+        },
+        {
+          "tick": 700,
+          "hash": "17d930d98b55f34345fa6b74e5ae1011ed7677cddaf871e93dd089869cd01bf1"
+        },
+        {
+          "tick": 800,
+          "hash": "3c28e6afac5f050d52dfb4c9174c1e325b9208123f9c30e82fe853064e3da266"
+        },
+        {
+          "tick": 900,
+          "hash": "bf330a3617ee7af3e490d013430178e6df1504e25b58e25cb858e07e3e22a743"
+        },
+        {
+          "tick": 1000,
+          "hash": "41941d92e86b7b66e84b5deb3476c83e8dd902c33edcc45c67d4cb13284f5e01"
+        },
+        {
+          "tick": 1045,
+          "hash": "c5b449377f4b0675c8c2447b08b533236dfea2d729d5b89560d219d21553bbd3"
+        }
+      ]
+    },
+    {
+      "seed": 20261013,
+      "checkpoints": [
+        {
+          "tick": 100,
+          "hash": "3666bf4ea290f526bcb94e758455da58589ae083bac191f99003fe59a35847fb"
+        },
+        {
+          "tick": 200,
+          "hash": "867a130ce117d56ba95c051fd1dc64b240da8b61afcf53d683d7c3e1fb452f78"
+        },
+        {
+          "tick": 300,
+          "hash": "9e8709c7feca1ff092515ca4d44066cf982e0be16fd0b8415d7e7553fd3f81d8"
+        },
+        {
+          "tick": 400,
+          "hash": "fd5666fd908115cc672796b7f023edbe775aa3ce2fa46a17f644a36a3e1ffd72"
+        },
+        {
+          "tick": 500,
+          "hash": "08ba3bce134a7cba8482867ad0e3bfef7059281de373ae705000ba32041e6075"
+        },
+        {
+          "tick": 600,
+          "hash": "411beec9f11edd4ec37989660c50970dd9a6968e03fffc7db8b8b5cd41dac179"
+        },
+        {
+          "tick": 700,
+          "hash": "ed300f84cc90159dc125c7407bf4fc914c8ecc9053d6369a0106552bc160af25"
+        },
+        {
+          "tick": 800,
+          "hash": "7669169ef63351bf5b61279c18165b2e2ab31c78bd65b035db2c2653d9360509"
+        },
+        {
+          "tick": 900,
+          "hash": "e24d61ba94e7fdff03e2c05f3be345bbf656e9698a52e92cc3ad949472485da2"
+        },
+        {
+          "tick": 1000,
+          "hash": "0d51c75ae0a5e364f8e1b412290d3e6c1ae55024e34adac02e7018776e218d63"
+        },
+        {
+          "tick": 1045,
+          "hash": "21f46372485ca1d8ab3e6fa00904cb2c13d2ecaed3919e67ae0c49f0a12a0f6b"
+        }
+      ]
+    }
+  ]
+}

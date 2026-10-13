@@ -15,6 +15,7 @@ Mở URL Vite in ra, mặc định `http://127.0.0.1:5173/`.
 
 ```sh
 npm test
+npm run check
 npm run build
 npm run preview
 ```
@@ -46,12 +47,14 @@ npm run preview
 
 ## Kiến trúc
 
-- `src/data.ts`: catalog, stats, nguồn hệ/tộc và các mô tả kỹ năng của ruleset riêng.
-- `src/simulation.ts`: fixed-step 20 Hz, PRNG có seed, AI, mana, combat và kết quả; không phụ thuộc DOM/Three.js.
-- `src/world.ts`: Three.js, môi trường/mô hình thủ tục, animation, raycast và hiệu ứng. Static geometry gộp theo material; model geometry được dùng chung.
-- `src/main.ts`: UI, input, tutorial, màn hình, game loop, local save và debug.
-- `src/audio.ts`: âm thanh Web Audio tự tổng hợp.
-- `tests/simulation.test.ts`: 18 bài test bao gồm 20 trận seeded AI-v-AI hoàn chỉnh.
+- `src/data/`: tướng, hệ/tộc, cấu hình kỹ năng, luật chung, map và cốt truyện Aetherfall.
+- `src/core/`: Battle và các hệ thống mana, triển khai, kỹ năng, đánh, trụ, kết quả, AI; không phụ thuộc DOM/Three.js.
+- `src/rendering/`: Three.js, môi trường, mô hình, batching, animation, raycast và tài nguyên GPU.
+- `src/ui/`: các màn hình truyện, đội hình, cài đặt, pause, kết quả và thành phần chung.
+- `src/app/`: điều phối phiên chơi, input/HUD/debug và fixed-step runner 20 Hz.
+- `src/services/`: lưu game có kiểm tra dữ liệu và âm thanh Web Audio.
+- `tests/`: 27 bài test, gồm 20 trận AI-v-AI và đối chiếu bốn seed với bản gốc trước refactor.
+- [Kiến trúc và điểm mở rộng](docs/ARCHITECTURE.md), [hướng dẫn bảo trì](docs/DEVELOPMENT.md), [các quyết định đã chốt](docs/DECISIONS.md).
 - [Ghi chú triển khai](docs/06-implementation/aetherfall-v0.1.md): luật chính xác và giới hạn.
 - [Hồ sơ nghiên cứu Castle Crush trước đó](docs/README.md): tài liệu tham khảo lịch sử, không phải cam kết parity của Aetherfall.
 

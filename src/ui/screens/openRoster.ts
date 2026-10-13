@@ -1,9 +1,10 @@
-import { HEROES, HERO_MAP, ORIGINS, ROLES, traits } from '../../data/index';
-import { $ } from '../dom';
+import { ORIGINS, ROLES, traits } from '../../data/index';
+import { $, escapeHTML } from '../dom';
 import { icon } from '../icons';
 import { closeModal, modal } from '../modal';
 import type { ScreenContext } from '../screen-context';
 export function openRoster(ctx: ScreenContext, focusId = ctx.deck[0]) {
+    const HEROES = ctx.heroes, HERO_MAP = ctx.heroMap;
     if (ctx.mode === 'battle') {
         ctx.toast('Đội hình được khóa trong trận. Bạn có thể đổi ở sảnh.');
         return;
@@ -22,7 +23,7 @@ export function openRoster(ctx: ScreenContext, focusId = ctx.deck[0]) {
         }>)[id]?.name);
         $('#draft-traits').textContent = active.length ? active.join(' + ') : 'Chưa có liên kết kích hoạt';
         $('#save-deck').toggleAttribute('disabled', draft.length !== 4);
-        $('#hero-detail').innerHTML = `<span class="eyebrow" style="color:${ORIGINS[h.origin].color}">${ORIGINS[h.origin].icon} ${ORIGINS[h.origin].name} · ${ROLES[h.role].name}</span><h3>${h.name}</h3><p class="hero-title">${h.title}</p><div class="stat-grid"><span><b>${h.hp}</b>Máu</span><span><b>${h.attack}</b>Sát thương</span><span><b>${h.range}m</b>Tầm đánh</span><span><b>${h.cost}</b>Mana</span></div><h4>✦ ${h.ability}</h4><p>${h.description}</p><small>Tự dùng khi có mục tiêu phù hợp. Hồi ${h.skillCooldown} giây.</small><div class="detail-traits"><p>${ORIGINS[h.origin].icon} ${ORIGINS[h.origin].effect}</p><p>${ROLES[h.role].icon} ${ROLES[h.role].effect}</p></div><button class="secondary" id="toggle-hero">${draft.includes(h.id) ? '− Bỏ khỏi đội hình' : '+ Thêm vào đội hình'}</button>`;
+        $('#hero-detail').innerHTML = `<span class="eyebrow" style="color:${ORIGINS[h.origin].color}">${ORIGINS[h.origin].icon} ${ORIGINS[h.origin].name} · ${ROLES[h.role].name}</span><h3>${h.name}</h3><p class="hero-title">${escapeHTML(h.title)}</p><div class="stat-grid"><span><b>${h.hp}</b>Máu</span><span><b>${h.attack}</b>Sát thương</span><span><b>${h.range}m</b>Tầm đánh</span><span><b>${h.cost}</b>Mana</span></div><h4>✦ ${escapeHTML(h.ability)}</h4><p>${escapeHTML(h.description)}</p><small>Tự dùng khi có mục tiêu phù hợp. Hồi ${h.skillCooldown} giây.</small><div class="detail-traits"><p>${ORIGINS[h.origin].icon} ${ORIGINS[h.origin].effect}</p><p>${ROLES[h.role].icon} ${ROLES[h.role].effect}</p></div><button class="secondary" id="toggle-hero">${draft.includes(h.id) ? '− Bỏ khỏi đội hình' : '+ Thêm vào đội hình'}</button>`;
         $('#toggle-hero').onclick = () => {
             if (draft.includes(h.id))
                 draft = draft.filter(id => id !== h.id);

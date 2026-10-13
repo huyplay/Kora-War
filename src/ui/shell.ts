@@ -8,6 +8,7 @@ export function renderShell() {
  </header>
  <main>
   <div id="stage"><div class="vignette"></div></div>
+  <div class="vault-launcher" aria-label="Kho Aether"><button id="vault-shop" aria-label="Cửa hàng">◉ <b id="wallet-gold">—</b></button><button id="vault-forge" aria-label="Nâng cấp tướng">⚒ <small>Nâng cấp</small></button><button id="vault-chest" aria-label="Rương Aether">▣ <small>Kho báu</small></button></div>
   <div class="arena-heading"><div class="eyebrow"><span class="line"></span> CHƯƠNG I <span class="line"></span></div><h1>Thung lũng Khởi Nguyên</h1><p>Nơi ánh sáng cuối cùng thức giấc</p></div>
   <section class="battle-hud" hidden aria-label="Trạng thái trận đấu">
    <div class="base-health ally"><span class="core-icon">◈</span><div><div class="base-title">LÕI BÌNH MINH <b id="ally-hp">1500</b></div><div class="hp-track"><i id="ally-health"></i></div><small>Đội của bạn <span id="ally-towers">3 trụ</span></small></div></div>

@@ -1,17 +1,21 @@
 import * as THREE from 'three';
 import type { Battle, GameEvent, Unit } from '../core/index';
 import { pickDeployment } from '../core/physics/lane-space';
+import type { ContentConfig } from '../data/content';
 import { HERO_MAP, LANES, type Hero } from '../data/index';
 import { animateUnit } from './animation/unit-animator';
 import { createHeroPrefabs } from './assets/hero-prefabs';
+import { ModelLibrary, type ModelInstance } from './assets/model-library';
 import { buildEnvironment } from './environment';
-import { disposeSharedResources, healthGeometry, healthMaterial, part } from './resources';
+import { disposeSharedResources, healthGeometry, healthMaterial, part, teamRings, unitRingGeometry } from './resources';
+import { TerrainStyle } from './terrain-style';
 import { SpriteEffects } from './vfx/sprite-effects';
 interface Visual {
     group: THREE.Group;
     bar: THREE.Mesh;
     shield: THREE.Mesh;
     unit: Unit;
+    imported?: ModelInstance;
 }
 interface Effect {
     mesh: THREE.Object3D;
@@ -24,6 +28,16 @@ interface Effect {
     side: number;
 }
 export class World {
+    private models = new ModelLibrary();
+    private terrain = new TerrainStyle();
+    private content?: ContentConfig;
+    private templates = new Map<string, ModelInstance>();
+    private mapInstances: ModelInstance[] = [];
+    private coreModels: ModelInstance[] = [];
+    private corpses: {
+        model: ModelInstance;
+        age: number;
+    }[] = [];
     private prefabs = createHeroPrefabs();
     private sprites = new SpriteEffects();
     private resizeObserver: ResizeObserver;
@@ -34,6 +48,7 @@ export class World {
     canvas: HTMLCanvasElement;
     units = new Map<number, Visual>();
     towerMeshes = new Map<string, THREE.Group>();
+    baseGroups: THREE.Group[] = [];
     coreCrystals: THREE.Mesh[] = [];
     effects: Effect[] = [];
     lastEvent = 0;
@@ -86,6 +101,7 @@ export class World {
         rim.position.set(6, 10, -14);
         this.scene.add(rim);
         this.buildEnvironment();
+        this.terrain.apply(this.scene);
         this.scene.add(this.sprites.root);
         for (let lane = 0; lane < 3; lane++) {
             const zone = new THREE.Mesh(new THREE.PlaneGeometry(7.7, 2.9), new THREE.MeshBasicMaterial({ color: 0x77e9c4, transparent: true, opacity: .15, side: THREE.DoubleSide, depthWrite: false }));
@@ -121,10 +137,61 @@ export class World {
         this.camera.updateProjectionMatrix();
     }
     buildEnvironment() { buildEnvironment(this); }
+    async prepareContent(content: ContentConfig) {
+        this.content = content;
+        this.scene.background = new THREE.Color(content.map.background);
+        this.scene.fog = new THREE.FogExp2(content.map.background, .011);
+        this.renderer.toneMappingExposure = content.map.exposure;
+        await this.models.supportTextures(this.renderer);
+        this.sprites.configure(content.vfx);
+        const results = await Promise.allSettled(Object.entries(content.models).map(async ([id, binding]) => {
+            const instance = await this.models.instance(binding);
+            this.templates.set(id, instance);
+        }));
+        for (const result of results)
+            if (result.status === 'rejected')
+                console.warn('Model fallback:', result.reason);
+        await Promise.allSettled(content.map.props.map(async (p) => {
+            const instance = await this.models.instance({ assetId: p.assetId, height: p.scale, yaw: p.yaw, clips: {} });
+            instance.root.position.set(p.x, 0, p.z);
+            this.mapInstances.push(instance);
+            this.scene.add(instance.root);
+        }));
+        if (content.map.towerAssetId)
+            for (const [id, tower] of this.towerMeshes) {
+                try {
+                    const instance = await this.models.instance({ assetId: content.map.towerAssetId, height: 3, yaw: 0, clips: {} });
+                    instance.teamPalette(Number(id[0]));
+                    tower.clear();
+                    tower.add(instance.root);
+                    this.mapInstances.push(instance);
+                }
+                catch (e) {
+                    console.warn('Tower fallback:', e);
+                    break;
+                }
+            }
+        if (content.map.coreAssetId)
+            for (const side of [0, 1]) {
+                try {
+                    const instance = await this.models.instance({ assetId: content.map.coreAssetId, height: 3.5, yaw: side === 0 ? 90 : -90, clips: {} });
+                    instance.teamPalette(side);
+                    instance.root.position.set(side === 0 ? -15 : 15, 0, 0);
+                    this.scene.add(instance.root);
+                    this.coreModels.push(instance);
+                    this.coreCrystals[side].visible = false;
+                    this.baseGroups[side].visible = false;
+                }
+                catch (e) {
+                    console.warn('Core fallback:', e);
+                    break;
+                }
+            }
+    }
     portrait(h: Hero) {
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1b343b);
-        const model = this.prefabs.get(h.id)();
+        const model = this.templates.get(h.id)?.root || this.prefabs.get(h.id)();
         model.rotation.y = -.3;
         scene.add(model);
         scene.add(new THREE.HemisphereLight(0xe3ffff, 0x3a4045, 3));
@@ -141,6 +208,7 @@ export class World {
         const url = this.canvas.toDataURL('image/webp');
         this.renderer.setPixelRatio(ratio);
         this.renderer.setSize(oldSize.x, oldSize.y, false);
+        model.removeFromParent();
         return url;
     }
     pick(clientX: number, clientY: number) {
@@ -163,6 +231,8 @@ export class World {
     }
     setQuality(q: 'high' | 'low') { this.quality = q; this.renderer.setPixelRatio(Math.min(devicePixelRatio, q === 'high' ? 1.25 : .85)); this.renderer.shadowMap.enabled = q === 'high'; this.renderer.shadowMap.needsUpdate = true; }
     reset() {
+        this.corpses.forEach(c => c.model.dispose());
+        this.corpses = [];
         this.sprites.reset();
         this.clock = 0;
         this.hoverRing.visible = false;
@@ -186,7 +256,15 @@ export class World {
             t.scale.setScalar(1);
         }
     }
-    disposeUnit(_v: Visual) { }
+    disposeUnit(v: Visual, death = false) {
+        if (v.imported && death && this.corpses.length < 12) {
+            v.imported.play('death', true);
+            this.scene.add(v.imported.root);
+            this.corpses.push({ model: v.imported, age: 0 });
+        }
+        else
+            v.imported?.dispose();
+    }
     dispose() {
         if (this.disposed)
             return;
@@ -196,6 +274,11 @@ export class World {
         this.scene.remove(this.sprites.root);
         this.prefabs.dispose();
         this.reset();
+        this.mapInstances.forEach(m => m.dispose());
+        this.coreModels.forEach(m => m.dispose());
+        this.templates.forEach(m => m.dispose());
+        this.models.dispose();
+        this.terrain.dispose();
         const geometries = new Set<THREE.BufferGeometry>();
         const materials = new Set<THREE.Material>();
         this.scene.traverse(object => {
@@ -228,8 +311,26 @@ export class World {
         bar.scale.set(.94, .085, 1);
         const shield = new THREE.Mesh(healthGeometry, healthMaterial);
         shield.scale.set(.94, .038, 1);
-        const v = { group, bar, shield, unit: u };
+        const v: Visual = { group, bar, shield, unit: u };
         this.units.set(u.id, v);
+        const binding = this.content?.models[u.heroId];
+        if (binding && this.templates.has(u.heroId))
+            void this.models.instance(binding).then(instance => {
+                if (this.disposed || this.units.get(u.id) !== v) {
+                    instance.dispose();
+                    return;
+                }
+                v.imported = instance;
+                const ring = new THREE.Mesh(unitRingGeometry, teamRings[u.side]);
+                ring.rotation.x = -Math.PI / 2;
+                ring.position.y = .21;
+                ring.scale.setScalar(1.25);
+                instance.root.add(ring);
+                instance.root.rotation.y = u.side === 0 ? Math.PI / 2 : -Math.PI / 2;
+                instance.root.position.copy(v.group.position);
+                v.group = instance.root;
+                this.scene.add(instance.root);
+            });
         return v;
     }
     batchUnitMesh(o: THREE.Mesh, color = 0xffffff) {
@@ -258,12 +359,13 @@ export class World {
             b.count = 0;
         for (const v of this.units.values()) {
             v.group.updateMatrixWorld(true);
-            v.group.traverse(o => {
-                if (o instanceof THREE.Mesh && o.visible)
-                    this.batchUnitMesh(o);
-            });
+            if (!v.imported)
+                v.group.traverse(o => {
+                    if (o instanceof THREE.Mesh && o.visible)
+                        this.batchUnitMesh(o);
+                });
             v.bar.updateMatrixWorld(true);
-            this.batchUnitMesh(v.bar, v.unit.side === 0 ? 0x95f4c8 : 0xff998b);
+            this.batchUnitMesh(v.bar, v.unit.side === 0 ? 0x26cfe8 : 0xff5959);
             if (v.shield.visible) {
                 v.shield.updateMatrixWorld(true);
                 this.batchUnitMesh(v.shield, 0xffe4a3);
@@ -297,7 +399,7 @@ export class World {
         for (const [id, v] of this.units)
             if (!ids.has(id)) {
                 this.scene.remove(v.group, v.bar, v.shield);
-                this.disposeUnit(v);
+                this.disposeUnit(v, true);
                 this.units.delete(id);
             }
         for (const u of battle.units) {
@@ -309,7 +411,10 @@ export class World {
             v.group.position.z = z;
             const born = Math.min(1, (battle.time - u.born) * 3 + .15);
             v.group.scale.setScalar(born);
-            animateUnit(v.group, u, battle.time, this.clock, battle.phase);
+            if (v.imported)
+                v.imported.update(u, battle.time, battle.phase, dt);
+            else
+                animateUnit(v.group, u, battle.time, this.clock, battle.phase);
             v.bar.position.set(v.group.position.x, 2.6, z);
             v.bar.quaternion.copy(this.camera.quaternion);
             v.bar.scale.x = .94 * Math.max(.001, u.hp / u.maxHp);
@@ -346,6 +451,19 @@ export class World {
             }
         }
         this.sprites.update(dt);
+        for (let i = this.corpses.length - 1; i >= 0; i--) {
+            const corpse = this.corpses[i];
+            if (battle.phase === 'playing') {
+                corpse.age += dt;
+                corpse.model.tick(dt);
+            }
+            if (corpse.age > 1.1) {
+                corpse.model.dispose();
+                this.corpses.splice(i, 1);
+            }
+        }
+        this.coreModels.forEach((model, side) => model.root.scale.setScalar(battle.cores[side] <= 0 ? .05 : 1));
+        this.mapInstances.forEach(model => model.tick(dt));
         this.syncUnitBatches();
         this.renderer.render(this.scene, this.camera);
         const info = this.renderer.info;

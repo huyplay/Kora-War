@@ -1,3 +1,4 @@
+import { defaultContent, validateContent, type ContentConfig } from '../data/content';
 import { DEFAULT_DECK, ENEMY_DECK, HERO_MAP, LANES, RULES, STEP, traits, type Hero } from '../data/index';
 import { runAI } from './ai/heuristic';
 import { castAbility } from './systems/cast-ability';
@@ -9,7 +10,6 @@ import { updateTowers } from './systems/towers';
 import { updateUnits } from './systems/units';
 import { updateVictory } from './systems/victory';
 import type { Difficulty, GameEvent, Phase, Side, Stats, Tower, Unit } from './types';
-import { defaultContent, validateContent, type ContentConfig } from '../data/content';
 const freshStats = (): Stats => ({ deployed: 0, kills: 0, damage: 0, healed: 0, skills: 0, towers: 0, spent: 0 });
 /** Original single-player ruleset Aetherfall v0.1. Renderer never owns combat. */
 export class Battle {
@@ -40,13 +40,16 @@ export class Battle {
     readonly content: ContentConfig;
     readonly heroes: Record<string, Hero>;
     readonly levels: Record<string, number>;
-    constructor(deck = DEFAULT_DECK, difficulty: Difficulty = 'normal', seed = 20261013, enemyDeck = ENEMY_DECK, content = defaultContent(), levels: Record<string,number> = {}) {
+    constructor(deck = DEFAULT_DECK, difficulty: Difficulty = 'normal', seed = 20261013, enemyDeck = ENEMY_DECK, content = defaultContent(), levels: Record<string, number> = {}) {
         validateContent(content);
         this.content = structuredClone(content);
-        this.heroes = Object.fromEntries(this.content.heroes.map(h => [h.id,h]));
+        this.heroes = Object.fromEntries(this.content.heroes.map(h => [h.id, h]));
+        for (const [id, level] of Object.entries(levels))
+            if (!this.heroes[id] || !Number.isInteger(level) || level < 1 || level > 10)
+                throw new Error('Cấp tướng không hợp lệ.');
         this.levels = { ...levels };
         this.mana = [content.rules.startingMana, content.rules.startingMana];
-        this.cores = [content.rules.coreHp,content.rules.coreHp];
+        this.cores = [content.rules.coreHp, content.rules.coreHp];
         this.maxCore = content.rules.coreHp;
         this.maxUnits = content.rules.maxUnits;
         for (const d of [deck, enemyDeck])

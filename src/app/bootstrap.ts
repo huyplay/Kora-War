@@ -1,30 +1,36 @@
 import { Battle, type Difficulty } from '../core/index';
-import { HEROES, HERO_MAP, ORIGINS, ROLES, traits, type Hero } from '../data/index';
-import { RULES } from '../data/rules';
+import { ORIGINS, ROLES, traits, type Hero } from '../data/index';
 import { validateGameData } from '../data/validate';
 import { CardGesture } from '../engine/input/card-gesture';
 import { Lifetime } from '../engine/lifecycle';
 import { World } from '../rendering/World';
 import { Sound } from '../services/audio';
+import { gameSession } from '../services/game-session';
 import { LandscapeController } from '../services/landscape';
 import { loadSave, parseSave, saveGame } from '../services/save-store';
 import '../style.css';
-import { $ } from '../ui/dom';
+import { $, escapeHTML } from '../ui/dom';
 import { closeModal } from '../ui/modal';
 import { feedback } from '../ui/motion';
 import type { ScreenContext } from '../ui/screen-context';
+import { economy } from '../ui/screens/economy';
 import { openRoster as rosterScreen } from '../ui/screens/openRoster';
 import { openStory as storyScreen } from '../ui/screens/openStory';
 import { pause as pauseScreen } from '../ui/screens/pause';
 import { result as resultScreen } from '../ui/screens/result';
 import { settings as settingsScreen } from '../ui/screens/settings';
 import { renderShell } from '../ui/shell';
+import '../ui/styles/economy.css';
 import '../ui/styles/landscape.css';
 import { FixedStepRunner } from './fixed-step-runner';
 const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
 lifetime.defer(() => inputLifetime.abort());
 validateGameData();
+const HEROES = gameSession.content.heroes;
+const HERO_MAP = Object.fromEntries(HEROES.map(h => [h.id, h]));
+const RULES = gameSession.content.rules;
+const levels = () => Object.fromEntries((gameSession.wallet?.cards || []).map(c => [c.hero, c.level]));
 let saved = parseSave(null);
 try {
     saved = loadSave(localStorage);
@@ -35,7 +41,7 @@ let difficulty: Difficulty = saved.difficulty;
 let wins = saved.wins, mode: 'lobby' | 'battle' = 'lobby', selected: string | null = null, skillSelected = false;
 let tutorial = 0, debug = false, autoPlayer = false, speed = 1, seed = 20261013, simMs = 0, frameMs: number[] = [], fps = 0, lastFrame = performance.now(), lastUi = 0, lastAudioEvent = 0, endedShown = false;
 const runner = new FixedStepRunner();
-let battle = new Battle(deck, difficulty, seed);
+let battle = new Battle(deck, difficulty, seed, undefined, gameSession.content, levels());
 const sound = new Sound();
 sound.enabled = saved.sound;
 function persist() {
@@ -58,8 +64,12 @@ lifetime.own(world);
 lifetime.own(sound);
 if (saved.quality === 'low')
     world.setQuality('low');
+$('#app').insertAdjacentHTML('beforeend', '<div id="asset-loading" role="status">◈ Đang kết nối lõi Aether…</div>');
+await world.prepareContent(gameSession.content);
+$('#asset-loading').remove();
+$('.arena-heading h1').textContent = gameSession.content.map.name;
 const portraits = Object.fromEntries(HEROES.map(h => [h.id, world.portrait(h)]));
-function card(h: Hero, index: number, roster = false) { return `<button class="hero-card ${roster ? 'roster-card' : ''}" data-hero="${h.id}" style="--hero-color:${ORIGINS[h.origin].color}" aria-label="${h.name}, ${h.cost} mana, ${h.ability}"><span class="card-cost">${h.cost}</span>${!roster ? `<kbd>${index + 1}</kbd>` : ''}<img src="${portraits[h.id]}" alt="Mô hình 3D ${h.name}" draggable="false"/><span class="card-shade"></span><span class="card-origin">${ORIGINS[h.origin].icon} ${ORIGINS[h.origin].name}</span><span class="card-name">${h.name}</span><span class="card-role">${ROLES[h.role].name}</span><span class="card-cooldown"></span>${roster ? '<span class="checkmark">✓</span>' : ''}</button>`; }
+function card(h: Hero, index: number, roster = false) { return `<button class="hero-card ${roster ? 'roster-card' : ''}" data-hero="${h.id}" style="--hero-color:${ORIGINS[h.origin].color}" aria-label="${h.name}, ${h.cost} mana, ${escapeHTML(h.ability)}"><span class="card-cost">${h.cost}</span>${!roster ? `<kbd>${index + 1}</kbd>` : ''}<img src="${portraits[h.id]}" alt="Mô hình 3D ${h.name}" draggable="false"/><span class="card-shade"></span><span class="card-origin">${ORIGINS[h.origin].icon} ${ORIGINS[h.origin].name}</span><span class="card-name">${h.name}</span><span class="card-role">${ROLES[h.role].name}</span><span class="card-cooldown"></span>${roster ? '<span class="checkmark">✓</span>' : ''}</button>`; }
 function renderDeck() {
     $('#hand').innerHTML = deck.map((id, i) => card(HERO_MAP[id], i)).join('');
     const counts = traits(deck);
@@ -84,12 +94,12 @@ function showTooltip(id: string, el: HTMLElement) {
     if ($('#modal-root').children.length)
         return;
     const h = HERO_MAP[id], r = el.getBoundingClientRect();
-    $('#hero-tooltip').innerHTML = `<span class="tooltip-origin">${ORIGINS[h.origin].name} · ${ROLES[h.role].name}</span><h3>${h.name} <small>${h.title}</small></h3><div class="stat-row"><span>♥ ${h.hp}</span><span>⚔ ${h.attack}</span><span>◎ ${h.range}m</span></div><b>✦ ${h.ability}</b><p>${h.description}</p><small>Tự kích hoạt · Hồi ${h.skillCooldown} giây</small>`;
+    $('#hero-tooltip').innerHTML = `<span class="tooltip-origin">${ORIGINS[h.origin].name} · ${ROLES[h.role].name}</span><h3>${h.name} <small>${escapeHTML(h.title)}</small></h3><div class="stat-row"><span>♥ ${h.hp}</span><span>⚔ ${h.attack}</span><span>◎ ${h.range}m</span></div><b>✦ ${escapeHTML(h.ability)}</b><p>${escapeHTML(h.description)}</p><small>Tự kích hoạt · Hồi ${h.skillCooldown} giây</small>`;
     $('#hero-tooltip').hidden = false;
     $('#hero-tooltip').style.left = `${Math.max(12, Math.min(innerWidth - 292, r.left))}px`;
     $('#hero-tooltip').style.bottom = `${innerHeight - r.top + 10}px`;
 }
-function preview() { world.reset(); battle = new Battle(deck, difficulty, seed); battle.start(); battle.mana = [100, 100]; deck.slice(0, 3).forEach((id, i) => battle.play(0, id, i, -7.8 - i * .15)); battle.decks[1].slice(0, 3).forEach((id, i) => battle.play(1, id, i, 7.8 + i * .15)); battle.phase = 'ready'; battle.units.forEach(u => { u.born = -10; u.state = 'move'; }); battle.events = []; battle.mana = [5, 5]; }
+function preview() { world.reset(); battle = new Battle(deck, difficulty, seed, undefined, gameSession.content, levels()); battle.start(); battle.mana = [100, 100]; deck.slice(0, 3).forEach((id, i) => battle.play(0, id, i, -7.8 - i * .15)); battle.decks[1].slice(0, 3).forEach((id, i) => battle.play(1, id, i, 7.8 + i * .15)); battle.phase = 'ready'; battle.units.forEach(u => { u.born = -10; u.state = 'move'; }); battle.events = []; battle.mana = [5, 5]; }
 function clearSelection() { selected = null; skillSelected = false; world.hoverRing.visible = false; updateSelection(); }
 function updateSelection() { document.querySelectorAll<HTMLElement>('#hand .hero-card').forEach(b => b.classList.toggle('selected', b.dataset.hero === selected)); $('#pulse').classList.toggle('selected', skillSelected); $('#selection-hint').innerHTML = skillSelected ? 'Chọn chiến tuyến để gây sát thương và hồi máu đồng minh.' : selected ? `<b>${HERO_MAP[selected].name}</b> đã sẵn sàng. Chạm vùng sáng hoặc chọn đường.` : 'Chọn thẻ <kbd>1</kbd>–<kbd>4</kbd>, rồi thả vào vùng bên trái.'; $('.lane-shortcuts').hidden = mode !== 'battle' || (!selected && !skillSelected); }
 function selectCard(id: string) {
@@ -121,6 +131,7 @@ function deploy(lane: number, x = -11) {
     if (skillSelected) {
         error = battle.pulse(0, lane);
         if (!error) {
+            gameSession.record({ tick: battle.tick, type: 'pulse', lane });
             clearSelection();
             sound.tone('skill');
         }
@@ -128,6 +139,8 @@ function deploy(lane: number, x = -11) {
     else if (selected) {
         const played = selected;
         error = battle.play(0, selected, lane, x);
+        if (!error)
+            gameSession.record({ tick: battle.tick, type: 'play', heroId: played, lane, x });
         if (!error)
             feedback(document.querySelector(`#hand [data-hero="${played}"]`), 'deploy');
         if (!error) {
@@ -147,7 +160,24 @@ function deploy(lane: number, x = -11) {
 let toastTimer: number;
 function toast(message: string) { $('#combat-message').textContent = message; $('#combat-message').classList.add('show'); clearTimeout(toastTimer); toastTimer = window.setTimeout(() => $('#combat-message').classList.remove('show'), 2800); }
 function renderTutorial() { const text = tutorial === 1 ? '<b>01 / 03 · Gọi người tiên phong</b><span>Chọn một thẻ tướng ở phía dưới. Con số màu xanh là mana cần dùng.</span>' : tutorial === 2 ? '<b>02 / 03 · Chọn chiến tuyến</b><span>Chạm vùng sáng bên trái để thả quân, hoặc dùng nút đường trên / giữa / dưới.</span>' : '<b>03 / 03 · Giữ vững đội hình</b><span>Tướng tự di chuyển, đánh và dùng kỹ năng. Đặt Hộ Vệ trước, Du Hiệp phía sau. Phá trụ rồi tiến vào lõi!</span><button id="tutorial-done">Đã hiểu — chiến đấu!</button>'; $('#tutorial-hint').innerHTML = text; $('#tutorial-hint').hidden = !tutorial; $('#tutorial-done')?.addEventListener('click', () => { tutorial = 0; $('#tutorial-hint').hidden = true; }); }
-function startBattle(withTutorial = false) {
+let starting = false;
+async function startBattle(withTutorial = false) {
+    if (starting)
+        return;
+    if (landscape.blocked)
+        return;
+    sound.unlock();
+    starting = true;
+    let remote;
+    try {
+        remote = await gameSession.start(deck, difficulty);
+    }
+    catch (e) {
+        toast(e instanceof Error ? e.message : String(e));
+        starting = false;
+        return;
+    }
+    starting = false;
     if (landscape.blocked)
         return;
     gestures.cancel();
@@ -157,7 +187,7 @@ function startBattle(withTutorial = false) {
     $('#combat-message').textContent = '';
     mode = 'battle';
     world.reset();
-    battle = new Battle(deck, difficulty, ++seed);
+    battle = new Battle(deck, difficulty, remote?.seed || ++seed, undefined, remote?.content || gameSession.content, remote?.levels || levels());
     battle.start();
     endedShown = false;
     lastAudioEvent = 0;
@@ -187,9 +217,10 @@ function startBattle(withTutorial = false) {
     sound.tone('play');
     updateHud();
 }
-function lobby() { closeModal(); mode = 'lobby'; tutorial = 0; autoPlayer = false; speed = 1; clearSelection(); document.body.classList.remove('in-battle'); $('.battle-hud').hidden = true; $('.arena-heading').hidden = false; $('#lobby-actions').hidden = false; $('.battle-actions').hidden = true; $('.mana-panel').hidden = true; $('#edit-deck').hidden = false; $('.team-note').hidden = false; $('.map-note').hidden = false; $('#tutorial-hint').hidden = true; $('#hand-caption').textContent = 'ĐỘI HÌNH XUẤT TRẬN'; $('#hand-tip').textContent = 'Chọn 4 trong 10 tướng'; renderDeck(); preview(); updateHud(); }
+function lobby() { closeModal(); clearTimeout(toastTimer); $('#combat-message').classList.remove('show'); $('#combat-message').textContent = ''; mode = 'lobby'; tutorial = 0; autoPlayer = false; speed = 1; clearSelection(); document.body.classList.remove('in-battle'); $('.battle-hud').hidden = true; $('.arena-heading').hidden = false; $('#lobby-actions').hidden = false; $('.battle-actions').hidden = true; $('.mana-panel').hidden = true; $('#edit-deck').hidden = false; $('.team-note').hidden = false; $('.map-note').hidden = false; $('#tutorial-hint').hidden = true; $('#hand-caption').textContent = 'ĐỘI HÌNH XUẤT TRẬN'; $('#hand-tip').textContent = 'Chọn 4 trong 10 tướng'; renderDeck(); preview(); updateHud(); }
 function formatTime(t: number) { return `${Math.floor(t / 60).toString().padStart(2, '0')}:${Math.floor(t % 60).toString().padStart(2, '0')}`; }
 function updateHud() {
+    $('#wallet-gold').textContent = gameSession.wallet ? String(gameSession.wallet.gold) : '—';
     $('#best-record').textContent = `${wins} chiến thắng · Dữ liệu lưu trên thiết bị`;
     if (mode === 'battle') {
         $('#timer').textContent = formatTime(battle.time);
@@ -201,7 +232,7 @@ function updateHud() {
         }
         $('#mana').textContent = Math.floor(battle.mana[0]).toString();
         $('#mana-track').innerHTML = Array.from({ length: 10 }, (_, i) => `<span><i style="width:${Math.max(0, Math.min(1, battle.mana[0] - i)) * 100}%"></i></span>`).join('');
-        $('#mana-regen').textContent = `+${battle.has(0, 'storm') ? '1,26' : '1,05'} / giây`;
+        $('#mana-regen').textContent = `+${(battle.content.rules.manaPerSecond * (battle.has(0, 'storm') ? 1.2 : 1)).toLocaleString('vi', { maximumFractionDigits: 2 })} / giây`;
         document.querySelectorAll<HTMLElement>('#hand .hero-card').forEach(el => { const id = el.dataset.hero!, remaining = Math.max(0, (battle.cooldowns[0][id] || 0) - battle.time); el.classList.toggle('unaffordable', battle.mana[0] < HERO_MAP[id].cost); el.style.setProperty('--cooldown', `${remaining / RULES.cardCooldown * 100}%`); });
         const energy = battle.resonance[0];
         $('#pulse-value').textContent = energy >= 100 ? 'Sẵn sàng · Chọn một chiến tuyến' : `Đang tích năng lượng · ${Math.floor(energy)}%`;
@@ -216,6 +247,7 @@ function updateHud() {
     }
 }
 const screenContext: ScreenContext = {
+    heroes: HEROES, heroMap: HERO_MAP,
     get deck() { return deck; }, set deck(value) { deck = value; },
     get difficulty() { return difficulty; }, set difficulty(value) { difficulty = value; },
     get wins() { return wins; }, set wins(value) { wins = value; },
@@ -226,7 +258,8 @@ const screenContext: ScreenContext = {
     get endedShown() { return endedShown; }, set endedShown(value) { endedShown = value; },
     get tutorial() { return tutorial; }, set tutorial(value) { tutorial = value; },
     get accumulator() { return runner.accumulator; }, set accumulator(value) { runner.accumulator = value; },
-    toast, startBattle, lobby, persist, renderDeck, preview, clearSelection, card, formatTime
+    toast, startBattle, lobby, persist, renderDeck, preview, clearSelection, card, formatTime,
+    claimReward: () => gameSession.reward(battle)
 };
 const openStory = (tutorialStart = false) => storyScreen(screenContext, tutorialStart);
 const openRoster = (focusId = deck[0]) => rosterScreen(screenContext, focusId);
@@ -267,6 +300,10 @@ const gestures = lifetime.own(new CardGesture({
 }));
 const landscape = lifetime.own(new LandscapeController(() => { gestures.cancel(); pause(); runner.reset(); }));
 $('#fullscreen').onclick = () => void landscape.fullscreen();
+$('#vault-shop').onclick = () => economy(screenContext, 'shop');
+$('#vault-forge').onclick = () => economy(screenContext, 'forge');
+$('#vault-chest').onclick = () => economy(screenContext, 'chest');
+$('#wallet-gold').textContent = gameSession.wallet ? String(gameSession.wallet.gold) : '—';
 document.addEventListener('pointermove', event => {
     if (!gestures.active && (selected || skillSelected))
         world.setHover(event.clientX, event.clientY, skillSelected);
@@ -351,7 +388,7 @@ $('#debug-lose').onclick = () => {
         battle.debugUsed = true;
     }
 };
-$('#debug-export').onclick = () => { const data = { version: 'kora-war-0.1', seed: battle.seed, deck, difficulty, performance: { fps, simMs, ...world.stats }, snapshot: battle.snapshot() }; const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = `kora-war-match-${battle.seed}.json`; a.click(); URL.revokeObjectURL(url); };
+$('#debug-export').onclick = () => { const data = { version: 'kora-war-0.1', seed: battle.seed, contentRevision: gameSession.revision, levels: battle.levels, commands: gameSession.commands, deck, difficulty, performance: { fps, simMs, ...world.stats }, snapshot: battle.snapshot() }; const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = `kora-war-match-${battle.seed}.json`; a.click(); URL.revokeObjectURL(url); };
 document.addEventListener('keydown', e => {
     if (e.key === 'F3') {
         e.preventDefault();

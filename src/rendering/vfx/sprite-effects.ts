@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { GameEvent } from '../../core/types';
+import type { ContentConfig } from '../../data/content';
 import { LANES } from '../../data/map';
 import { ObjectPool } from '../../engine/object-pool';
 interface Particle {
@@ -14,6 +15,32 @@ export class SpriteEffects {
     private frames: THREE.Texture[] = [];
     private particles: Particle[] = [];
     private pool: ObjectPool<Particle>;
+    private profile?: ContentConfig['vfx'];
+    private disposed = false;
+    configure(profile: ContentConfig['vfx']) {
+        this.profile = profile;
+        if (profile.spriteAssetId)
+            new THREE.TextureLoader().load(`/api/assets/${profile.spriteAssetId}`, texture => {
+                if (this.disposed) {
+                    texture.dispose();
+                    return;
+                }
+                texture.colorSpace = THREE.SRGBColorSpace;
+                texture.generateMipmaps = false;
+                texture.minFilter = THREE.LinearFilter;
+                this.frames.forEach(frame => frame.dispose());
+                this.frames = [];
+                const columns = profile.spriteColumns || 8, rows = profile.spriteRows || 1;
+                for (let i = 0; i < columns * rows; i++) {
+                    const frame = texture.clone();
+                    frame.repeat.set(1 / columns, 1 / rows);
+                    frame.offset.set((i % columns) / columns, 1 - (Math.floor(i / columns) + 1) / rows);
+                    frame.needsUpdate = true;
+                    this.frames.push(frame);
+                }
+                texture.dispose();
+            });
+    }
     constructor() {
         this.root.name = 'SpriteEffects';
         const canvas = document.createElement('canvas');
@@ -62,10 +89,10 @@ export class SpriteEffects {
             return;
         particle.age = 0;
         particle.duration = event.type === 'pulse' ? 1 : .65;
-        particle.size = event.type === 'pulse' ? 6 : 2;
+        particle.size = (event.type === 'pulse' ? 6 : 2) * (this.profile?.intensity || 1);
         particle.sprite.position.set(event.x, 1, LANES[event.lane]);
         particle.sprite.visible = true;
-        particle.sprite.material.color.setHex(event.type === 'heal' ? 0x70ffc7 : event.side === 0 ? 0x7ddcff : 0xffa075);
+        particle.sprite.material.color.set(event.type === 'heal' ? (this.profile?.heal || '#70ffc7') : event.side === 0 ? (this.profile?.ally || '#7ddcff') : (this.profile?.enemy || '#ffa075'));
         this.particles.push(particle);
     }
     update(dt: number): void {
@@ -78,12 +105,13 @@ export class SpriteEffects {
                 this.particles.splice(i, 1);
                 continue;
             }
-            p.sprite.material.map = this.frames[Math.min(7, Math.floor(progress * 8))];
+            p.sprite.material.map = this.frames[Math.min(this.frames.length - 1, Math.floor(progress * this.frames.length))];
             p.sprite.material.opacity = 1 - progress;
+            p.sprite.material.rotation = progress * .8;
             p.sprite.scale.setScalar(p.size * (.5 + progress));
         }
     }
     get activeCount(): number { return this.pool.used; }
     reset(): void { this.pool.clear(); this.particles = []; }
-    dispose(): void { this.reset(); this.pool.dispose(); this.frames.forEach(frame => frame.dispose()); this.root.clear(); }
+    dispose(): void { this.disposed = true; this.reset(); this.pool.dispose(); this.frames.forEach(frame => frame.dispose()); this.root.clear(); }
 }

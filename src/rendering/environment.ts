@@ -6,6 +6,7 @@ export interface ArenaScene {
     scene: THREE.Scene;
     coreCrystals: THREE.Mesh[];
     towerMeshes: Map<string, THREE.Group>;
+    baseGroups: THREE.Group[];
 }
 export function buildEnvironment(world: ArenaScene) {
     const staticGroup = new THREE.Group();
@@ -68,20 +69,23 @@ export function buildEnvironment(world: ArenaScene) {
         if (i % 3 === 0)
             part(staticGroup, 'crystal', 0x8fb4a7, x, .37, z, .09, .22, .08, .2);
     }
-    // The two bases belong to a new fantasy world; no imported commercial assets.
+    // Keep fallback bases separate so an imported prefab can replace their visuals.
     for (const side of [0, 1]) {
         const x = side === 0 ? -15 : 15, color = side === 0 ? 0x65dccc : 0xe5a287;
-        part(staticGroup, 'cylinder', 0x647c75, x, .05, 0, 2.7, .65, 3);
-        part(staticGroup, 'cylinder', 0xb4b49a, x, .47, 0, 1.85, .25, 2.15);
-        part(staticGroup, 'cylinder', 0x627675, x, .8, 0, 1.25, .6, 1.4);
+        const base = new THREE.Group();
+        world.scene.add(base);
+        world.baseGroups.push(base);
+        part(base, 'cylinder', 0x647c75, x, .05, 0, 2.7, .65, 3);
+        part(base, 'cylinder', 0xb4b49a, x, .47, 0, 1.85, .25, 2.15);
+        part(base, 'cylinder', 0x627675, x, .8, 0, 1.25, .6, 1.4);
         for (let i = 0; i < 4; i++) {
             const a = i * Math.PI / 2 + Math.PI / 4;
-            part(staticGroup, 'box', 0x8e9c8c, x + Math.cos(a) * 1.45, 1.2, Math.sin(a) * 1.45, .36, 1.6, .36);
-            part(staticGroup, 'crystal', color, x + Math.cos(a) * 1.45, 2.25, Math.sin(a) * 1.45, .27, .6, .27, .4);
+            part(base, 'box', 0x8e9c8c, x + Math.cos(a) * 1.45, 1.2, Math.sin(a) * 1.45, .36, 1.6, .36);
+            part(base, 'crystal', color, x + Math.cos(a) * 1.45, 2.25, Math.sin(a) * 1.45, .27, .6, .27, .4);
         }
         const crystal = part(world.scene, 'crystal', color, x, 2.25, 0, .8, 1.55, .8, .5);
         world.coreCrystals.push(crystal);
-        const orbit = part(world.scene, 'ring', color, x, 1.7, 0, 1.55, 1.55, 1.55, .5);
+        const orbit = part(base, 'ring', color, x, 1.7, 0, 1.55, 1.55, 1.55, .5);
         orbit.rotation.x = Math.PI / 2;
         for (const z of [-6.8, 6.8]) {
             part(staticGroup, 'box', 0x64736a, x, 1.1, z, .8, 2.5, .8);

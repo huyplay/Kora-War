@@ -4,6 +4,8 @@ import type { World } from '../rendering/World';
 import type { Sound } from '../services/audio';
 /** Dữ liệu và hành động mà các màn hình được phép sử dụng. */
 export interface ScreenContext {
+    readonly heroes: Hero[];
+    readonly heroMap: Record<string, Hero>;
     deck: string[];
     difficulty: Difficulty;
     wins: number;
@@ -23,4 +25,5 @@ export interface ScreenContext {
     clearSelection(): void;
     card(hero: Hero, index: number, roster?: boolean): string;
     formatTime(time: number): string;
+    claimReward(): Promise<number>;
 }

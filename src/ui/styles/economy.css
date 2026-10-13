@@ -1,0 +1,368 @@
+.vault-launcher {
+  position: absolute;
+  right: max(14px, env(safe-area-inset-right));
+  top: 82px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 8;
+}
+.vault-launcher button {
+  border: 1px solid #dec99a55;
+  border-radius: 12px;
+  background: linear-gradient(140deg, #243842eb, #111f2cec);
+  color: #e9ce91;
+  min-height: 44px;
+  min-width: 52px;
+  padding: 8px 13px;
+  font: 600 13px inherit;
+  box-shadow: 0 5px 20px #0003;
+  cursor: pointer;
+}
+.vault-launcher small {
+  font-size: 10px;
+}
+.in-battle .vault-launcher {
+  display: none;
+}
+.economy-screen {
+  background: radial-gradient(ellipse at 50% 0, #29424b, transparent 65%), #101e2c;
+}
+.economy-header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 20px 26px;
+  border-bottom: 1px solid #d9bc752e;
+}
+.economy-header h2 {
+  font-size: 27px;
+  margin: 4px 0;
+}
+.economy-header small {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: #c7ae7b;
+}
+.economy-header strong {
+  margin-left: auto;
+  color: #e6c881;
+  font-size: 20px;
+}
+.economy-header > button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #c4c6b336;
+  background: #172d3b;
+  color: #becfcf;
+  border-radius: 10px;
+  font-size: 25px;
+}
+.economy-tabs {
+  display: flex;
+  gap: 10px;
+  padding: 14px 26px;
+}
+.economy-tabs button {
+  padding: 10px 20px;
+  min-height: 44px;
+  background: #172c39;
+  color: #9bbabf;
+  border: 1px solid #7b9c9844;
+  border-radius: 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.economy-tabs button.active {
+  background: #d1b674;
+  color: #182934;
+}
+.economy-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(90px, 1fr));
+  gap: 16px;
+  padding: 12px 26px 26px;
+  max-height: 54dvh;
+  overflow: auto;
+}
+.economy-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid #d9bc7533;
+  background: linear-gradient(160deg, #263c48, #142630);
+  border-radius: 12px;
+}
+.economy-item > .hero-card {
+  width: 90px !important;
+  height: 110px !important;
+  pointer-events: none;
+}
+.economy-item .card-name {
+  font-size: 14px !important;
+}
+.economy-item > b {
+  font-size: 11px;
+  color: #ead198;
+}
+.economy-item > span {
+  font-size: 10px;
+  color: #97b8ba;
+}
+.economy-item > button {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #e4c67c77;
+  color: #f5dfb5;
+  background: #8d69323d;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.economy-item > button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+#economy-feedback {
+  padding: 0 26px;
+  color: #b9f4cf;
+  font-size: 12px;
+  text-align: center;
+}
+.chest-view {
+  text-align: center;
+  padding: 12px 20px 30px;
+}
+.chest-view h3 {
+  font-size: 22px;
+  margin: 10px;
+}
+.chest-view p {
+  font-size: 11px;
+  color: #a0bfc1;
+}
+.chest-view > button {
+  margin: auto;
+}
+.aether-chest {
+  position: relative;
+  width: 160px;
+  height: 105px;
+  border: 7px solid #c8a363;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #294a70, #643d83);
+  display: grid;
+  place-items: center;
+  margin: 25px auto 20px;
+  box-shadow:
+    0 0 50px #b389dc33,
+    inset 0 0 20px #07131d;
+}
+.aether-chest:before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  right: -7px;
+  top: 30px;
+  height: 7px;
+  background: #d7b16e;
+}
+.aether-chest span {
+  font-size: 57px;
+  color: #f6d79c;
+  text-shadow: 0 0 18px #c7b2f6;
+  z-index: 1;
+}
+.aether-chest i {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(ellipse, #bba1ff44, transparent 65%);
+  animation: chest-glow 2s infinite alternate;
+}
+.chest-rewards {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 0 18px;
+  animation: reward-reveal 0.45s ease-out;
+}
+.chest-rewards > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+.chest-rewards .hero-card {
+  width: 70px !important;
+  height: 88px !important;
+  pointer-events: none;
+}
+.chest-rewards .card-name {
+  font-size: 12px !important;
+}
+.chest-rewards > strong {
+  font-size: 23px;
+  color: #e8ca88;
+}
+#result-reward {
+  font-size: 15px;
+  color: #e8cf86;
+  margin: 12px 0;
+}
+@keyframes chest-glow {
+  to {
+    opacity: 0.4;
+    transform: scale(1.15);
+  }
+}
+@keyframes reward-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-height: 540px) {
+  .vault-launcher {
+    top: 64px;
+    right: 10px;
+    gap: 5px;
+  }
+  .vault-launcher button {
+    padding: 7px 9px;
+    min-width: 46px;
+    font-size: 12px;
+  }
+  .vault-launcher small {
+    display: none;
+  }
+  .economy-header {
+    padding: 10px 20px;
+  }
+  .economy-header h2 {
+    font-size: 23px;
+  }
+  .economy-tabs {
+    padding: 8px 20px;
+    gap: 8px;
+  }
+  .economy-tabs button {
+    font-size: 10px;
+    padding: 8px 14px;
+  }
+  .economy-grid {
+    padding: 8px 20px 16px;
+    gap: 10px;
+    max-height: 54dvh;
+  }
+  .economy-item {
+    padding: 8px;
+    gap: 4px;
+  }
+  .economy-item > .hero-card {
+    width: 65px !important;
+    height: 78px !important;
+  }
+  .economy-item .card-name {
+    font-size: 11px !important;
+  }
+  .economy-item > button {
+    min-height: 36px;
+    font-size: 11px;
+  }
+  .aether-chest {
+    width: 115px;
+    height: 72px;
+    border-width: 5px;
+    margin: 10px auto;
+  }
+  .aether-chest:before {
+    left: -5px;
+    right: -5px;
+    top: 23px;
+    height: 5px;
+  }
+  .aether-chest span {
+    font-size: 40px;
+  }
+  .chest-view {
+    padding: 0 12px 15px;
+  }
+  .chest-view h3 {
+    font-size: 17px;
+    margin: 5px;
+  }
+  .chest-view p {
+    margin: 5px;
+  }
+  .chest-rewards {
+    padding: 6px 0;
+    gap: 10px;
+  }
+  .chest-rewards .hero-card {
+    width: 50px !important;
+    height: 60px !important;
+  }
+  .chest-rewards .card-cost {
+    width: 18px;
+    height: 19px;
+    font-size: 14px;
+  }
+  .chest-rewards .card-name {
+    font-size: 9px !important;
+  }
+  .chest-rewards > strong {
+    font-size: 17px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aether-chest i,
+  .chest-rewards {
+    animation: none;
+  }
+}
+
+#asset-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #0c202bea;
+  display: grid;
+  place-items: center;
+  color: #c4e2d8;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .chest-view {
+    display: grid;
+    grid-template-columns: 135px 1fr;
+    grid-template-rows: auto auto auto;
+    column-gap: 16px;
+    max-width: 430px;
+    margin: 0 auto;
+    align-items: center;
+    text-align: left;
+  }
+  .aether-chest {
+    grid-row: 1/4;
+    margin: 8px auto;
+  }
+  .chest-view h3,
+  .chest-view p,
+  .chest-view > button {
+    grid-column: 2;
+  }
+  .chest-view > button {
+    margin: 4px 0 0;
+  }
+  .economy-screen:has(.chest-rewards) .chest-view {
+    padding-top: 3px;
+  }
+}

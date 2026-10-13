@@ -1,0 +1,75 @@
+import { gameSession } from '../../services/game-session';
+import { $ } from '../dom';
+import { closeModal, modal } from '../modal';
+import type { ScreenContext } from '../screen-context';
+export function economy(ctx: ScreenContext, tab: 'shop' | 'forge' | 'chest' = 'shop') {
+  const wallet = gameSession.wallet;
+  if (!wallet) {
+    ctx.toast('Kết nối server để mở kho báu và cửa hàng.');
+    return;
+  }
+  const c = gameSession.content;
+  modal(
+    `<div class="economy-screen"><header class="economy-header"><div><small>KORA WAR · AETHER VAULT</small><h2>${tab === 'shop' ? 'Thương hội' : tab === 'forge' ? 'Lò rèn Aether' : 'Kho báu'}</h2></div><strong>◉ ${wallet.gold.toLocaleString('vi')}</strong><button id="economy-close" aria-label="Đóng kho báu">×</button></header><nav class="economy-tabs"><button data-tab="shop" class="${tab === 'shop' ? 'active' : ''}">◉ Cửa hàng</button><button data-tab="forge" class="${tab === 'forge' ? 'active' : ''}">⚒ Nâng cấp</button><button data-tab="chest" class="${tab === 'chest' ? 'active' : ''}">▣ Rương</button></nav><div id="economy-feedback" role="status"></div>${
+      tab === 'chest'
+        ? `<div class="chest-view"><div class="aether-chest"><span>◈</span><i></i></div><h3>Rương Aether</h3><p>3 mảnh tướng + ${c.economy.chestGold} vàng</p><button class="primary" id="open-chest" ${wallet.gold < c.economy.chestCost ? 'disabled' : ''}>Mở · ◉ ${c.economy.chestCost}</button></div>`
+        : `<div class="economy-grid">${
+            tab === 'shop'
+              ? c.items
+                  .map((item) => {
+                    const h = c.heroes.find((h) => h.id === item.heroId)!;
+                    return `<article class="economy-item">${ctx.card(h, 0, true)}<span>×${item.copies} mảnh</span><button data-buy="${item.id}" ${wallet.gold < item.price ? 'disabled' : ''}>◉ ${item.price}</button></article>`;
+                  })
+                  .join('')
+              : wallet.cards
+                  .map((card) => {
+                    const h = c.heroes.find((h) => h.id === card.hero)!,
+                      need = card.level * 2,
+                      cost = c.economy.upgradeBase * card.level;
+                    return `<article class="economy-item">${ctx.card(h, 0, true)}<b>Cấp ${card.level}</b><span>${card.copies}/${need} mảnh · +${(card.level - 1) * 5}%</span><button data-upgrade="${h.id}" ${wallet.gold < cost || card.copies < need || card.level >= 10 ? 'disabled' : ''}>${card.level >= 10 ? 'Tối đa' : `↑ ◉ ${cost}`}</button></article>`;
+                  })
+                  .join('')
+          }</div>`
+    }</div>`,
+    true,
+  );
+  $('#economy-close').onclick = closeModal;
+  document
+    .querySelectorAll<HTMLButtonElement>('[data-tab]')
+    .forEach((b) => (b.onclick = () => economy(ctx, b.dataset.tab as typeof tab)));
+  let busy = false;
+  const trade = async (
+    button: HTMLButtonElement,
+    action: 'buy' | 'upgrade' | 'chest',
+    data: Record<string, string> = {},
+  ) => {
+    if (busy) return;
+    busy = true;
+    button.disabled = true;
+    try {
+      const result = await gameSession.trade(action, data);
+      ctx.sound.tone('skill');
+      economy(ctx, tab);
+      if (action === 'chest') {
+        const rewards = result.rewards!.map((id) => c.heroes.find((h) => h.id === id)!);
+        $('#economy-feedback').innerHTML =
+          `<div class="chest-rewards">${rewards.map((h) => `<div>${ctx.card(h, 0, true)}<b>+1</b></div>`).join('')}<strong>+${result.gold} ◉</strong></div>`;
+      } else
+        $('#economy-feedback').textContent =
+          action === 'upgrade' ? 'Đã nâng cấp tướng!' : 'Đã nhận mảnh tướng!';
+      document.querySelector('#wallet-gold')!.textContent = String(gameSession.wallet!.gold);
+    } catch (e) {
+      $('#economy-feedback').textContent = e instanceof Error ? e.message : String(e);
+      button.disabled = false;
+      busy = false;
+    }
+  };
+  document
+    .querySelectorAll<HTMLButtonElement>('[data-buy]')
+    .forEach((b) => (b.onclick = () => void trade(b, 'buy', { item: b.dataset.buy! })));
+  document
+    .querySelectorAll<HTMLButtonElement>('[data-upgrade]')
+    .forEach((b) => (b.onclick = () => void trade(b, 'upgrade', { hero: b.dataset.upgrade! })));
+  const chest = document.querySelector<HTMLButtonElement>('#open-chest');
+  if (chest) chest.onclick = () => void trade(chest, 'chest');
+}

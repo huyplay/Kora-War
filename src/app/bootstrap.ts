@@ -2,13 +2,16 @@ import { Battle, type Difficulty } from '../core/index';
 import { HEROES, HERO_MAP, ORIGINS, ROLES, traits, type Hero } from '../data/index';
 import { RULES } from '../data/rules';
 import { validateGameData } from '../data/validate';
+import { CardGesture } from '../engine/input/card-gesture';
 import { Lifetime } from '../engine/lifecycle';
 import { World } from '../rendering/World';
 import { Sound } from '../services/audio';
+import { LandscapeController } from '../services/landscape';
 import { loadSave, parseSave, saveGame } from '../services/save-store';
 import '../style.css';
 import { $ } from '../ui/dom';
 import { closeModal } from '../ui/modal';
+import { feedback } from '../ui/motion';
 import type { ScreenContext } from '../ui/screen-context';
 import { openRoster as rosterScreen } from '../ui/screens/openRoster';
 import { openStory as storyScreen } from '../ui/screens/openStory';
@@ -16,6 +19,7 @@ import { pause as pauseScreen } from '../ui/screens/pause';
 import { result as resultScreen } from '../ui/screens/result';
 import { settings as settingsScreen } from '../ui/screens/settings';
 import { renderShell } from '../ui/shell';
+import '../ui/styles/landscape.css';
 import { FixedStepRunner } from './fixed-step-runner';
 const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
@@ -62,17 +66,13 @@ function renderDeck() {
     $('#synergies').innerHTML = Object.entries(counts).sort((a, b) => b[1] - a[1]).filter(([, n]) => n >= 2).map(([id, n]) => { const t = { ...ORIGINS, ...ROLES }[id as keyof typeof ORIGINS] || ROLES[id as keyof typeof ROLES]; return `<div class="trait-pill" title="${t.effect}"><span>${t.icon}</span><div><b>${t.name}</b><small>${n}/2 · Kích hoạt</small></div><em>✦</em></div>`; }).join('') || '<p class="no-traits">Ghép 2 tướng cùng hệ hoặc tộc để kích hoạt cộng hưởng.</p>';
     document.querySelectorAll<HTMLButtonElement>('#hand .hero-card').forEach(button => {
         button.addEventListener('click', () => {
-            if (suppressClick)
+            if (gestures.suppressClick)
                 return;
             selectCard(button.dataset.hero!);
         });
-        button.addEventListener('pointerdown', e => {
-            if (mode === 'battle' && battle.phase === 'playing') {
-                drag = { id: button.dataset.hero!, x: e.clientX, y: e.clientY, active: false };
-            }
-        });
+        button.addEventListener('pointerdown', e => gestures.begin(e, button.dataset.hero!));
         button.addEventListener('mouseenter', () => {
-            if (!drag?.active)
+            if (!gestures.active)
                 showTooltip(button.dataset.hero!, button);
         });
         button.addEventListener('mouseleave', () => { $('#hero-tooltip').hidden = true; });
@@ -93,6 +93,8 @@ function preview() { world.reset(); battle = new Battle(deck, difficulty, seed);
 function clearSelection() { selected = null; skillSelected = false; world.hoverRing.visible = false; updateSelection(); }
 function updateSelection() { document.querySelectorAll<HTMLElement>('#hand .hero-card').forEach(b => b.classList.toggle('selected', b.dataset.hero === selected)); $('#pulse').classList.toggle('selected', skillSelected); $('#selection-hint').innerHTML = skillSelected ? 'Chọn chiến tuyến để gây sát thương và hồi máu đồng minh.' : selected ? `<b>${HERO_MAP[selected].name}</b> đã sẵn sàng. Chạm vùng sáng hoặc chọn đường.` : 'Chọn thẻ <kbd>1</kbd>–<kbd>4</kbd>, rồi thả vào vùng bên trái.'; $('.lane-shortcuts').hidden = mode !== 'battle' || (!selected && !skillSelected); }
 function selectCard(id: string) {
+    if (landscape.blocked)
+        return;
     if (mode === 'lobby') {
         openRoster(id);
         return;
@@ -113,7 +115,7 @@ function selectCard(id: string) {
     sound.tone('click');
 }
 function deploy(lane: number, x = -11) {
-    if (mode !== 'battle')
+    if (mode !== 'battle' || landscape.blocked)
         return;
     let error: string | null;
     if (skillSelected) {
@@ -124,7 +126,10 @@ function deploy(lane: number, x = -11) {
         }
     }
     else if (selected) {
+        const played = selected;
         error = battle.play(0, selected, lane, x);
+        if (!error)
+            feedback(document.querySelector(`#hand [data-hero="${played}"]`), 'deploy');
         if (!error) {
             sound.tone('play');
             clearSelection();
@@ -143,7 +148,13 @@ let toastTimer: number;
 function toast(message: string) { $('#combat-message').textContent = message; $('#combat-message').classList.add('show'); clearTimeout(toastTimer); toastTimer = window.setTimeout(() => $('#combat-message').classList.remove('show'), 2800); }
 function renderTutorial() { const text = tutorial === 1 ? '<b>01 / 03 · Gọi người tiên phong</b><span>Chọn một thẻ tướng ở phía dưới. Con số màu xanh là mana cần dùng.</span>' : tutorial === 2 ? '<b>02 / 03 · Chọn chiến tuyến</b><span>Chạm vùng sáng bên trái để thả quân, hoặc dùng nút đường trên / giữa / dưới.</span>' : '<b>03 / 03 · Giữ vững đội hình</b><span>Tướng tự di chuyển, đánh và dùng kỹ năng. Đặt Hộ Vệ trước, Du Hiệp phía sau. Phá trụ rồi tiến vào lõi!</span><button id="tutorial-done">Đã hiểu — chiến đấu!</button>'; $('#tutorial-hint').innerHTML = text; $('#tutorial-hint').hidden = !tutorial; $('#tutorial-done')?.addEventListener('click', () => { tutorial = 0; $('#tutorial-hint').hidden = true; }); }
 function startBattle(withTutorial = false) {
+    if (landscape.blocked)
+        return;
+    gestures.cancel();
     closeModal();
+    clearTimeout(toastTimer);
+    $('#combat-message').classList.remove('show');
+    $('#combat-message').textContent = '';
     mode = 'battle';
     world.reset();
     battle = new Battle(deck, difficulty, ++seed);
@@ -222,45 +233,46 @@ const openRoster = (focusId = deck[0]) => rosterScreen(screenContext, focusId);
 const settings = () => settingsScreen(screenContext);
 const pause = () => pauseScreen(screenContext);
 const result = () => resultScreen(screenContext);
-let drag: {
-    id: string;
-    x: number;
-    y: number;
-    active: boolean;
-} | null = null, suppressClick = false;
-document.addEventListener('pointermove', e => {
-    if (drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 8) {
-        drag.active = true;
-        selected = drag.id;
+const gestures = lifetime.own(new CardGesture({
+    canStart: id => mode === 'battle' && battle.phase === 'playing' && !landscape.blocked && !battle.canPlay(0, id, 1),
+    move: (id, x, y) => {
+        selected = id;
         skillSelected = false;
         updateSelection();
-        $('#hero-tooltip').hidden = true;
-        $('#drag-ghost').hidden = false;
-        $('#drag-ghost').innerHTML = `<img src="${portraits[drag.id]}" alt=""/><span>${HERO_MAP[drag.id].name}</span>`;
-        $('#drag-ghost').style.transform = `translate(${e.clientX - 42}px,${e.clientY - 95}px)`;
-    }
-    if (selected || skillSelected)
-        world.setHover(e.clientX, e.clientY, skillSelected);
-}, { signal: inputLifetime.signal });
-document.addEventListener('pointerup', e => {
-    if (drag?.active) {
-        const r = world.canvas.getBoundingClientRect();
-        if (e.clientY >= r.top && e.clientY <= r.bottom) {
-            const p = world.pick(e.clientX, e.clientY);
-            if (p?.valid)
-                deploy(p.lane, p.x);
-            else
-                toast('Thả thẻ vào vùng sáng bên trái chiến trường.');
+        const ghost = $('#drag-ghost');
+        ghost.hidden = false;
+        ghost.innerHTML = `<img src="${portraits[id]}" alt=""/>`;
+        ghost.style.transform = `translate(${x - 35}px,${y - 90}px)`;
+        world.setHover(x, y);
+    },
+    drop: (id, x, y) => {
+        const top = document.elementFromPoint(x, y);
+        if (top !== world.canvas) {
+            clearSelection();
+            return;
         }
-        suppressClick = true;
-        window.setTimeout(() => suppressClick = false, 50);
-    }
-    drag = null;
-    $('#drag-ghost').hidden = true;
+        const point = world.pick(x, y);
+        if (point?.valid) {
+            selected = id;
+            deploy(point.lane, point.x);
+        }
+        else {
+            toast('Thả quân vào vùng sáng');
+            feedback(document.querySelector(`[data-hero="${id}"]`), 'invalid');
+            clearSelection();
+        }
+    },
+    cancel: () => clearSelection(),
+    end: () => { $('#drag-ghost').hidden = true; }
+}));
+const landscape = lifetime.own(new LandscapeController(() => { gestures.cancel(); pause(); runner.reset(); }));
+$('#fullscreen').onclick = () => void landscape.fullscreen();
+document.addEventListener('pointermove', event => {
+    if (!gestures.active && (selected || skillSelected))
+        world.setHover(event.clientX, event.clientY, skillSelected);
 }, { signal: inputLifetime.signal });
-document.addEventListener('pointercancel', () => { drag = null; $('#drag-ghost').hidden = true; clearSelection(); }, { signal: inputLifetime.signal });
 world.canvas.addEventListener('click', e => {
-    if (suppressClick || mode !== 'battle' || battle.phase !== 'playing')
+    if (gestures.suppressClick || mode !== 'battle' || battle.phase !== 'playing')
         return;
     const p = world.pick(e.clientX, e.clientY);
     if (!p)
@@ -363,7 +375,7 @@ document.addEventListener('keydown', e => {
     }
     if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName))
         return;
-    if (mode !== 'battle')
+    if (mode !== 'battle' || landscape.blocked)
         return;
     if (e.key === 'Escape') {
         if (selected || skillSelected)
@@ -407,7 +419,7 @@ function loop(now: number) {
             frameMs.shift();
         fps = 1000 / (frameMs.reduce((a, b) => a + b, 0) / frameMs.length);
     }
-    if (mode === 'battle' && battle.phase === 'playing') {
+    if (mode === 'battle' && battle.phase === 'playing' && !landscape.blocked) {
         const before = performance.now();
         const steps = runner.advance(dt, speed, () => {
             if (autoPlayer && battle.tick % 25 === 0)
@@ -426,7 +438,8 @@ function loop(now: number) {
         if ((battle.phase as string) === 'ended')
             result();
     }
-    world.render(battle, dt, !!selected || skillSelected);
+    if (!landscape.blocked)
+        world.render(battle, dt, !!selected || skillSelected);
     if (now - lastUi > 160) {
         updateHud();
         lastUi = now;
@@ -445,16 +458,15 @@ function loop(now: number) {
 }
 frameHandle = requestAnimationFrame(loop);
 // Read-only diagnostics for QA; intentional mutation controls are labelled in the visible debug panel.
-Object.defineProperty(window, 'aetherfall', { value: { get snapshot() { return battle.snapshot(); }, get mode() { return mode; }, get renderer() { return world.stats; } }, writable: false, configurable: true });
+Object.defineProperty(window, 'koraWar', { value: { get snapshot() { return battle.snapshot(); }, get mode() { return mode; }, get renderer() { return world.stats; } }, writable: false, configurable: true });
 if (import.meta.hot) {
     import.meta.hot.dispose(() => {
         inputLifetime.abort();
         cancelAnimationFrame(frameHandle);
         clearTimeout(toastTimer);
-        world.dispose();
-        sound.dispose();
+        lifetime.dispose();
         delete (window as Window & {
-            aetherfall?: unknown;
-        }).aetherfall;
+            koraWar?: unknown;
+        }).koraWar;
     });
 }

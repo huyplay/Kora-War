@@ -8,7 +8,7 @@ npm run dev
 npm run check
 ```
 
-`check` chạy kiểm tra ranh giới dependency, 27 test và build production. `npm run preview` phục vụ `dist` để kiểm tra bundle thực tế. Nếu đổi source sau khi build, phải build lại trước khi preview.
+`check` chạy kiểm tra ranh giới dependency, 33 test và build production. `npm run preview` phục vụ `dist` để kiểm tra bundle thực tế. Nếu đổi source sau khi build, phải build lại trước khi preview.
 
 ## Chỉnh dữ liệu
 
@@ -29,7 +29,9 @@ Không đặt HP/damage trong model 3D; không đưa raycast/DOM vào simulation
 3. Kiểm tra mana, chặn vị trí sai, pause/resume và đổi cài đặt.
 4. Chơi đến kết quả, bấm chơi lại, về sảnh rồi bắt đầu lần nữa.
 5. Mở F3: kiểm tra số quân, draw calls, VFX, FPS; dùng debug phải có nhãn trận thử nghiệm.
-6. Kiểm tra viewport điện thoại và lỗi console; dùng thiết bị thật nếu cần cam kết hiệu năng mobile.
+6. Kiểm tra ngang 667×375, 844×390, kéo thả, chạm lane, hủy gesture và lỗi console. Xoay dọc phải chặn tương tác và pause; xoay về ngang cần Tiếp tục. Dùng thiết bị thật nếu cần cam kết hiệu năng mobile.
+
+Xem [module engine](ENGINE.md), [asset](../assets/README.md) và [giao diện mobile](MOBILE-UX.md) trước khi thêm prefab, animation hoặc thao tác cảm ứng. AssetRegistry giữ cache; Lifetime và ObjectPool chịu trách nhiệm vòng đời, tránh tạo tài nguyên GPU mỗi frame.
 
 ## Vấn đề cần phân biệt
 

@@ -32,6 +32,8 @@ npm run preview
 - AI tuân thủ cùng mana/deck/validation; ba nhịp quyết định cho Khám phá/Tiêu chuẩn/Thử thách.
 - Mở đầu cốt truyện, hướng dẫn ba bước, nhiệm vụ chiếm lõi, thắng/thua, thống kê, chơi lại và đổi đội hình.
 - Tạm dừng khi chuyển tab, âm thanh tổng hợp, high/low graphics và tự hạ chất lượng khi FPS thấp kéo dài.
+- Giao diện ngang dành cho mobile, bốn thẻ luôn hiện, HUD gọn, kéo/vuốt thẻ để thả quân; tự pause và yêu cầu xoay khi màn hình dọc.
+- Module vật lý lane, asset registry, prefab tướng, animation theo trạng thái và sprite VFX dùng pool; quản lý vòng đời tài nguyên tập trung.
 - F3: FPS/frame p95/simulation time/draw calls/triangles/units; debug mana, auto-play, 2×/4×, thử kết quả và xuất JSON trạng thái. Debug không cộng chiến thắng.
 
 ## Điều khiển
@@ -53,7 +55,9 @@ npm run preview
 - `src/ui/`: các màn hình truyện, đội hình, cài đặt, pause, kết quả và thành phần chung.
 - `src/app/`: điều phối phiên chơi, input/HUD/debug và fixed-step runner 20 Hz.
 - `src/services/`: lưu game có kiểm tra dữ liệu và âm thanh Web Audio.
-- `tests/`: 27 bài test, gồm 20 trận AI-v-AI và đối chiếu bốn seed với bản gốc trước refactor.
+- `src/engine/`: lifetime, asset registry, object pool và nhận diện gesture; không quyết định luật chiến đấu.
+- `tests/`: 33 bài test, gồm 20 trận AI-v-AI và đối chiếu bốn seed với bản gốc trước refactor.
+- [Module engine](docs/ENGINE.md), [quy ước asset](assets/README.md), [mobile UX](docs/MOBILE-UX.md), [kết quả QA](docs/06-implementation/qa.md).
 - [Kiến trúc và điểm mở rộng](docs/ARCHITECTURE.md), [hướng dẫn bảo trì](docs/DEVELOPMENT.md), [các quyết định đã chốt](docs/DECISIONS.md).
 - [Ghi chú triển khai](docs/06-implementation/aetherfall-v0.1.md): luật chính xác và giới hạn.
 - [Hồ sơ nghiên cứu Castle Crush trước đó](docs/README.md): tài liệu tham khảo lịch sử, không phải cam kết parity của Aetherfall.

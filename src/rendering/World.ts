@@ -113,7 +113,7 @@ export class World {
             return;
         this.renderer.setSize(w, h, false);
         const aspect = w / h;
-        const width = Math.max(36, 20 * aspect);
+        const width = Math.max(36, 18 * aspect);
         this.camera.left = -width / 2;
         this.camera.right = width / 2;
         this.camera.top = width / aspect / 2;

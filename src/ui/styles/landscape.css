@@ -1,0 +1,62 @@
+/* Kora War: landscape game viewport, thumb-friendly HUD, no scrolling during combat. */
+html,body,#app{width:100%;height:100%;overscroll-behavior:none}
+body{background:#07171e;user-select:none;-webkit-user-select:none}
+.orientation-gate{position:fixed;inset:0;z-index:1000;background:radial-gradient(ellipse at 50% 35%,#193e44,#07141d 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;color:#e9d4a1;padding:24px}
+.orientation-gate h1{font:700 32px Georgia,serif;letter-spacing:7px}.orientation-gate p{font-size:14px;color:#b7cecc}
+.rotate-device{width:94px;height:56px;border:3px solid #82dccc;border-radius:12px;font-size:44px;line-height:46px;color:#82dccc;animation:rotate-phone 2.8s ease-in-out infinite}
+@keyframes rotate-phone{0%,20%{transform:rotate(-90deg)}55%,100%{transform:rotate(0)}}
+.portrait-blocked #app{visibility:hidden}
+.hero-card{transition:transform .18s,border-color .18s,box-shadow .18s;touch-action:none}
+.hero-card.selected{animation:card-ready 1.6s ease-in-out infinite}
+@keyframes card-ready{0%,100%{box-shadow:0 0 0 2px #a7edd7,0 0 16px #75efd833}50%{box-shadow:0 0 0 2px #dfffe9,0 0 28px #75efd85c}}
+.modal{animation:modal-enter .22s ease-out}.modal-backdrop{animation:backdrop-enter .18s ease-out}
+@keyframes modal-enter{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes backdrop-enter{from{opacity:0}to{opacity:1}}
+.hp-track i{transition:width .3s ease-out}.pulse-button.charged{animation:card-ready 1.6s ease-in-out infinite}
+.hero-card.unaffordable{opacity:.65;filter:saturate(.45)}
+@media(orientation:landscape){
+ .topbar{position:absolute;top:0;left:0;right:0;height:54px;padding:0 max(18px,env(safe-area-inset-right)) 0 max(18px,env(safe-area-inset-left));background:linear-gradient(#071a25e8,#071a2510);border:0;gap:12px}
+ .topbar nav{gap:8px}.brand{font-size:21px;letter-spacing:4px}.brand small,.solo-badge{display:none}.brand-gem{font-size:32px}
+ .header-right{gap:8px}.icon-button{width:44px;height:44px;border-radius:12px;background:#0c222b99}
+ main{height:100dvh;min-height:0}#stage,.in-battle #stage{inset:0}
+ .vignette{background:linear-gradient(#07172065,transparent 22%,transparent 65%,#07172090)}
+ .arena-heading{top:67px}.arena-heading h1{font-size:30px}.arena-heading p,.map-note,.objective,.statusbar>span,.team-note,.ready-tag,.match-details,.hand-caption,.section-kicker>span{display:none}
+ .command-deck,.in-battle .command-deck{position:absolute;left:50%;right:auto;bottom:max(8px,env(safe-area-inset-bottom));transform:translateX(-50%);width:auto;max-width:95vw;min-height:0;height:auto;display:flex;align-items:flex-end;gap:20px;background:linear-gradient(0deg,#091923e8,#12282cbb);padding:10px 18px 8px;border:1px solid #c0dcc733;border-radius:18px;z-index:5;box-shadow:0 6px 30px #0004}
+ .synergy-panel{display:none}.cards-area{width:auto}.hand{display:flex;gap:9px;justify-content:center;align-items:flex-end}
+ .hero-card,.in-battle .hero-card{width:90px;height:110px;min-width:0;border:2px solid #80abaf75;border-radius:10px}
+ .hero-card img{transform:scale(1.13);object-position:center}.card-origin,.card-role,.hero-card>kbd{display:none}.card-name{font:600 16px Georgia,serif;left:0;right:0;text-align:center;bottom:8px}
+ .card-cost{left:4px;top:3px;width:27px;height:29px;font:700 21px Georgia,serif;border-color:#80e5ff99;box-shadow:0 2px 6px #0009}
+ .card-shade{background:linear-gradient(transparent 45%,#09202d22 60%,#071721ed)}
+ .action-panel{width:156px;align-self:center}.start-button{width:156px;min-height:48px;font-size:12px;border-radius:12px}.action-panel>.text-button{font-size:10px;min-height:36px;margin:2px 0 0}
+ .mana-panel{margin-top:6px;gap:6px;height:23px}.mana-crystal{font-size:21px}.mana-panel>strong{font:700 20px Georgia,serif}.mana-track>span{height:11px;transform:none;border-radius:3px}.mana-regen{display:none}
+ .statusbar{left:auto;right:max(10px,env(safe-area-inset-right));bottom:8px;width:44px;height:44px;padding:0;background:#0b202bbb;border:1px solid #80adac33;border-radius:12px}.statusbar button{width:44px;height:44px;justify-content:center}.statusbar svg{width:20px;height:20px}.statusbar #fps-mini,.debug-label{display:none}
+ .battle-hud{top:max(10px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));align-items:flex-start}
+ .base-health{width:29%;max-width:300px;padding:6px 9px;background:#09222dd9;border:1px solid #94d6ce40;border-radius:12px;gap:8px}.base-health.enemy{background:#321c28d9;border-color:#e3928340}
+ .core-icon{font-size:28px}.base-title{font-size:8px;letter-spacing:.4px;align-items:center}.base-title b{font-size:14px;font-weight:700}.base-health small{display:none}.hp-track{height:10px;margin:5px 0 0;border-radius:5px}
+ .timer-wrap>span{display:none}.timer-wrap strong{font:600 24px Georgia,serif;letter-spacing:1px;line-height:44px;text-shadow:0 2px 6px #000}.timer-wrap .icon-button{height:44px;width:44px;left:calc(100% + 12px);top:0;border-radius:12px}.timer-wrap svg{height:18px;width:18px}
+ .in-battle .topbar{display:none}.battle-actions{width:58px;align-self:center}.pulse-button{width:56px;height:56px;border-radius:16px;padding:0;display:grid;place-items:center;background:#183b46;border-color:#73babc77}.pulse-symbol{font-size:38px}.pulse-button>span:nth-child(2),.pulse-button>kbd{display:none}.pulse-button i{height:5px}#selection-hint{display:none}#cancel-select{min-height:40px;font-size:0!important}#cancel-select:before{content:'×';font-size:28px}#cancel-select kbd{display:none}
+ .lane-shortcuts{left:max(12px,env(safe-area-inset-left));top:25%;bottom:auto;transform:none;display:flex;flex-direction:column;gap:10px}.lane-shortcuts button{min-width:44px;min-height:44px;padding:6px 12px;border-radius:12px;font-size:11px;background:#103c43d9;border:1px solid #91e9d877}.lane-shortcuts kbd{display:none}
+ #hero-tooltip{display:none!important}#combat-message{top:70px;bottom:auto;max-width:70vw;font-size:11px;padding:8px 14px;pointer-events:none}#tutorial-hint{top:76px;bottom:auto;left:50%;transform:translateX(-50%);max-width:390px;width:auto;padding:10px 16px;font-size:11px}#tutorial-hint b{font-size:11px}#tutorial-hint span{font-size:10px}#tutorial-hint button{min-height:36px}
+ #debug-panel{top:58px;bottom:8px;max-height:calc(100dvh - 66px);overflow:auto;right:8px;width:270px;font-size:10px}.debug-controls button,.debug-controls select{min-height:36px}
+ .modal-backdrop{padding:10px max(12px,env(safe-area-inset-left));backdrop-filter:blur(8px)}.modal{max-height:calc(100dvh - 20px);overflow:auto;width:min(560px,90vw)}.modal.wide{width:min(940px,96vw)}
+ .modal-content{padding:22px}.modal-content h2{font-size:30px}.modal-content p{font-size:12px;line-height:1.6}.chapter-art{height:95px}.chapter-art .story-crystal{font-size:64px}.story-orbit{width:90px;height:90px}.mission-box{padding:12px;margin:14px 0}.modal-actions{gap:10px}.modal-actions button{min-height:44px}.primary,.secondary{min-height:44px}.modal-top{padding:14px 18px}.modal-top h2{font-size:27px}.modal-top p{display:none}
+ .roster-layout{display:grid;grid-template-columns:1fr 220px;gap:16px;padding:10px 18px}.roster-layout #roster-grid{display:grid;grid-template-columns:repeat(5,minmax(55px,1fr));gap:10px;align-content:start}.roster-card{width:100%!important;height:100px!important}.roster-card .card-name{font-size:14px}#hero-detail{padding-left:14px}#hero-detail h3{font-size:27px}#hero-detail p{font-size:10px}.hero-title,.detail-traits,#hero-detail>small{display:none}.stat-grid{gap:5px;margin:10px 0}.stat-grid b{font-size:16px}.stat-grid span{font-size:9px}.roster-footer{padding:10px 18px}.roster-footer strong{font-size:11px}.roster-footer span{font-size:9px}.result-emblem{font-size:38px;padding-top:12px}.result-content{padding:12px 24px 20px}.result-content>p{display:none}.result-stats{margin:14px 0}.result-stats b{font-size:23px}.result-mini{margin-bottom:12px}.result-content .full{display:inline-flex;width:48%;padding:10px;font-size:10px;margin:0}
+}
+@media(orientation:landscape) and (max-height:540px){
+ .topbar{height:44px;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}.brand{font-size:17px;letter-spacing:3px}.brand-gem{font-size:27px}.nav-item{width:44px;justify-content:center;padding:0}.nav-item span,.nav-item em{display:none}.topbar nav{gap:2px}.arena-heading{top:49px}.arena-heading h1{font-size:23px}.arena-heading .eyebrow{display:none}
+ .command-deck,.in-battle .command-deck{bottom:max(4px,env(safe-area-inset-bottom));gap:12px;padding:6px 10px;border-radius:14px}.hero-card,.in-battle .hero-card{width:66px;height:78px;border-radius:8px}.hand{gap:7px}.card-name{font-size:12px;bottom:5px}.card-cost{width:23px;height:25px;font-size:18px;left:2px;top:2px}.mana-panel{height:18px;margin-top:3px}.mana-panel>strong{font-size:17px}.mana-track>span{height:8px}.mana-crystal{font-size:17px}.action-panel{width:128px}.start-button{width:128px;height:44px;min-height:44px}.battle-actions{width:48px}.pulse-button{width:46px;height:46px;border-radius:12px}.pulse-symbol{font-size:30px}#cancel-select{height:32px;min-height:32px}.statusbar{bottom:6px;right:max(8px,env(safe-area-inset-right))}.base-health{padding:5px 8px}.core-icon{font-size:23px}.base-title{font-size:7px}.base-title b{font-size:12px}.hp-track{height:7px}.timer-wrap strong{font-size:21px}.lane-shortcuts{top:24%;gap:5px}.lane-shortcuts button{font-size:10px}
+ .modal-content{padding:16px 22px}.modal-content h2{font-size:25px}.chapter-art{display:none}.modal-content>p{font-size:11px;margin-top:8px}.mission-box{margin:10px 0;padding:8px}.mission-box small{font-size:10px}.modal-back{min-height:32px}.roster-layout{grid-template-columns:1fr 190px}.roster-card{height:86px!important}.modal-top .eyebrow{display:none}.roster-footer{position:sticky;bottom:0;background:#12282e;z-index:4}.controls-help{display:none}.setting-row{padding:10px 0}.setting-row small{font-size:9px}.result-emblem{display:none}.result-content>h2{font-size:26px}.result-verdict{font-size:11px}.result-stats{margin:10px 0}.result-stats span{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.hero-card.selected,.pulse-button.charged,.rotate-device,.modal,.modal-backdrop{animation:none}.hero-card,.hp-track i{transition:none}}
+@media(orientation:landscape){
+ .start-button{white-space:nowrap;padding:8px 10px;gap:7px}
+ .hero-card .card-name,.in-battle .hero-card .card-name{font:600 16px Georgia,serif;left:2px;right:2px;bottom:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .in-battle .hero-card .card-origin,.in-battle .hero-card .card-role{display:none}
+ #drag-ghost{width:70px;height:88px;border:2px solid #abf5df;border-radius:10px;box-shadow:0 0 22px #7bffd466;pointer-events:none}
+ #drag-ghost img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+}
+@media(orientation:landscape) and (max-height:540px){
+ .hero-card .card-name,.in-battle .hero-card .card-name{font-size:12px;bottom:5px}
+ .base-title{font-size:0}.base-title b{font-size:13px}.base-health{max-width:230px}
+ .start-button{font-size:11px}
+}

@@ -6,6 +6,7 @@ import { GameDatabase } from './database';
 import { importAsset } from './assets';
 import { startMatch, finishMatch, buyItem, openChest, upgradeCard } from './game-service';
 import { assetServiceStatus, syncManagedAsset, readManagedAsset } from './asset-service';
+import { PvpRooms } from './pvp';
 
 async function body(req: IncomingMessage, limit = 1024 * 1024) {
   const parts: Buffer[] = [];
@@ -20,6 +21,7 @@ async function body(req: IncomingMessage, limit = 1024 * 1024) {
 const cookies = (req: IncomingMessage) =>
   Object.fromEntries((req.headers.cookie || '').split(';').map((s) => s.trim().split('=')));
 export function createGameServer(store: GameDatabase, staticDir = resolve('dist')) {
+  const pvp = new PvpRooms();
   const attempts = new Map<string, { count: number; until: number }>();
   return createServer(async (req, res) => {
     const send = (status: number, data: unknown) => {
@@ -162,10 +164,27 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
         return send(200, store.wallet(id));
       }
       if (path === '/api/player' && req.method === 'GET') return send(200, store.wallet(player()));
+      if (path.startsWith('/api/pvp/')) {
+        const id = player();
+        if (path === '/api/pvp/current' && req.method === 'GET') return send(200, pvp.current(id));
+        if (path === '/api/pvp/state' && req.method === 'GET')
+          return send(
+            200,
+            pvp.state(id, url.searchParams.get('code') || '', url.searchParams.get('metadata') === '1'),
+          );
+        if (req.method !== 'POST') return send(405, { error: 'Method không hợp lệ.' });
+        const input = JSON.parse((await body(req, 4096)).toString());
+        if (path === '/api/pvp/create') return send(201, pvp.create(id, input, store.config().published));
+        if (path === '/api/pvp/join') return send(200, pvp.join(id, input.code, input));
+        if (path === '/api/pvp/command') return send(200, pvp.command(id, input.code, input.command));
+        if (path === '/api/pvp/leave') return send(200, pvp.leave(id, input.code));
+        return send(404, { error: 'Không có endpoint.' });
+      }
       if (path.startsWith('/api/game/') && req.method === 'POST') {
         const id = player(),
           input = JSON.parse((await body(req)).toString());
-        if (path === '/api/game/start') return send(200, startMatch(store, id, input.deck, input.difficulty));
+        if (path === '/api/game/start')
+          return send(200, startMatch(store, id, input.deck, input.difficulty, input.spells));
         if (path === '/api/game/finish')
           return send(200, finishMatch(store, id, input.id, input.commands, input.debug));
         if (typeof input.request !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(input.request))

@@ -1,5 +1,20 @@
 # Các quyết định đang áp dụng
 
+## 13/10/2026 — MVP Tactical Card Arena được phê duyệt
+
+Người dùng yêu cầu phân tích project và triển khai `Game_desgin.md`, sau đó xác nhận: **“Áp dụng MVP thiết kế mới: 4 tướng + 2 phép, mana 4, PvP chuẩn hóa; giữ lore và luật khác”**. Quyết định này thay thế deck chỉ bốn thẻ và mana bắt đầu 5 trong bản chơi mới.
+
+- Chế độ hiện hành: luyện tập AI và phòng PvP 1v1; 4 tướng + 2 phép luôn hiện. Bốn phép MVP: Gió/Lửa/Sét/Băng, có cooldown riêng và cùng ngân sách mana.
+- Mana bắt đầu 4/10. Giữ hồi 1,05/s, bonus Lôi Đình, ba lane, trụ 400 HP tự đánh, lõi 1.500 HP, quá tải 180 giây, Cộng Hưởng Lõi và synergy theo deck.
+- Trận tactical chuẩn hóa cấp tướng cho cả hai phía, kể cả luyện tập. Bộ sưu tập/ledger cũ được giữ; UI nói rõ cấp sưu tập không tăng chỉ số tactical.
+- Giữ 10 tướng, năm hệ/năm tộc và lore Elyndra. Vai trò chiến thuật được đáp ứng bằng catalog hiện có; không đổi schema hệ/tộc thành bốn hệ mới.
+- PvP MVP dùng TypeScript core trên Node gateway, fixed tick 20 Hz, HTTP command + snapshot khoảng 10 Hz. Đây là lựa chọn triển khai ban đầu, không phải hoàn tất lộ trình SignalR/C#.
+- Phòng riêng có mã, khóa loadout, snapshot theo góc nhìn người chơi, reconnect cùng cookie/phòng trong 30 giây, đầu hàng và hết hạn phòng. Phòng nằm trong bộ nhớ một process. Không thưởng vàng/xếp hạng cho PvP trong MVP.
+- Ranked, draft đối kháng, ban/pick, matchmaking, combo nguyên tố và replay UI thuộc Phase 2/3 của thiết kế; không đưa vào phạm vi MVP đã chọn.
+- `new Battle()` giữ đường legacy để phát lại fixture `e792b00` và trận đã lưu. App mới gọi `tacticalBattle()`. Không sửa hash fixture.
+
+Xem [phân tích project và kết quả triển khai](PROJECT-REVIEW.md).
+
 ## Tên và nền tảng chơi mới
 
 Tên sản phẩm được người dùng chốt là **Kora War**. Cốt truyện Elyndra/lõi Aether và gameplay không đổi. Save mới dùng `kora-war-save`, tự đọc key `aetherfall-save` khi chưa có save mới; không xóa dữ liệu cũ. Ưu tiên mobile màn hình ngang, ít chữ và điều khiển chạm/kéo. Commit và push riêng theo từng task đã kiểm thử.

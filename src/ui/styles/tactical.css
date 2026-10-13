@@ -1,0 +1,206 @@
+.spell-card {
+  background: radial-gradient(circle at 50% 40%, #375567, #102631);
+  color: var(--hero-color);
+  position: relative;
+}
+.spell-symbol {
+  display: block;
+  font-size: 40px;
+  margin: auto;
+  padding-top: 22px;
+  text-shadow: 0 0 16px currentColor;
+}
+.spell-card .card-name {
+  color: #edf6f2;
+}
+.spell-card > small {
+  position: absolute;
+  bottom: 27px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 10px;
+}
+.spell-roster {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 8px 18px;
+}
+.spell-choice {
+  border: 1px solid #61858d;
+  border-radius: 10px;
+  background: #122c37;
+  color: #dceee9;
+  padding: 10px;
+  text-align: left;
+  min-height: 70px;
+}
+.spell-choice b,
+.spell-choice small,
+.spell-choice span {
+  display: block;
+}
+.spell-choice small {
+  margin: 5px 0;
+  color: #91c5d3;
+}
+.spell-choice span {
+  font-size: 11px;
+  line-height: 1.4;
+}
+.spell-choice.selected {
+  border-color: #b9f5d6;
+  box-shadow: inset 0 0 0 1px #b9f5d6;
+  background: #24464a;
+}
+.room-label {
+  display: block;
+  text-align: left;
+  margin: 14px 0;
+  color: #b3d3d4;
+}
+.room-label input {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  padding: 12px;
+  background: #0d212c;
+  color: #f0efdd;
+  border: 1px solid #609795;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.room-code {
+  font-size: 26px;
+  letter-spacing: 3px;
+  user-select: all;
+  -webkit-user-select: all;
+  color: #b9f5d6;
+}
+#pvp-status {
+  min-height: 20px;
+}
+#pvp-open {
+  width: 100%;
+  margin-top: 6px;
+}
+.online-battle .debug-controls {
+  display: none;
+}
+.economy-note {
+  padding: 8px 20px;
+  color: #b4d6d1;
+  font-size: 12px;
+  text-align: center;
+}
+@media (orientation: landscape) {
+  .action-panel {
+    display: block;
+    flex-shrink: 0;
+  }
+  .action-panel > .text-button {
+    width: 100%;
+  }
+  .command-deck {
+    gap: 12px;
+  }
+  .hero-card.spell-card {
+    width: 72px;
+  }
+  .spell-symbol {
+    font-size: 32px;
+  }
+  .spell-roster {
+    padding-top: 0;
+  }
+  .hand {
+    gap: 7px;
+  }
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .hero-card.spell-card {
+    width: 54px;
+  }
+  .spell-symbol {
+    font-size: 25px;
+    padding-top: 21px;
+  }
+  .spell-card > small {
+    display: none;
+  }
+  .spell-choice {
+    padding: 7px;
+    min-height: 54px;
+  }
+  .spell-choice span {
+    font-size: 9px;
+  }
+  .spell-choice b {
+    font-size: 12px;
+  }
+  .spell-roster {
+    gap: 6px;
+  }
+  .command-deck,
+  .in-battle .command-deck {
+    gap: 8px;
+  }
+  .action-panel #pvp-open {
+    min-height: 36px;
+    font-size: 11px;
+  }
+  .spell-choice small {
+    font-size: 10px;
+  }
+}
+@media (orientation: landscape) and (max-width: 690px) {
+  .vault-launcher #vault-forge,
+  .vault-launcher #vault-chest {
+    display: none;
+  }
+  .vault-launcher {
+    top: 50px;
+    right: 8px;
+  }
+  .roster-layout {
+    grid-template-columns: minmax(0, 1fr) 150px;
+    gap: 10px;
+  }
+  .roster-layout #roster-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  #hero-detail {
+    padding-left: 8px;
+  }
+  .hero-card,
+  .in-battle .hero-card {
+    width: 54px;
+  }
+  .hero-card.spell-card {
+    width: 48px;
+  }
+  .hand {
+    gap: 4px;
+  }
+  .action-panel {
+    width: 100px;
+  }
+  .start-button {
+    width: 100px;
+  }
+  .command-deck,
+  .in-battle .command-deck {
+    padding: 6px;
+    max-width: 96vw;
+  }
+  .battle-actions {
+    width: 46px;
+  }
+  .statusbar {
+    top: 65px;
+    bottom: auto;
+  }
+}

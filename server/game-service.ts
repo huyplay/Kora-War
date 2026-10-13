@@ -4,27 +4,38 @@ import { ENEMY_DECK } from '../src/data/heroes';
 import type { ContentConfig } from '../src/data/content';
 import type { Difficulty } from '../src/core/types';
 import type { GameDatabase } from './database';
+import { tacticalBattle } from '../src/core/tactical';
+import { validateSpellDeck, type SpellId } from '../src/data/spells';
 export interface Command {
   tick: number;
-  type: 'play' | 'pulse';
+  type: 'play' | 'pulse' | 'spell';
   heroId?: string;
   lane: number;
   x?: number;
 }
-export function startMatch(store: GameDatabase, player: string, deck: string[], difficulty: Difficulty) {
+export function startMatch(
+  store: GameDatabase,
+  player: string,
+  deck: string[],
+  difficulty: Difficulty,
+  spells?: SpellId[],
+) {
   if (!['story', 'normal', 'hard'].includes(difficulty)) throw new Error('Độ khó không hợp lệ.');
   const { published: content, revision } = store.config(),
     seed = randomInt(1, 0x7fffffff),
     id = randomUUID();
-  const levels = Object.fromEntries(store.wallet(player).cards.map((c) => [c.hero, c.level]));
-  new Battle(deck, difficulty, seed, ENEMY_DECK, content, levels);
+  const levels = spells ? {} : Object.fromEntries(store.wallet(player).cards.map((c) => [c.hero, c.level]));
+  if (spells) {
+    validateSpellDeck(spells);
+    tacticalBattle(deck, spells, content, seed);
+  } else new Battle(deck, difficulty, seed, ENEMY_DECK, content, levels);
   store.db
     .prepare('INSERT INTO matches VALUES(?,?,?,?,?,?,?,?,?,NULL)')
     .run(
       id,
       player,
       seed,
-      JSON.stringify(deck),
+      JSON.stringify(spells ? { heroes: deck, spells } : deck),
       difficulty,
       JSON.stringify(content),
       JSON.stringify(levels),
@@ -61,30 +72,39 @@ export function finishMatch(
       !Number.isInteger(c.tick) ||
       c.tick < lastTick ||
       c.tick > 18000 ||
-      !['play', 'pulse'].includes(c.type) ||
+      !['play', 'pulse', 'spell'].includes(c.type) ||
       !Number.isInteger(c.lane) ||
       c.lane < 0 ||
       c.lane > 2 ||
-      (c.type === 'play' && (!Number.isFinite(c.x) || typeof c.heroId !== 'string'))
+      (c.type !== 'pulse' && (!Number.isFinite(c.x) || typeof c.heroId !== 'string'))
     )
       throw new Error('Lệnh trận không hợp lệ.');
     lastTick = c.tick;
   }
   const content = JSON.parse(match.content) as ContentConfig;
-  const battle = new Battle(
-    JSON.parse(match.deck),
-    match.difficulty,
-    match.seed,
-    ENEMY_DECK,
-    content,
-    JSON.parse(match.levels),
-  );
+  const savedDeck = JSON.parse(match.deck);
+  const battle = !Array.isArray(savedDeck)
+    ? tacticalBattle(
+        savedDeck.heroes,
+        savedDeck.spells,
+        content,
+        match.seed,
+        ENEMY_DECK,
+        undefined,
+        match.difficulty,
+      )
+    : new Battle(savedDeck, match.difficulty, match.seed, ENEMY_DECK, content, JSON.parse(match.levels));
   battle.start();
   let cursor = 0;
   while (battle.phase === 'playing' && battle.tick < 18000) {
     while (commands[cursor]?.tick === battle.tick) {
       const c = commands[cursor++];
-      const error = c.type === 'play' ? battle.play(0, c.heroId!, c.lane, c.x) : battle.pulse(0, c.lane);
+      const error =
+        c.type === 'spell'
+          ? battle.cast(0, c.heroId!, c.lane, c.x!)
+          : c.type === 'play'
+            ? battle.play(0, c.heroId!, c.lane, c.x)
+            : battle.pulse(0, c.lane);
       if (error) throw new Error(`Lệnh bị từ chối: ${error}`);
     }
     battle.step();

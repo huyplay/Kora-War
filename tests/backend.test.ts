@@ -134,3 +134,64 @@ test('GLB validator refuses corrupt headers and external texture references', ()
   json.copy(bytes, 20);
   assert.throws(() => inspectGLB(bytes), /URL ngoài/);
 });
+test('tactical training replays spell commands and rewards once with standardized stats', (t) => {
+  const db = setup(t),
+    player = db.player();
+  const match = startMatch(db, player, DEFAULT_DECK, 'story', ['fire', 'ice']);
+  assert.deepEqual(match.levels, {});
+  db.db.prepare('UPDATE matches SET created=? WHERE id=?').run(Date.now() - 1000000, match.id);
+  const log = [{ tick: 0, type: 'spell' as const, heroId: 'fire', lane: 1, x: 0 }];
+  const result = finishMatch(db, player, match.id, log, false);
+  const wallet = db.wallet(player).gold;
+  assert.equal(result.winner, 1);
+  assert.deepEqual(finishMatch(db, player, match.id, log, false), result);
+  assert.equal(db.wallet(player).gold, wallet);
+});
+test('PvP HTTP authenticates both identities and rejects cross-origin, malformed and outsider commands', async (t) => {
+  const db = setup(t),
+    server = createGameServer(db);
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise<void>((resolve) => server.close(() => resolve())));
+  const address = server.address() as { port: number },
+    base = `http://127.0.0.1:${address.port}`;
+  const request = async (path: string, body: unknown, cookie = '', origin = base) =>
+    fetch(base + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Kora-Request': '1', cookie, origin },
+      body: JSON.stringify(body),
+    });
+  const alice = (await request('/api/player', {})).headers.get('set-cookie')!;
+  const bob = (await request('/api/player', {})).headers.get('set-cookie')!;
+  const outsider = (await request('/api/player', {})).headers.get('set-cookie')!;
+  const loadout = { deck: DEFAULT_DECK, spells: ['fire', 'ice'] };
+  assert.equal((await request('/api/pvp/create', loadout)).status, 401);
+  assert.equal((await request('/api/pvp/create', loadout, alice, 'https://wrong.example')).status, 400);
+  const created = await request('/api/pvp/create', loadout, alice);
+  assert.equal(created.status, 201);
+  const room = await created.json();
+  const current = await (await fetch(base + '/api/pvp/current', { headers: { cookie: alice } })).json();
+  assert.equal(current.code, room.code);
+  assert.equal(
+    await (await fetch(base + '/api/pvp/current', { headers: { cookie: outsider } })).json(),
+    null,
+  );
+  assert.equal((await request('/api/pvp/join', { ...loadout, code: room.code }, bob)).status, 200);
+  assert.equal(
+    (await fetch(base + '/api/pvp/state?code=' + room.code, { headers: { cookie: outsider } })).status,
+    400,
+  );
+  const command = { id: 'http-command-1', type: 'spell', card: 'fire', lane: 1, x: 0 };
+  const response = await (await request('/api/pvp/command', { code: room.code, command }, bob)).json();
+  assert.equal(response.error, null);
+  assert.equal(response.state.spellZones.length, 1);
+  const repeated = await (await request('/api/pvp/command', { code: room.code, command }, bob)).json();
+  assert.equal(repeated.state.spellZones.length, 1);
+  assert.equal((await request('/api/pvp/command', { code: room.code, command: null }, alice)).status, 400);
+  assert.equal((await request('/api/pvp/leave', { code: room.code }, bob)).status, 200);
+  const state = await (
+    await fetch(base + '/api/pvp/state?code=' + room.code, { headers: { cookie: alice } })
+  ).json();
+  assert.equal(state.state.phase, 'ended');
+  assert.equal(state.state.winner, 0);
+  assert.equal(db.wallet(db.subject(alice.split(';')[0].split('=')[1], 'player')!).gold, 300);
+});

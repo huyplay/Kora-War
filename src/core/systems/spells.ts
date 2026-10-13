@@ -1,0 +1,65 @@
+import { SPELLS, isSpell, type SpellId } from '../../data/spells';
+import { STEP } from '../../data/rules';
+import type { Battle } from '../Battle';
+import { isLane, LANE_SPACE } from '../physics/lane-space';
+import type { Side } from '../types';
+export interface SpellZone {
+  id: number;
+  spellId: SpellId;
+  side: Side;
+  lane: number;
+  x: number;
+  starts: number;
+  ends: number;
+}
+export function validateSpell(b: Battle, side: Side, id: string, lane: number, x: number): string | null {
+  if (side !== 0 && side !== 1) return 'Phe không hợp lệ.';
+  if (b.phase !== 'playing' || !b.tactical) return 'Trận đấu chưa sẵn sàng.';
+  if (!isLane(lane) || !Number.isFinite(x) || Math.abs(x) > LANE_SPACE.maxX)
+    return 'Vị trí phép không hợp lệ.';
+  if (!isSpell(id) || !b.spellDecks[side].includes(id)) return 'Phép không nằm trong bộ bài.';
+  if (b.mana[side] + 1e-8 < SPELLS[id].cost) return 'Chưa đủ mana.';
+  if ((b.cooldowns[side][id] || 0) > b.time) return 'Phép đang hồi.';
+  return null;
+}
+export function castSpell(b: Battle, side: Side, id: string, lane: number, x: number): string | null {
+  const error = validateSpell(b, side, id, lane, x);
+  if (error) return error;
+  const s = SPELLS[id as SpellId];
+  b.mana[side] -= s.cost;
+  b.stats[side].spent += s.cost;
+  b.stats[side].skills++;
+  b.cooldowns[side][id] = b.time + s.cooldown;
+  b.spellZones.push({
+    id: b.eventId,
+    spellId: s.id,
+    side,
+    lane,
+    x,
+    starts: b.time + s.warning,
+    ends: b.time + s.warning + s.duration,
+  });
+  b.emit({ type: 'skill', side, lane, x, label: s.name });
+  return null;
+}
+export function updateSpells(b: Battle) {
+  for (const zone of b.spellZones) {
+    if (b.time + 1e-8 < zone.starts) continue;
+    const s = SPELLS[zone.spellId];
+    const targets = b.units.filter(
+      (u) => u.hp > 0 && u.side !== zone.side && u.lane === zone.lane && Math.abs(u.x - zone.x) <= s.radius,
+    );
+    for (const u of targets) {
+      b.damage(u, s.damage * (s.duration ? STEP : 1), zone.side);
+      if (zone.spellId === 'wind')
+        u.x = Math.max(LANE_SPACE.minX, Math.min(LANE_SPACE.maxX, u.x + (zone.side === 0 ? 2 : -2)));
+      // Non-additive control durations. Recasts cannot extend an existing stun.
+      if (zone.spellId === 'lightning' && u.stunUntil <= b.time) u.stunUntil = b.time + 0.6;
+      if (zone.spellId === 'ice') {
+        u.slowFactor = Math.min(u.slowUntil > b.time ? u.slowFactor : 1, 0.6);
+        u.slowUntil = Math.max(u.slowUntil, b.time + 2);
+      }
+    }
+  }
+  b.spellZones = b.spellZones.filter((z) => b.time + STEP < z.ends || b.time + 1e-8 < z.starts);
+}

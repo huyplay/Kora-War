@@ -4,7 +4,8 @@
 
 - Tiếp tục từ bản Three.js + TypeScript + Vite đã chơi được. Không chuyển sang PlayCanvas.
 - Giữ cốt truyện Aetherfall: Elyndra, Đại Phân Ly, lõi Aether, Người Kết Nối, nhiệm vụ Thung lũng Khởi Nguyên.
-- Giữ ba lane, deck đúng bốn tướng với cả bốn thẻ luôn hiện, trụ có máu và tự tấn công, hai lõi 1.500 HP.
+- Quyết định bổ sung theo `Game_desgin.md`: MVP có ba lane, deck đúng bốn tướng + hai phép khác nhau, cả sáu thẻ luôn hiện. Trụ có máu và tự tấn công, hai lõi 1.500 HP.
+- Người dùng đã xác nhận: “Áp dụng MVP thiết kế mới: 4 tướng + 2 phép, mana 4, PvP chuẩn hóa; giữ lore và luật khác”. Mana đầu trận MVP là 4/10; PvP dùng chỉ số chuẩn hóa. Bản legacy vẫn phục vụ fixture và replay cũ.
 - Giữ luật trận hiện tại, gồm hồi mana 1,05/giây và quá tải lõi sau 180 giây. Không tự áp dụng luật hai lane, tay hai thẻ, thành 1.000 HP hay trụ trang trí trong bản master prompt cũ.
 - Catalog hiện tại gồm 10 tướng Aetherfall và năm hệ/năm tộc. Yêu cầu quay về bản ban đầu thay thế hướng chuyển sang bộ tướng/cốt truyện Heartstone.
 - Khi một yêu cầu mới mâu thuẫn với các quyết định này hoặc còn chưa rõ về thay đổi gameplay/nội dung, hỏi người dùng trước khi áp dụng. Có thể tiếp tục phần công việc độc lập trong lúc chờ.

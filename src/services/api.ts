@@ -1,3 +1,11 @@
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
 export async function api<T>(path: string, method = 'GET', data?: unknown): Promise<T> {
   const response = await fetch(path, {
     method,
@@ -7,7 +15,7 @@ export async function api<T>(path: string, method = 'GET', data?: unknown): Prom
     signal: AbortSignal.timeout(15000),
   });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+  if (!response.ok) throw new ApiError(result.error || `HTTP ${response.status}`, response.status);
   return result as T;
 }
 export interface ManagedAsset {

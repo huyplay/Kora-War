@@ -1,6 +1,7 @@
 import type { Battle, Difficulty } from '../core/index';
 import { defaultContent, validateContent, type ContentConfig } from '../data/content';
 import { api, type ManagedAsset } from './api';
+import type { SpellId } from '../data/spells';
 export interface Wallet {
   player: string;
   gold: number;
@@ -17,7 +18,7 @@ export interface Wallet {
 }
 interface Command {
   tick: number;
-  type: 'play' | 'pulse';
+  type: 'play' | 'pulse' | 'spell';
   heroId?: string;
   lane: number;
   x?: number;
@@ -52,11 +53,11 @@ export class GameSession {
       /* Static/offline demo stays playable without economy. */
     }
   }
-  async start(deck: string[], difficulty: Difficulty) {
+  async start(deck: string[], difficulty: Difficulty, spells: SpellId[]) {
     this.commands = [];
     this.match = undefined;
     if (!this.wallet) return undefined;
-    const match = await api<RemoteMatch>('/api/game/start', 'POST', { deck, difficulty });
+    const match = await api<RemoteMatch>('/api/game/start', 'POST', { deck, difficulty, spells });
     if (match.revision !== this.revision) throw new Error('Nội dung game đã cập nhật. Hãy tải lại trang.');
     this.match = match;
     return match;

@@ -38,3 +38,7 @@ Giữ bộ chạy `node:test` qua `tsx` để tiếp tục các kiểm thử đ�
 Người dùng yêu cầu backend/database, dashboard điều chỉnh tướng/kỹ năng/map/asset/vật phẩm/tiền và chọn thêm vòng chơi nhận vàng, mở rương, cửa hàng, nâng cấp thẻ. Node 24 + SQLite phục vụ game và admin cùng origin; bản nháp, published revision và audit log tách riêng. Admin điều chỉnh dữ liệu không có hiệu lực giữa trận. Cấu hình mặc định giữ luật đã chốt; chỉnh cân bằng qua dashboard là thao tác phát hành có chủ đích.
 
 Người dùng xác nhận có giấy phép dùng toàn bộ asset Riot. Ngoại hình LoL được gán vào 10 tướng Kora War, giữ tên/hệ/tộc/lore. Khada là nguồn chính; CommunityDragon cung cấp sprite. Ghi nguồn, checksum và xác nhận quyền từng asset. Phạm vi kinh tế/cấp tướng, cách vận hành và giới hạn được ghi trong [Content Studio](ADMIN.md).
+
+## Chuyển backend và mở rộng media
+
+Người dùng chọn chuyển từng bước sang ASP.NET Core/PostgreSQL, ưu tiên asset/admin/database và tiếp tục chơi AI. PvP chỉ chuẩn bị kiến trúc. Database riêng là `kora_war`, cấu hình bí mật qua `.env.local`; hiện chưa có R2. File lớn dùng object storage, PostgreSQL lưu metadata; không lưu binary model/audio vào bảng game. Bước hiện tại bổ sung service asset và snapshot chuyển dữ liệu, giữ một nơi ghi ví/trận ở SQLite đến khi hoàn tất migration nghiệp vụ.

@@ -6,6 +6,10 @@ Backend Node.js 24 + SQLite nằm trong `server/`. Chạy `npm run start` để 
 
 Asset upload: GLB 2.0 tự chứa texture/buffer, PNG/JPEG/WebP, tối đa 30 MB; model tối đa 150.000 triangles/2.000 nodes/200 clips. Lưu SHA-256, tác giả, URL nguồn, giấy phép và xác nhận quyền dùng. Các budget này là giới hạn nhập, không bảo đảm mobile đạt 60 FPS. Clip ngoài cần cùng skeleton/node names; không có tự động retarget.
 
+Studio nhận thêm WAV PCM/float và Ogg Vorbis/Opus tối đa 4 MiB, 15 giây, mono/stereo. Mục Âm thanh chỉnh master/effects/UI, số voice, volume/rate/cooldown của từng cue và attack/cast/death/footstep theo tướng; nút nghe thử áp dụng gain và tốc độ bản nháp. Texture tối đa 4 triệu pixel, cạnh 4096; map chỉnh stone/grass asset, repeat và tint. Sprite sheet VFX dùng image asset cùng số cột/hàng; không tải trực tiếp Unity prefab.
+
+[Service PostgreSQL](BACKEND-MIGRATION.md) có thể bật qua `.env.local`; upload đồng bộ metadata/file sau khi lưu local. Khi service mất kết nối, bản local vẫn giữ và đánh dấu pending; chạy `npm run assets:sync` để thử lại. Bí mật chỉ nằm ở backend. Hiện ví/trận còn ghi SQLite, R2/CDN chưa cấu hình thực tế.
+
 Wallet guest lưu trên database, nhận diện bằng cookie riêng. Hồ sơ gắn trình duyệt; chưa có đăng nhập đa thiết bị/phục hồi tài khoản. Giao dịch có request ID để chống double-submit; ledger lưu thay đổi. Thưởng trận dùng seed, deck, content revision và command log để server mô phỏng lại; trận debug không nhận thưởng. Backend này dành cho môi trường local; khi triển khai Internet cần TLS/reverse proxy, domain/cookie cấu hình phù hợp, vận hành backup, account recovery và giới hạn tải.
 
 Sao lưu nhất quán SQLite qua backup API hoặc dừng server trước khi sao chép cả `.data/`; giữ upload cùng database. Không sao chép riêng file SQLite trong khi WAL đang hoạt động.

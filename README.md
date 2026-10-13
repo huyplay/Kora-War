@@ -40,7 +40,7 @@ npm run preview
 - Synergy kích hoạt từ deck; kỹ năng chủ động Cộng Hưởng Lõi hồi máu đồng minh/gây sát thương địch theo lane.
 - AI tuân thủ cùng mana/deck/validation; ba nhịp quyết định cho Khám phá/Tiêu chuẩn/Thử thách.
 - Mở đầu cốt truyện, hướng dẫn ba bước, nhiệm vụ chiếm lõi, thắng/thua, thống kê, chơi lại và đổi đội hình.
-- Tạm dừng khi chuyển tab, âm thanh tổng hợp, high/low graphics và tự hạ chất lượng khi FPS thấp kéo dài.
+- Tạm dừng khi chuyển tab, SFX WAV/Ogg với mixer và âm thanh dự phòng, high/low graphics và tự hạ chất lượng khi FPS thấp kéo dài.
 - Giao diện ngang dành cho mobile, bốn thẻ luôn hiện, HUD gọn, kéo/vuốt thẻ để thả quân; tự pause và yêu cầu xoay khi màn hình dọc.
 - Module vật lý lane, asset registry, prefab tướng, animation theo trạng thái và sprite VFX dùng pool; quản lý vòng đời tài nguyên tập trung.
 - 10 model rigged từ Khada, trụ/lõi nhập ngoài, clip animation có ánh xạ, map prop và sprite CommunityDragon; bản mobile bỏ dữ liệu animation không dùng.
@@ -70,7 +70,9 @@ npm run preview
 - `src/engine/`: lifetime, asset registry, object pool và nhận diện gesture; không quyết định luật chiến đấu.
 - `server/`: HTTP API, SQLite, auth admin, asset ingestion và giao dịch economy.
 - `src/admin/`: Content Studio và preview 3D.
-- `tests/`: 42 bài test, gồm 20 trận AI-v-AI và đối chiếu bốn seed với bản gốc trước refactor.
+- `tests/`: 48 bài test, gồm 20 trận AI-v-AI và đối chiếu bốn seed với bản gốc trước refactor.
+- [Audio/texture/prop](assets/media/README.md): nguồn, giấy phép, tải và nhập thư viện. Studio điều chỉnh mixer, âm thanh theo tướng, texture và map props.
+- [ASP.NET Core / PostgreSQL](docs/BACKEND-MIGRATION.md): service asset, đồng bộ có retry, storage local/R2 và lộ trình chuyển dữ liệu. Ví/trận vẫn ghi SQLite; chưa bật R2/CDN.
 - [Module engine](docs/ENGINE.md), [quy ước asset](assets/README.md), [mobile UX](docs/MOBILE-UX.md), [kết quả QA](docs/06-implementation/qa.md).
 - [Kiến trúc và điểm mở rộng](docs/ARCHITECTURE.md), [hướng dẫn bảo trì](docs/DEVELOPMENT.md), [các quyết định đã chốt](docs/DECISIONS.md).
 - [Ghi chú triển khai](docs/06-implementation/aetherfall-v0.1.md): luật chính xác và giới hạn.

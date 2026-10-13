@@ -94,3 +94,7 @@ Các geometry/material dùng chung thuộc World, không bị hủy khi một un
 `server/database.ts` quản lý SQLite và transaction; `server/assets.ts` kiểm tra/nhập file; `server/game-service.ts` thực thi ví, cửa hàng, nâng cấp và replay thưởng; `server/http.ts` chịu trách nhiệm HTTP/auth/origin. `src/data/content.ts` là schema dùng chung, không import server/DOM. `src/services/game-session.ts` nối app với API; mỗi Battle nhận bản sao content và levels tại lúc bắt đầu. Core không tự fetch hoặc đọc database.
 
 `src/admin` tách controller, views, ability editor, HTML helpers và preview 3D. `src/rendering/assets/model-library.ts` cache GLTF, clone skeleton và tạo AnimationMixer theo instance. `tools/compact-glb.ts` đóng gói model cho mobile; manifest/provenance ở `assets/riot/`. Xem [vận hành admin](ADMIN.md).
+
+`src/data/media.ts` định nghĩa mixer/cue/texture binding. `Sound` đọc sự kiện và trạng thái, giới hạn voice/cooldown, bộ nhớ decoded 16 MiB, tối đa bốn request đồng thời; pause/mute dừng voice. `TerrainStyle` nạp texture qua asset ID và giữ fallback. Audio và renderer không thay đổi simulation.
+
+`backend/KoraWar.AssetApi` tách metadata PostgreSQL khỏi object storage local/R2. `server/asset-service.ts` là cầu nối nội bộ: upload local trước, ghi pending khi mất kết nối, kiểm tra SHA khi đọc từ service. Xem [lộ trình backend](BACKEND-MIGRATION.md); PostgreSQL hiện chưa là nơi ghi ví/trận chính.

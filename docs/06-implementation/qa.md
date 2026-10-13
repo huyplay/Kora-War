@@ -33,4 +33,8 @@
 
 ## Giới hạn
 
+Lượt media/backend ngày 13/10/2026: `npm run check` đạt 48/48 test, architecture/typecheck và production build. Baseline `e792b00` không sửa. `backend:build` đạt 0 warning/0 error; `backend:check` đạt với PostgreSQL tạm và local object storage: auth, migration, import/retry, checksum, ID bất biến, binary roundtrip, JSON lỗi và snapshot idempotency. Test cầu nối xác minh pending được lưu, retry xóa pending, binary sai SHA bị từ chối.
+
+Đã nhập/publish 12 media asset: 10 SFX Kenney/JaggedStone, diffuse Poly Haven và Moon Rock 02 GLB (3.304 triangles, texture 1K). Chưa nghe/xem lại bản mới trong Chrome: công cụ vẫn từ chối địa chỉ local vì saved preference dù người dùng đã đồng ý kiểm tra lại. Không dùng đường vòng. Chưa chạy đồng bộ vào database `kora_war` thực tế vì `.env.local` chưa có; R2/CDN chưa có môi trường thật. GegX chưa tải xong: itch.io trả HTTP 429; atlas hiện có vẫn được dùng, upload PNG 8×1 đã được hỗ trợ.
+
 Chưa benchmark thiết bị iOS/Android thật; không coi FPS hiển thị khi điều khiển trình duyệt là cam kết hiệu năng. Chưa có bộ E2E browser tự động trong repository. Bộ import dùng model LoL theo xác nhận giấy phép của chủ dự án; chưa retarget skeleton tùy ý hoặc dựng campaign nhiều màn.

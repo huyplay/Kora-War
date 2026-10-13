@@ -14,7 +14,7 @@ export interface ManagedAsset {
   archived?: number;
   id: string;
   name: string;
-  kind: 'model' | 'image';
+  kind: 'model' | 'image' | 'audio';
   bytes: number;
   url: string;
   sha256: string;
@@ -25,5 +25,10 @@ export interface ManagedAsset {
     clips?: string[];
     triangles?: number;
     skins?: number;
+    duration?: number;
+    sampleRate?: number;
+    channels?: number;
+    width?: number;
+    height?: number;
   };
 }

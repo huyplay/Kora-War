@@ -2,6 +2,7 @@ import { ABILITIES, type AbilityDefinition } from './abilities';
 import { HEROES } from './heroes';
 import { RULES } from './rules';
 import type { Hero } from './types';
+import { defaultAudio, SOUND_CUES, type AudioProfile, type TextureBinding } from './media';
 export type BattleRules = {
   [K in keyof typeof RULES]: number;
 };
@@ -25,6 +26,7 @@ export interface ContentConfig {
   abilities: Record<string, AbilityDefinition>;
   rules: BattleRules;
   models: Record<string, ModelBinding>;
+  audio?: AudioProfile;
   map: {
     id: string;
     name: string;
@@ -33,6 +35,7 @@ export interface ContentConfig {
     props: MapProp[];
     towerAssetId?: string;
     coreAssetId?: string;
+    textures?: Partial<Record<'stone' | 'grass', TextureBinding>>;
   };
   vfx: {
     ally: string;
@@ -66,6 +69,7 @@ export function defaultContent(): ContentConfig {
     abilities: ABILITIES,
     rules: RULES,
     models: {},
+    audio: defaultAudio(),
     map: { id: 'genesis', name: 'Thung lũng Khởi Nguyên', background: '#142c31', exposure: 1.25, props: [] },
     vfx: { ally: '#7ddcff', enemy: '#ffa075', heal: '#70ffc7', intensity: 1 },
     economy: { winGold: 80, lossGold: 25, chestCost: 100, chestGold: 30, upgradeBase: 75 },
@@ -190,6 +194,46 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
       fail('Prop map không hợp lệ.');
   for (const id of [c.map.towerAssetId, c.map.coreAssetId])
     if (id && !asset(id)) fail('Asset cấu trúc map không hợp lệ.');
+  for (const [kind, binding] of Object.entries(c.map.textures || {}))
+    if (
+      !['stone', 'grass'].includes(kind) ||
+      !asset(binding.assetId) ||
+      !num(binding.repeat, 0.1, 16) ||
+      !color(binding.tint)
+    )
+      fail('Texture map không hợp lệ.');
+  if (c.audio) {
+    const a = c.audio;
+    if (
+      ![a.master, a.effects, a.ui].every((v) => num(v, 0, 1)) ||
+      !Number.isInteger(a.maxVoices) ||
+      !num(a.maxVoices, 1, 24) ||
+      !a.cues ||
+      !a.heroes
+    )
+      fail('Audio mixer không hợp lệ.');
+    const checkBinding = (b: import('./media').SoundBinding) => {
+      if (
+        !b ||
+        !asset(b.assetId) ||
+        !num(b.volume, 0, 1) ||
+        !num(b.rate, 0.5, 2) ||
+        !num(b.cooldownMs, 0, 10000)
+      )
+        fail('Sound binding không hợp lệ.');
+    };
+    for (const [cue, binding] of Object.entries(a.cues)) {
+      if (!(SOUND_CUES as readonly string[]).includes(cue)) fail('Sound cue không hợp lệ.');
+      checkBinding(binding);
+    }
+    for (const [hero, bindings] of Object.entries(a.heroes)) {
+      if (!HEROES.some((h) => h.id === hero) || !bindings) fail('Audio tướng không hợp lệ.');
+      for (const [cue, binding] of Object.entries(bindings)) {
+        if (!['attack', 'cast', 'death', 'footstep'].includes(cue)) fail('Sound tướng không hợp lệ.');
+        checkBinding(binding);
+      }
+    }
+  }
   if (
     !c.vfx ||
     !color(c.vfx.ally) ||
@@ -237,6 +281,11 @@ export function assetReferences(c: ContentConfig): string[] {
       ...c.items.flatMap((i) => (i.iconAssetId ? [i.iconAssetId] : [])),
       ...(c.vfx.spriteAssetId ? [c.vfx.spriteAssetId] : []),
       ...[c.map.towerAssetId, c.map.coreAssetId].filter((id): id is string => !!id),
+      ...Object.values(c.map.textures || {}).map((b) => b.assetId),
+      ...Object.values(c.audio?.cues || {}).map((b) => b.assetId),
+      ...Object.values(c.audio?.heroes || {}).flatMap((bindings) =>
+        Object.values(bindings).map((b) => b.assetId),
+      ),
     ]),
   ];
 }

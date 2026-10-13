@@ -144,6 +144,7 @@ export class World {
         this.renderer.toneMappingExposure = content.map.exposure;
         await this.models.supportTextures(this.renderer);
         this.sprites.configure(content.vfx);
+        await this.terrain.configure(content.map.textures);
         const results = await Promise.allSettled(Object.entries(content.models).map(async ([id, binding]) => {
             const instance = await this.models.instance(binding);
             this.templates.set(id, instance);

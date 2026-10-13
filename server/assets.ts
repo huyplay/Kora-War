@@ -2,6 +2,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { GameDatabase } from './database';
+import { inspectAudio } from './media-inspection';
+import { inspectImage } from './image-inspection';
 
 export function inspectGLB(bytes: Buffer) {
   if (
@@ -52,14 +54,19 @@ export function importAsset(store: GameDatabase, bytes: Buffer, metadata: Record
   const isGLB = bytes.subarray(0, 4).toString() === 'glTF';
   let extension = '',
     details = {};
+  const audio = inspectAudio(bytes);
+  const image = inspectImage(bytes);
+  if (audio && bytes.length > 4 * 1024 * 1024) throw new Error('SFX tối đa 4 MB.');
   if (isGLB) {
     extension = 'glb';
     details = inspectGLB(bytes);
-  } else if (bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) extension = 'png';
-  else if (bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) extension = 'jpg';
-  else if (bytes.subarray(0, 4).toString() === 'RIFF' && bytes.subarray(8, 12).toString() === 'WEBP')
-    extension = 'webp';
-  else throw new Error('Chỉ hỗ trợ GLB, PNG, JPEG và WebP.');
+  } else if (audio) {
+    extension = audio.extension;
+    details = audio;
+  } else if (image) {
+    extension = image.extension;
+    details = image;
+  } else throw new Error('Chỉ hỗ trợ GLB, PNG, JPEG, WebP, WAV và Ogg.');
   const id = randomUUID(),
     path = `uploads/${id}.${extension}`;
   mkdirSync(join(store.directory, 'uploads'), { recursive: true });
@@ -77,7 +84,7 @@ export function importAsset(store: GameDatabase, bytes: Buffer, metadata: Record
     .run(
       id,
       name,
-      isGLB ? 'model' : 'image',
+      isGLB ? 'model' : audio ? 'audio' : 'image',
       path,
       bytes.length,
       createHash('sha256').update(bytes).digest('hex'),

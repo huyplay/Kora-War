@@ -1,6 +1,8 @@
 import type { ContentConfig } from '../data/content';
 import type { ManagedAsset } from '../services/api';
 export interface State {
+  assetService?: { configured: boolean; available: boolean; database: string; storage: string };
+  assetSyncPending?: number;
   version: number;
   revision: number;
   draft: ContentConfig;
@@ -27,6 +29,7 @@ export const sections = [
   ['assets', '⬡', 'Thư viện asset'],
   ['map', '▧', 'Màn chơi'],
   ['vfx', '✧', 'Hiệu ứng'],
+  ['audio', '♫', 'Âm thanh'],
   ['economy', '◉', 'Vật phẩm & tiền'],
   ['players', '♙', 'Người chơi'],
   ['history', '↶', 'Phiên bản'],

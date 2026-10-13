@@ -1,7 +1,10 @@
 import * as THREE from 'three';
+import type { ContentConfig } from '../data/content';
 /** Original tile details generated once; shared by the batched arena geometry. */
 export class TerrainStyle {
   private textures: THREE.Texture[] = [];
+  private materials: Record<'stone' | 'grass', THREE.MeshLambertMaterial[]> = { stone: [], grass: [] };
+  private disposed = false;
   apply(scene: THREE.Scene) {
     const stone = this.texture('stone'),
       grass = this.texture('grass');
@@ -13,15 +16,38 @@ export class TerrainStyle {
     });
     for (const material of materials) {
       if (tiles.has(material.color.getHex())) {
+        this.materials.stone.push(material);
         material.map = stone;
         material.color.lerp(new THREE.Color('#a8aea0'), 0.3);
         material.needsUpdate = true;
       }
       if (material.color.getHex() === 0x43634d) {
+        this.materials.grass.push(material);
         material.map = grass;
         material.needsUpdate = true;
       }
     }
+  }
+  async configure(bindings: ContentConfig['map']['textures']) {
+    await Promise.allSettled(
+      Object.entries(bindings || {}).map(async ([kind, binding]) => {
+        const texture = await new THREE.TextureLoader().loadAsync(`/api/assets/${binding.assetId}`);
+        if (this.disposed) {
+          texture.dispose();
+          return;
+        }
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.setScalar(binding.repeat);
+        texture.anisotropy = 4;
+        this.textures.push(texture);
+        for (const material of this.materials[kind as 'stone' | 'grass']) {
+          material.map = texture;
+          material.color.set(binding.tint);
+          material.needsUpdate = true;
+        }
+      }),
+    );
   }
   private texture(kind: 'stone' | 'grass') {
     const canvas = document.createElement('canvas');
@@ -70,6 +96,7 @@ export class TerrainStyle {
     return texture;
   }
   dispose() {
+    this.disposed = true;
     this.textures.forEach((t) => t.dispose());
     this.textures = [];
   }

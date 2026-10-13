@@ -1,6 +1,8 @@
 import { resolve } from 'node:path';
 import { GameDatabase } from './database';
 import { createGameServer } from './http';
+import { loadLocalEnvironment } from './local-environment';
+loadLocalEnvironment();
 const directory = resolve(process.env.KORA_DATA_DIR || '.data');
 const store = new GameDatabase(directory, process.env.KORA_ADMIN_PASSWORD);
 const server = createGameServer(store);

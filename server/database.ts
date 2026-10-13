@@ -23,6 +23,7 @@ export class GameDatabase {
           CREATE TABLE IF NOT EXISTS ledger(id INTEGER PRIMARY KEY AUTOINCREMENT, player TEXT NOT NULL REFERENCES players(id), request TEXT NOT NULL, delta INTEGER NOT NULL, reason TEXT NOT NULL, result TEXT NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE(player,request));
           CREATE TABLE IF NOT EXISTS matches(id TEXT PRIMARY KEY, player TEXT NOT NULL REFERENCES players(id), seed INTEGER NOT NULL, deck TEXT NOT NULL, difficulty TEXT NOT NULL, content TEXT NOT NULL, levels TEXT NOT NULL, revision INTEGER NOT NULL, created INTEGER NOT NULL, result TEXT);
           CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT NOT NULL, detail TEXT NOT NULL, created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);`);
+    this.db.exec('CREATE TABLE IF NOT EXISTS asset_sync_pending(asset TEXT PRIMARY KEY REFERENCES assets(id), attempts INTEGER NOT NULL DEFAULT 1)');
     if (
       !this.db
         .prepare('PRAGMA table_info(assets)')
@@ -133,6 +134,14 @@ export class GameDatabase {
         if (id && this.asset(id)?.kind !== 'model') throw new Error('Trụ/lõi phải là model GLB.');
       if (current.draft.vfx.spriteAssetId && this.asset(current.draft.vfx.spriteAssetId)?.kind !== 'image')
         throw new Error('Sprite VFX phải là ảnh.');
+      for (const binding of Object.values(current.draft.map.textures || {}))
+        if (this.asset(binding.assetId)?.kind !== 'image') throw new Error('Texture map phải là ảnh.');
+      for (const binding of [
+        ...Object.values(current.draft.audio?.cues || {}),
+        ...Object.values(current.draft.audio?.heroes || {}).flatMap((b) => Object.values(b)),
+      ])
+        if (this.asset(binding.assetId)?.kind !== 'audio')
+          throw new Error('Sound binding phải là file audio.');
       const json = JSON.stringify(current.draft),
         revision = Number(
           this.db.prepare('INSERT INTO revisions(content) VALUES(?)').run(json).lastInsertRowid,

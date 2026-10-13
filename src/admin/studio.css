@@ -860,3 +860,37 @@ th {
 .asset-card.archived {
   opacity: 0.5;
 }
+.sound-row {
+  display: grid;
+  grid-template-columns: 110px minmax(180px, 2fr) repeat(3, minmax(90px, 1fr)) 80px;
+  gap: 12px;
+  align-items: end;
+  padding: 14px 0;
+  border-bottom: 1px solid #ffffff12;
+}
+.sound-row b {
+  align-self: center;
+}
+.panel details {
+  padding: 16px 0;
+  border-bottom: 1px solid #ffffff12;
+}
+.panel summary {
+  cursor: pointer;
+  color: #eacb87;
+}
+#sound-preview {
+  position: sticky;
+  bottom: 20px;
+  width: min(480px, 100%);
+}
+.texture-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+@media (max-width: 1000px) {
+  .sound-row {
+    grid-template-columns: 100px 1fr 1fr;
+  }
+}

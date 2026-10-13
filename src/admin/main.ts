@@ -13,9 +13,10 @@ let state: State,
   dirty = false,
   preview: AssetPreview | undefined;
 function render() {
+  document.querySelector<HTMLAudioElement>('#sound-preview')?.pause();
   preview?.dispose();
   preview = undefined;
-  root.innerHTML = `<aside><a class="studio-brand" href="/">◈ <b>KORA WAR</b><small>CONTENT STUDIO</small></a><nav>${sections.map(([id, icon, name]) => `<button data-section="${id}" class="${section === id ? 'active' : ''}"><i>${icon}</i>${name}</button>`).join('')}</nav><div class="sidebar-footer"><span class="live-dot"></span> SQLite · Local workspace<small>Revision ${state.revision}</small><button id="logout">Đăng xuất ↗</button></div></aside><main><header><div><small>WORKSPACE / ${esc(sections.find((s) => s[0] === section)?.[2])}</small><h1>${esc(sections.find((s) => s[0] === section)?.[2])}</h1></div><div class="header-actions"><span id="dirty">${dirty ? '● Chưa lưu' : '✓ Đã lưu'}</span><button id="save">Lưu bản nháp</button><button id="publish" class="gold">Phát hành ↗</button></div></header><div id="notice" role="status"></div><div class="page">${renderStudioPage(state, section, hero, selectedAsset)}</div></main>`;
+  root.innerHTML = `<aside><a class="studio-brand" href="/">◈ <b>KORA WAR</b><small>CONTENT STUDIO</small></a><nav>${sections.map(([id, icon, name]) => `<button data-section="${id}" class="${section === id ? 'active' : ''}"><i>${icon}</i>${name}</button>`).join('')}</nav><div class="sidebar-footer"><span class="live-dot"></span> ${state.assetService?.available ? 'PostgreSQL assets · ' + esc(state.assetService.storage) : 'SQLite · Local workspace'}<small>Revision ${state.revision}</small><button id="logout">Đăng xuất ↗</button></div></aside><main><header><div><small>WORKSPACE / ${esc(sections.find((s) => s[0] === section)?.[2])}</small><h1>${esc(sections.find((s) => s[0] === section)?.[2])}</h1></div><div class="header-actions"><span id="dirty">${dirty ? '● Chưa lưu' : '✓ Đã lưu'}</span><button id="save">Lưu bản nháp</button><button id="publish" class="gold">Phát hành ↗</button></div></header><div id="notice" role="status"></div><div class="page">${renderStudioPage(state, section, hero, selectedAsset)}</div></main>`;
   document.querySelectorAll<HTMLButtonElement>('[data-section]').forEach(
     (b) =>
       (b.onclick = () => {
@@ -76,7 +77,11 @@ function $(selector: string) {
 function setPath(path: string, value: unknown) {
   const keys = path.split('.');
   let target: unknown = state.draft;
-  for (const k of keys.slice(0, -1)) target = (target as Record<string, unknown>)[k];
+  for (const k of keys.slice(0, -1)) {
+    const parent = target as Record<string, unknown>;
+    parent[k] ||= {};
+    target = parent[k];
+  }
   if (!target) return;
   if (value === '' || value === undefined) delete (target as Record<string, unknown>)[keys.at(-1)!];
   else (target as Record<string, unknown>)[keys.at(-1)!] = value;
@@ -127,6 +132,53 @@ async function save() {
   notice('Đã lưu bản nháp.');
 }
 function wire() {
+  document.querySelectorAll<HTMLSelectElement>('[data-texture]').forEach((el) => {
+    el.onchange = () => {
+      setPath(
+        `map.textures.${el.dataset.texture}`,
+        el.value ? { assetId: el.value, repeat: 1, tint: '#ffffff' } : undefined,
+      );
+      dirty = true;
+      render();
+    };
+  });
+  document.querySelectorAll<HTMLSelectElement>('[data-sound]').forEach((el) => {
+    el.onchange = () => {
+      setPath(
+        el.dataset.sound!,
+        el.value ? { assetId: el.value, volume: 0.6, rate: 1, cooldownMs: 100 } : undefined,
+      );
+      dirty = true;
+      render();
+    };
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-listen]').forEach((el) => {
+    el.onclick = () => {
+      const audio = document.querySelector<HTMLAudioElement>('#sound-preview')!;
+      audio.src = `/api/assets/${el.dataset.listen}`;
+      const binding = el.dataset
+        .listenPath!.split('.')
+        .reduce(
+          (value: unknown, key) => (value as Record<string, unknown>)[key],
+          state.draft,
+        ) as import('../data/media').SoundBinding;
+      const profile = state.draft.audio!;
+      const cue = el.dataset.listenPath!.split('.').at(-1)!;
+      audio.volume = Math.max(
+        0,
+        Math.min(
+          1,
+          binding.volume *
+            profile.master *
+            (['click', 'win', 'lose'].includes(cue) ? profile.ui : profile.effects),
+        ),
+      );
+      audio.playbackRate = binding.rate;
+      audio.preservesPitch = false;
+      audio.hidden = false;
+      void task(() => audio.play());
+    };
+  });
   document.querySelectorAll<HTMLElement>('[data-archive]').forEach(
     (b) =>
       (b.onclick = () =>
@@ -181,14 +233,19 @@ function wire() {
       }),
   );
   if ($('#asset-preview')) {
-    preview = new AssetPreview($('#asset-preview'));
     const b =
       section === 'heroes'
         ? state.draft.models[hero]
         : selectedAsset
           ? { assetId: selectedAsset, height: 2.2, yaw: 0, clips: {} }
           : undefined;
-    if (b) void task(() => preview!.show(structuredClone(b)));
+    if (
+      section === 'heroes' ||
+      !selectedAsset ||
+      state.assets.find((a) => a.id === selectedAsset)?.kind === 'model'
+    )
+      preview = new AssetPreview($('#asset-preview'));
+    if (b && preview) void task(() => preview!.show(structuredClone(b)));
   }
   const model = document.querySelector<HTMLSelectElement>('#model-binding');
   if (model)
@@ -223,6 +280,12 @@ function wire() {
   if (selectedAsset && section === 'assets') {
     const a = state.assets.find((a) => a.id === selectedAsset);
     if (a) {
+      if (a.kind === 'audio') {
+        $('#asset-preview').innerHTML = `<audio controls src="/api/assets/${a.id}"></audio>`;
+      } else if (a.kind === 'image') {
+        $('#asset-preview').innerHTML =
+          `<img class="texture-preview" src="/api/assets/${a.id}" alt="${esc(a.name)}">`;
+      }
       $('#inspect-clip').innerHTML = (a.metadata.clips || [])
         .map((c) => `<option>${esc(c)}</option>`)
         .join('');
@@ -260,7 +323,11 @@ function wire() {
         if (!response.ok) throw new Error(result.error);
         selectedAsset = result.id;
         await load();
-        notice('Upload hoàn tất. Chọn asset để xem clip và gán vào tướng/map.');
+        notice(
+          result.storageSync === 'pending'
+            ? 'Đã lưu local; đồng bộ PostgreSQL/storage đang chờ. Dùng assets:sync để thử lại.'
+            : 'Upload hoàn tất. Chọn asset để xem clip và gán vào tướng/map.',
+        );
       });
     };
   const addProp = $('#add-prop');

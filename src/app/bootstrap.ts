@@ -43,6 +43,7 @@ let tutorial = 0, debug = false, autoPlayer = false, speed = 1, seed = 20261013,
 const runner = new FixedStepRunner();
 let battle = new Battle(deck, difficulty, seed, undefined, gameSession.content, levels());
 const sound = new Sound();
+sound.configure(gameSession.content.audio);
 sound.enabled = saved.sound;
 function persist() {
     try {
@@ -191,6 +192,7 @@ async function startBattle(withTutorial = false) {
     battle.start();
     endedShown = false;
     lastAudioEvent = 0;
+    sound.reset();
     runner.reset();
     autoPlayer = false;
     speed = 1;
@@ -467,11 +469,11 @@ function loop(now: number) {
         for (const e of battle.events)
             if (e.id > lastAudioEvent) {
                 lastAudioEvent = e.id;
-                if (e.type === 'skill' && e.side === 0)
-                    sound.tone('skill');
-                else if (e.type === 'tower')
+                sound.event(e);
+                if (e.type === 'tower')
                     toast(e.side === 1 ? 'Đã phá trụ địch! Tiến vào lõi năng lượng.' : 'Một trụ đồng minh đã thất thủ!');
             }
+        sound.movement(battle.units);
         if ((battle.phase as string) === 'ended')
             result();
     }

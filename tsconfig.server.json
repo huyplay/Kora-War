@@ -4,8 +4,7 @@
   "include": [
     "server",
     "tests",
-    "tools/compact-glb.ts",
-    "tools/import-riot-assets.ts",
+    "tools/*.ts",
     "src/data",
     "src/core"
   ]

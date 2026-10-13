@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { GameDatabase } from './database';
 import { importAsset } from './assets';
 import { startMatch, finishMatch, buyItem, openChest, upgradeCard } from './game-service';
+import { assetServiceStatus, syncManagedAsset, readManagedAsset } from './asset-service';
 
 async function body(req: IncomingMessage, limit = 1024 * 1024) {
   const parts: Buffer[] = [];
@@ -106,10 +107,15 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
             players: store.db.prepare('SELECT * FROM players ORDER BY created DESC LIMIT 100').all(),
             audit: store.db.prepare('SELECT * FROM audit ORDER BY id DESC LIMIT 50').all(),
             revisions: store.db.prepare('SELECT id,created FROM revisions ORDER BY id DESC LIMIT 50').all(),
+            assetService: await assetServiceStatus(),
+            assetSyncPending: Number(
+              store.db.prepare('SELECT count(*) AS n FROM asset_sync_pending').get()!.n,
+            ),
           });
         if (path === '/api/admin/assets' && req.method === 'POST') {
           const metadata = JSON.parse(decodeURIComponent(String(req.headers['x-asset-metadata'] || '')));
-          return send(201, importAsset(store, await body(req, 30 * 1024 * 1024), metadata));
+          const asset = importAsset(store, await body(req, 30 * 1024 * 1024), metadata);
+          return send(201, { ...asset, storageSync: await syncManagedAsset(store, asset.id) });
         }
         if (path === '/api/admin/player' && req.method === 'GET')
           return send(200, store.wallet(url.searchParams.get('id') || ''));
@@ -117,6 +123,7 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
         if (path === '/api/admin/assets/archive' && req.method === 'POST') {
           if (typeof input.archived !== 'boolean') throw new Error('Trạng thái ẩn không hợp lệ.');
           store.archiveAsset(input.id, input.archived);
+          await syncManagedAsset(store, input.id);
           return send(200, { ok: true });
         }
         if (path === '/api/admin/draft' && req.method === 'PUT')
@@ -179,7 +186,7 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
           'Cache-Control': 'public,max-age=31536000,immutable',
           'Content-Length': asset.bytes as number,
         });
-        res.end(readFileSync(file));
+        res.end((await readManagedAsset(store, String(asset.id))) || readFileSync(file));
         return;
       }
       if (path.startsWith('/api/')) return send(404, { error: 'Không có endpoint.' });
@@ -216,6 +223,8 @@ function mime(file: string) {
         '.jpg': 'image/jpeg',
         '.webp': 'image/webp',
         '.glb': 'model/gltf-binary',
+        '.ogg': 'audio/ogg',
+        '.wav': 'audio/wav',
         '.svg': 'image/svg+xml',
       } as Record<string, string>
     )[extname(file)] || 'application/octet-stream'

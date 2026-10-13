@@ -1,0 +1,192 @@
+[
+  {
+    "file": "rpg-knifeSlice.ogg",
+    "sourceUrl": "https://kenney.nl/assets/rpg-audio",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "4cd96dc630bed9840c15f1dd2306da2cc56a4da26a5d3f1a03c5a7265ac5e54f",
+    "bytes": 15532,
+    "kind": "audio"
+  },
+  {
+    "file": "rpg-metalPot1.ogg",
+    "sourceUrl": "https://kenney.nl/assets/rpg-audio",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "159def979e8e386c2c539f5e99cc30a080eb2dcb6c911fa2e4ccc0785b2522fd",
+    "bytes": 31619,
+    "kind": "audio"
+  },
+  {
+    "file": "rpg-footstep00.ogg",
+    "sourceUrl": "https://kenney.nl/assets/rpg-audio",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "6fe61ef1fc3bcf0e253bf2eb64759db6cb69e2fe452f4d88cc597ecf78a3d601",
+    "bytes": 9475,
+    "kind": "audio"
+  },
+  {
+    "file": "rpg-drawKnife1.ogg",
+    "sourceUrl": "https://kenney.nl/assets/rpg-audio",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "276403e72c3b71c47bc24db3083970c23f8e5551ffa78f436f83483c56f3f0bb",
+    "bytes": 11134,
+    "kind": "audio"
+  },
+  {
+    "file": "rpg-doorClose_1.ogg",
+    "sourceUrl": "https://kenney.nl/assets/rpg-audio",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "834d29c60a8a8bfb50b158cdb6b7dfa8f02812a408a1ee9703d038dfab0b1aeb",
+    "bytes": 18564,
+    "kind": "audio"
+  },
+  {
+    "file": "interface-click_001.ogg",
+    "sourceUrl": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "ccfb7fa0cccdd9faec0eb16033c732b1e308d139d80f799161495d58f7adcdb9",
+    "bytes": 4876,
+    "kind": "audio"
+  },
+  {
+    "file": "interface-confirmation_001.ogg",
+    "sourceUrl": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "063564703b6094d70718a3e787a55cc9141611e4ecd6b6637f8828f79b4a8c3a",
+    "bytes": 8968,
+    "kind": "audio"
+  },
+  {
+    "file": "interface-error_001.ogg",
+    "sourceUrl": "https://kenney.nl/assets/interface-sounds",
+    "author": "Kenney",
+    "license": "CC0-1.0",
+    "sha256": "46e67425d16339772e8d328fb36a49426c9467418686e11beeb71ff84b0f6433",
+    "bytes": 7373,
+    "kind": "audio"
+  },
+  {
+    "file": "magical_2.ogg",
+    "sourceUrl": "https://opengameart.org/content/magic-spell-sfx",
+    "author": "JaggedStone",
+    "license": "CC0-1.0",
+    "sha256": "84a70f63f3f21e5ba4a48285b760a663d422ad3feddba2f3cbadd94b76cdc52e",
+    "bytes": 39689,
+    "kind": "audio"
+  },
+  {
+    "file": "magical_3.ogg",
+    "sourceUrl": "https://opengameart.org/content/magic-spell-sfx",
+    "author": "JaggedStone",
+    "license": "CC0-1.0",
+    "sha256": "9fac648a1de869cf9ca2f4b3f1cd47f1766a3ee9d2fdec45831234401d7b2392",
+    "bytes": 38266,
+    "kind": "audio"
+  },
+  {
+    "file": "castle-brick-diffuse.jpg",
+    "sourceUrl": "https://polyhaven.com/a/medieval_blocks_03",
+    "author": "Poly Haven",
+    "license": "CC0-1.0",
+    "sha256": "3852b4a60e0f62d2914c895f884df8d58d8d12d788851d814859dae05b7620cf",
+    "bytes": 954113,
+    "kind": "image"
+  },
+  {
+    "file": "polyhaven-moon-rock-02.glb",
+    "sha256": "8c8f9a2745806408f3ee0ea3d5f6e1e0fdd716489cff17b96eba041fd9e53a67",
+    "sourceUrl": "https://polyhaven.com/a/moon_rock_02",
+    "downloadUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/moon_rock_02/moon_rock_02_1k.gltf",
+    "author": "Rico Cilliers, Greg Zaal, Jenelle van Heerden",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "name": "Moon Rock 02",
+    "kind": "model",
+    "bytes": 1516572,
+    "triangles": 3304,
+    "resolution": "1k",
+    "lod": "Official glTF; API exposes no separate glTF LOD variant",
+    "geometryModified": false,
+    "sources": [
+      {
+        "file": "moon_rock_02_1k.gltf",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/moon_rock_02/moon_rock_02_1k.gltf",
+        "bytes": 2782,
+        "md5": "2237fe252e6a0f4ae26617f749a5c7b6",
+        "sha256": "fada2419ab6de440c24081bf06545f37c41c3d4f8bb57fc4d1ba45bdb35baf5d"
+      },
+      {
+        "file": "moon_rock_02.bin",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/moon_rock_02/moon_rock_02.bin",
+        "bytes": 78928,
+        "md5": "42490de969f582a69518a40e17fe3f53",
+        "sha256": "3ba6af10eebb46347e4e0c9d3e2a836d1328525d9d47e82b798a13d9ca2b216f"
+      },
+      {
+        "file": "textures/moon_rock_02_arm_1k.jpg",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/moon_rock_02/moon_rock_02_arm_1k.jpg",
+        "bytes": 366382,
+        "md5": "a99f416adc4a059b2db7c3aa72e8fe92",
+        "sha256": "4b87eaca9c57ecb145b26033cfb9fbb03191b67777458e4e699eaca823cca0e2"
+      },
+      {
+        "file": "textures/moon_rock_02_diff_1k.jpg",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/moon_rock_02/moon_rock_02_diff_1k.jpg",
+        "bytes": 394361,
+        "md5": "48a8ec745b864870d38bd69bcf498b8f",
+        "sha256": "2df7bedcd0f169d76f37af52768c2a674019b6c6b812492a47c230726cff96ad"
+      },
+      {
+        "file": "textures/moon_rock_02_nor_gl_1k.jpg",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/moon_rock_02/moon_rock_02_nor_gl_1k.jpg",
+        "bytes": 675121,
+        "md5": "3adf62ed6ca7cd2431f27649dbcb7ad6",
+        "sha256": "6c7a4c51e89ee1b66b243a8341e8491bcc5a9151c30feee5b35e19742106f872"
+      }
+    ],
+    "textures": [
+      {
+        "file": "textures/moon_rock_02_nor_gl_1k.jpg",
+        "sourceDimensions": [
+          1024,
+          1024
+        ],
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "runtimeSha256": "6c7a4c51e89ee1b66b243a8341e8491bcc5a9151c30feee5b35e19742106f872"
+      },
+      {
+        "file": "textures/moon_rock_02_diff_1k.jpg",
+        "sourceDimensions": [
+          1024,
+          1024
+        ],
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "runtimeSha256": "2df7bedcd0f169d76f37af52768c2a674019b6c6b812492a47c230726cff96ad"
+      },
+      {
+        "file": "textures/moon_rock_02_arm_1k.jpg",
+        "sourceDimensions": [
+          1024,
+          1024
+        ],
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "runtimeSha256": "4b87eaca9c57ecb145b26033cfb9fbb03191b67777458e4e699eaca823cca0e2"
+      }
+    ]
+  }
+]

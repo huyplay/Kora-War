@@ -172,7 +172,7 @@ export class Battle {
       cores: this.cores.map((v) => +v.toFixed(4)),
       rng: this.rng,
       winner: this.winner,
-      units: this.units.map((u) => ({ ...u, x: +u.x.toFixed(5), hp: +u.hp.toFixed(5) })),
+      units: this.units.map((u) => ({ ...structuredClone(u), x: +u.x.toFixed(5), hp: +u.hp.toFixed(5) })),
       towers: this.towers.map((t) => ({ ...t })),
       stats: this.stats.map((stats) => ({ ...stats })),
       ...(this.tactical

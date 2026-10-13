@@ -19,17 +19,25 @@ export class PvpSession {
   private timer?: ReturnType<typeof setTimeout>;
   private generation = 0;
   private sending = false;
+  private leaving?: Promise<void>;
+  private requests = new AbortController();
   restoring = false;
   onState: (packet: PvpPacket) => void = () => {};
   onError: (message: string) => void = () => {};
   onClosed: () => void = () => {};
+  onConnectionChange: (connected: boolean) => void = () => {};
+  private setConnected(connected: boolean) {
+    if (this.connected === connected) return;
+    this.connected = connected;
+    this.onConnectionChange(connected);
+  }
   get active() {
     return !!this.packet;
   }
   private accept(packet: PvpPacket) {
     if (this.packet && packet.code === this.packet.code && packet.version < this.packet.version) return;
     this.packet = { ...packet, content: packet.content || this.packet?.content };
-    this.connected = true;
+    this.setConnected(true);
     try {
       sessionStorage.setItem('kora-pvp-room', packet.code);
     } catch {
@@ -38,17 +46,24 @@ export class PvpSession {
     this.onState(this.packet);
   }
   async open(deck: string[], spells: SpellId[], code?: string) {
+    if (this.leaving) throw new Error('Đang rời phòng.');
     const generation = this.generation;
-    const packet = await api<PvpPacket>(`/api/pvp/${code ? 'join' : 'create'}`, 'POST', {
-      deck,
-      spells,
-      code,
-    });
+    const packet = await api<PvpPacket>(
+      `/api/pvp/${code ? 'join' : 'create'}`,
+      'POST',
+      {
+        deck,
+        spells,
+        code,
+      },
+      this.requests.signal,
+    );
     if (generation !== this.generation) return;
     this.accept(packet);
     this.poll();
   }
   async restore() {
+    if (this.leaving) return;
     const generation = this.generation;
     let code: string | null = null;
     try {
@@ -57,22 +72,37 @@ export class PvpSession {
       /* optional */
     }
     this.restoring = true;
+    const signal = this.requests.signal;
     try {
-      const packet = await api<PvpPacket | null>(
-        code ? `/api/pvp/state?metadata=1&code=${encodeURIComponent(code)}` : '/api/pvp/current',
-      );
+      let packet: PvpPacket | null;
+      try {
+        packet = await api<PvpPacket | null>(
+          code ? `/api/pvp/state?metadata=1&code=${encodeURIComponent(code)}` : '/api/pvp/current',
+          'GET',
+          undefined,
+          signal,
+        );
+      } catch (error) {
+        if (generation !== this.generation) return;
+        if (!code || !(error instanceof ApiError) || ![400, 404].includes(error.status)) throw error;
+        // A stale code from another tab must not hide a currently active room.
+        this.clearStoredRoom();
+        packet = await api<PvpPacket | null>('/api/pvp/current', 'GET', undefined, signal);
+      }
       if (generation !== this.generation) return;
       if (!packet) return;
       this.accept(packet);
       this.poll();
-    } catch {
-      try {
-        sessionStorage.removeItem('kora-pvp-room');
-      } catch {
-        /* optional */
-      }
+    } catch (error) {
+      if (
+        generation === this.generation &&
+        error instanceof ApiError &&
+        [400, 401, 404].includes(error.status)
+      )
+        this.clearStoredRoom();
+      // Network/server failures do not invalidate membership or the saved code.
     } finally {
-      this.restoring = false;
+      if (generation === this.generation) this.restoring = false;
     }
   }
   private poll() {
@@ -82,7 +112,12 @@ export class PvpSession {
       async () => {
         if (!this.packet || generation !== this.generation) return;
         try {
-          const packet = await api<PvpPacket>(`/api/pvp/state?code=${encodeURIComponent(this.packet.code)}`);
+          const packet = await api<PvpPacket>(
+            `/api/pvp/state?code=${encodeURIComponent(this.packet.code)}`,
+            'GET',
+            undefined,
+            this.requests.signal,
+          );
           if (generation === this.generation) this.accept(packet);
         } catch (e) {
           if (generation !== this.generation) return;
@@ -92,9 +127,8 @@ export class PvpSession {
             this.onError(e.message);
             return;
           }
-          if (this.connected)
-            this.onError(`Mất kết nối. Đang thử lại · ${e instanceof Error ? e.message : e}`);
-          this.connected = false;
+          if (this.connected) this.onError('Mất kết nối. Đang thử lại…');
+          this.setConnected(false);
         }
         if (generation === this.generation && this.packet?.state?.phase !== 'ended') this.poll();
       },
@@ -102,38 +136,60 @@ export class PvpSession {
     );
   }
   async command(type: 'play' | 'spell' | 'pulse', card: string | undefined, lane: number, x: number) {
+    if (this.leaving) return 'Đang rời phòng.';
     if (!this.packet || this.sending || !this.connected) return 'Đang chờ kết nối máy chủ.';
     this.sending = true;
     const generation = this.generation;
+    const signal = this.requests.signal;
+    const data = { code: this.packet.code, command: { id: crypto.randomUUID(), type, card, lane, x } };
     try {
-      const packet = await api<PvpPacket>('/api/pvp/command', 'POST', {
-        code: this.packet.code,
-        command: { id: crypto.randomUUID(), type, card, lane, x },
-      });
+      let packet: PvpPacket;
+      try {
+        packet = await api<PvpPacket>('/api/pvp/command', 'POST', data, signal);
+      } catch (error) {
+        if (
+          signal.aborted ||
+          generation !== this.generation ||
+          (error instanceof ApiError && error.status < 500)
+        )
+          throw error;
+        // The server may have applied the first command before its response was lost.
+        packet = await api<PvpPacket>('/api/pvp/command', 'POST', data, signal);
+      }
       if (generation === this.generation) this.accept(packet);
       return packet.error || null;
     } catch (e) {
       return e instanceof Error ? e.message : String(e);
     } finally {
-      this.sending = false;
+      if (generation === this.generation) this.sending = false;
     }
   }
-  async leave() {
+  leave() {
+    if (this.leaving) return this.leaving;
     const code = this.packet?.code;
     // In-flight polls/commands must not replace the menu or start a result while leaving.
     this.dispose();
-    // Local navigation must still work if the room/server has disappeared.
-    try {
-      if (code) await api('/api/pvp/leave', 'POST', { code });
-    } catch (e) {
-      this.onError(e instanceof Error ? e.message : String(e));
-    } finally {
-      this.forget();
-    }
+    const generation = this.generation;
+    // Store the pending operation before it can finish, including an empty local session.
+    this.leaving = Promise.resolve().then(async () => {
+      // Local navigation must still work if the room/server has disappeared.
+      try {
+        if (code) await api('/api/pvp/leave', 'POST', { code });
+      } catch (e) {
+        if (generation === this.generation) this.onError(e instanceof Error ? e.message : String(e));
+      } finally {
+        if (generation === this.generation) this.forget();
+      }
+    });
+    return this.leaving;
   }
   private forget() {
     this.dispose();
     this.packet = undefined;
+    this.setConnected(true);
+    this.clearStoredRoom();
+  }
+  private clearStoredRoom() {
     try {
       sessionStorage.removeItem('kora-pvp-room');
     } catch {
@@ -143,5 +199,10 @@ export class PvpSession {
   dispose() {
     ++this.generation;
     clearTimeout(this.timer);
+    this.requests.abort();
+    this.requests = new AbortController();
+    this.sending = false;
+    this.restoring = false;
+    this.leaving = undefined;
   }
 }

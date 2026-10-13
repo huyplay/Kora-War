@@ -1,6 +1,30 @@
 # Kiểm tra bản Three.js sau refactor — 13/10/2026
 
-## Kết quả mới nhất — Tactical MVP
+## Kết quả mới nhất — ổn định Tactical MVP
+
+Đợt debug tiếp theo cùng ngày giữ phạm vi MVP đã duyệt. Người dùng xác nhận luật làm chậm: **giữ hiệu ứng mạnh nhất trong thời gian còn hiệu lực**.
+
+- `npm run check`: **98/98 test đạt**, kiểm tra kiến trúc, TypeScript server/client và Vite production build đạt. Golden fixture từ `e792b00` không thay đổi. Three.js vẫn có cảnh báo chunk trên 500 kB.
+- Thêm 33 test so với bản MVP ban đầu: 10 về slow mạnh/yếu và thời hạn độc lập; 2 về Lửa đúng 60 tick; 2 về vòng ngắm; 7 về reconnect/retry/cancel; 9 về lifecycle phòng; 3 về chặn lệnh mới khi leave đang chờ và bảo vệ phiên mới.
+- Slow chỉ đổi trong tactical; đường legacy vẫn khớp fixture. Test DoT kiểm tra mọi cast tick qua sáu phút và các offset lớn; snapshot không cho chỉnh ngược slow/content/loadout của trận thật.
+- Retry lệnh mất phản hồi dùng cùng ID; test đi qua `PvpRooms` xác minh chỉ gọi một quân và trừ mana một lần. Deadline disconnect, thắng bằng lõi trước deadline, TTL timestamp 0 và thu hồi phòng bỏ dở được kiểm tra với clock chủ động.
+- Không chạy lại kiểm tra C#/PostgreSQL trong đợt này vì không đổi backend asset; kết quả trước được giữ ở phần lịch sử.
+
+### QA trình duyệt đợt ổn định
+
+- Production trên server QA riêng port 8788, data directory `.data/recovery-qa`; Edge và Chrome có cookie riêng tạo/vào cùng phòng, bắt đầu 4 mana và sáu thẻ. Không dùng database game chính để thử economy.
+- Giả lập latency 4.000 ms ở Edge: triển khai Solan, chọn Lyra trước phản hồi. Theo dõi request/response HTTP 200 và DOM sau phản hồi: Lyra vẫn được chọn, Solan xuất hiện trên sân. Đã trả latency về 0.
+- Giả lập offline ngắn ở hai lượt: thông báo nối lại hiện, sau bật mạng tự ẩn và timer tiếp tục trong cùng trận. Lựa chọn Lyra vẫn giữ ở lượt đầu. Không chạm deadline 30 giây trong thử nghiệm này.
+- Phát hiện toast che banner reconnect: bỏ chi tiết lỗi transport khỏi thông báo, ẩn toast khi banner battle hiện. Thử lại tại CSS viewport thực tế **666×375**: banner đọc rõ, sáu thẻ hiện, document scrollWidth bằng viewportWidth.
+- Phát hiện CSS mobile cũ giữ `right` của lane shortcuts khiến nút kéo ngang sân: reset `right` và giới hạn chiều rộng. Sau sửa, đo nhóm nút khoảng 82 px; chiến trường không bị nhóm nút che toàn chiều rộng.
+- Tại 666×375, chọn Băng và rê vào phía đối thủ: thấy vòng ngắm màu xanh với phạm vi mới. Chạm đúng điểm ngắm trong PvP trừ mana 10 → 7 và bỏ chọn thẻ. Về sảnh bằng đầu hàng hoạt động. Reload trước đó phục hồi trận/kết quả từ server.
+- Console Edge và tab Chrome cuối không ghi nhận error/warning. Tab Chrome cũ có lần không kết nối được debugger; mở tab QA mới bằng API trình duyệt, không coi lỗi công cụ là lỗi game.
+- Đã reset viewport và tắt giả lập mạng. Ảnh cục bộ: `.data/qa/pvp-reconnect.jpg`, `.data/qa/spell-preview.jpg` (không đưa cache vào Git).
+- Sau final check, khởi động lại game server port 8787 để nạp logic mới và reload tab game chính: sảnh, sáu thẻ, ví 200 và asset đã publish nạp lại; console không ghi nhận error/warning. Ảnh `.data/qa/stability-final.jpg`. Server QA đã dừng. Restart làm mất phòng in-memory theo giới hạn đã ghi.
+
+Lượt này xác minh local một process, mạng lỗi giả lập trên desktop và các case test cụ thể; chưa có WAN, stress test hoặc thiết bị iOS/Android thật. Không tuyên bố mọi lỗi đã hết.
+
+## Triển khai ban đầu — Tactical MVP
 
 Áp dụng quyết định 4 tướng + 2 phép, mana 4 và PvP chuẩn hóa. Các lượt dưới đây kiểm tra luật mới; phần phía sau giữ làm lịch sử QA của bản trước.
 

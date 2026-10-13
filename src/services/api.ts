@@ -6,13 +6,13 @@ export class ApiError extends Error {
     super(message);
   }
 }
-export async function api<T>(path: string, method = 'GET', data?: unknown): Promise<T> {
+export async function api<T>(path: string, method = 'GET', data?: unknown, signal?: AbortSignal): Promise<T> {
   const response = await fetch(path, {
     method,
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json', 'X-Kora-Request': '1' },
     body: data === undefined ? undefined : JSON.stringify(data),
-    signal: AbortSignal.timeout(15000),
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000),
   });
   const result = await response.json();
   if (!response.ok) throw new ApiError(result.error || `HTTP ${response.status}`, response.status);

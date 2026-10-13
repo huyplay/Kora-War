@@ -51,6 +51,7 @@ let wins = saved.wins,
   mode: 'lobby' | 'battle' = 'lobby',
   selected: string | null = null,
   skillSelected = false;
+let selectionRevision = 0;
 let tutorial = 0,
   debug = false,
   autoPlayer = false,
@@ -161,6 +162,7 @@ function preview() {
   battle.mana = [4, 4];
 }
 function clearSelection() {
+  selectionRevision++;
   selected = null;
   skillSelected = false;
   world.hoverRing.visible = false;
@@ -192,6 +194,7 @@ function selectCard(id: string) {
   }
   selected = selected === id ? null : id;
   skillSelected = false;
+  selectionRevision++;
   updateSelection();
   if (tutorial === 1 && selected) {
     tutorial = 2;
@@ -205,6 +208,7 @@ async function deploy(lane: number, x = selected && isSpell(selected) ? 0 : -11)
   let error: string | null;
   if (pvp.active) {
     const id = selected;
+    const revision = selectionRevision;
     if (!id && !skillSelected) return;
     error = await pvp.command(
       skillSelected ? 'pulse' : id && isSpell(id) ? 'spell' : 'play',
@@ -212,9 +216,10 @@ async function deploy(lane: number, x = selected && isSpell(selected) ? 0 : -11)
       lane,
       x,
     );
+    if (mode !== 'battle' || !pvp.active) return;
     if (error) toast(error);
     else {
-      clearSelection();
+      if (selectionRevision === revision) clearSelection();
       sound.tone('play');
     }
     return;
@@ -519,6 +524,7 @@ const gestures = lifetime.own(
       !landscape.blocked &&
       !(isSpell(id) ? battle.canCast(0, id, 1, 0) : battle.canPlay(0, id, 1)),
     move: (id, x, y) => {
+      if (selected !== id || skillSelected) selectionRevision++;
       selected = id;
       skillSelected = false;
       updateSelection();
@@ -528,7 +534,7 @@ const gestures = lifetime.own(
         ? `<span class="spell-symbol">${SPELLS[id].icon}</span>`
         : `<img src="${portraits[id]}" alt=""/>`;
       ghost.style.transform = `translate(${x - 35}px,${y - 90}px)`;
-      world.setHover(x, y, isSpell(id));
+      world.setHover(x, y, isSpell(id), isSpell(id) ? id : undefined);
     },
     drop: (id, x, y) => {
       const top = document.elementFromPoint(x, y);
@@ -539,6 +545,8 @@ const gestures = lifetime.own(
       const point = world.pick(x, y);
       if (point && (isSpell(id) ? point.spellValid : point.valid)) {
         selected = id;
+        skillSelected = false;
+        selectionRevision++;
         deploy(point.lane, point.x);
       } else {
         toast('Thả quân vào vùng sáng');
@@ -568,7 +576,12 @@ document.addEventListener(
   'pointermove',
   (event) => {
     if (!gestures.active && (selected || skillSelected))
-      world.setHover(event.clientX, event.clientY, skillSelected || (!!selected && isSpell(selected)));
+      world.setHover(
+        event.clientX,
+        event.clientY,
+        skillSelected || (!!selected && isSpell(selected)),
+        selected && isSpell(selected) ? selected : undefined,
+      );
   },
   { signal: inputLifetime.signal },
 );
@@ -597,6 +610,7 @@ $('#pulse').onclick = () => {
   }
   skillSelected = !skillSelected;
   selected = null;
+  selectionRevision++;
   updateSelection();
 };
 $('#cancel-select').onclick = clearSelection;
@@ -745,6 +759,10 @@ renderDeck();
 preview();
 updateHud();
 pvp.onError = toast;
+pvp.onConnectionChange = (connected) => {
+  $('#connection-status').hidden = connected || mode !== 'battle';
+  if (!connected && mode === 'battle') $('#combat-message').classList.remove('show');
+};
 pvp.onClosed = () => {
   onlineStarted = false;
   document.body.classList.remove('online-battle');

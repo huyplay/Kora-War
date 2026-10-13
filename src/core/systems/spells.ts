@@ -3,6 +3,7 @@ import { STEP } from '../../data/rules';
 import type { Battle } from '../Battle';
 import { isLane, LANE_SPACE } from '../physics/lane-space';
 import type { Side } from '../types';
+import { applySlowEffect } from './slow-effects';
 export interface SpellZone {
   id: number;
   spellId: SpellId;
@@ -56,10 +57,11 @@ export function updateSpells(b: Battle) {
       // Non-additive control durations. Recasts cannot extend an existing stun.
       if (zone.spellId === 'lightning' && u.stunUntil <= b.time) u.stunUntil = b.time + 0.6;
       if (zone.spellId === 'ice') {
-        u.slowFactor = Math.min(u.slowUntil > b.time ? u.slowFactor : 1, 0.6);
-        u.slowUntil = Math.max(u.slowUntil, b.time + 2);
+        applySlowEffect(u, 0.6, b.time + 2, b.time);
       }
     }
   }
-  b.spellZones = b.spellZones.filter((z) => b.time + STEP < z.ends || b.time + 1e-8 < z.starts);
+  // Tick times and warning/end times may round in opposite directions. Use the
+  // same tolerance as activation so a duration cannot gain an extra damage tick.
+  b.spellZones = b.spellZones.filter((z) => b.time + STEP + 1e-8 < z.ends || b.time + 1e-8 < z.starts);
 }

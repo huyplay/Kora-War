@@ -18,6 +18,7 @@ export function renderShell() {
   <div class="map-note"><span class="tiny-diamond"></span> ĐẤU TRƯỜNG 3 CHIẾN TUYẾN</div>
   <aside class="objective" id="objective"><span class="objective-icon">${icon('flag')}</span><div><small>NHIỆM VỤ MỞ ĐẦU</small><strong>Đánh chiếm lõi năng lượng</strong><p>Phá trụ, mở đường đến căn cứ địch.</p></div></aside>
   <div id="combat-message" role="status" aria-live="polite"></div>
+  <div id="connection-status" role="status" hidden>Đang nối lại… Trận đấu vẫn tiếp tục.</div>
   <div id="tutorial-hint" hidden></div>
   <div class="lane-shortcuts" hidden aria-label="Triển khai nhanh"><button data-lane="0" aria-label="Triển khai đường trên">Đường trên <kbd>W</kbd></button><button data-lane="1" aria-label="Triển khai đường giữa">Đường giữa <kbd>E</kbd></button><button data-lane="2" aria-label="Triển khai đường dưới">Đường dưới <kbd>R</kbd></button></div>
   <section class="command-deck">

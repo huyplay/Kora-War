@@ -115,3 +115,81 @@ test('a fresh tab restores the authenticated current room without a stored code'
   assert.equal(session.packet?.code, packet().code);
   assert.equal(session.restoring, false);
 });
+
+test('pending leave blocks new commands, room opens and restores even if leaving later fails offline', async (t) => {
+  let rejectLeave!: (error: Error) => void;
+  const paths: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    paths.push(path);
+    if (path.endsWith('/leave'))
+      return new Promise<Response>((_, reject) => {
+        rejectLeave = reject;
+      });
+    return Response.json(packet());
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  const errors: string[] = [];
+  session.onError = (message) => errors.push(message);
+  await session.open(DEFAULT_DECK, DEFAULT_SPELLS);
+  const leaving = session.leave();
+  assert.equal(session.active, true, 'retain the packet until local leave finishes');
+  assert.match((await session.command('play', 'solan', 1, -11))!, /rời phòng/);
+  await assert.rejects(session.open(DEFAULT_DECK, DEFAULT_SPELLS), /rời phòng/);
+  await session.restore();
+  assert.deepEqual(paths, ['/api/pvp/create', '/api/pvp/leave']);
+  rejectLeave(new TypeError('offline during leave'));
+  await leaving;
+  assert.equal(session.active, false);
+  assert.deepEqual(errors, ['offline during leave']);
+});
+
+test('repeated leave calls share one request while it is pending', async (t) => {
+  let finishLeave!: (response: Response) => void;
+  let leaves = 0;
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    if (path.endsWith('/leave')) {
+      leaves++;
+      return new Promise<Response>((resolve) => {
+        finishLeave = resolve;
+      });
+    }
+    return Response.json(packet());
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  await session.open(DEFAULT_DECK, DEFAULT_SPELLS);
+  const first = session.leave();
+  assert.equal(session.leave(), first);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(leaves, 1);
+  finishLeave(Response.json({ ok: true }));
+  await first;
+  assert.equal(session.active, false);
+});
+
+test('an old leave finishing after dispose cannot clear or report an error over a new session', async (t) => {
+  let rejectLeave!: (error: Error) => void;
+  let creates = 0;
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    if (path.endsWith('/leave'))
+      return new Promise<Response>((_, reject) => {
+        rejectLeave = reject;
+      });
+    return Response.json(packet(++creates === 1 ? 'ABCDEF123456' : '123456ABCDEF'));
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  const errors: string[] = [];
+  session.onError = (message) => errors.push(message);
+  await session.open(DEFAULT_DECK, DEFAULT_SPELLS);
+  const leaving = session.leave();
+  await new Promise((resolve) => setImmediate(resolve));
+  session.dispose();
+  await session.open(DEFAULT_DECK, DEFAULT_SPELLS);
+  rejectLeave(new TypeError('old leave failed'));
+  await leaving;
+  assert.equal(session.active, true);
+  assert.equal(session.packet?.code, '123456ABCDEF');
+  assert.deepEqual(errors, []);
+});

@@ -17,7 +17,7 @@ import {
 } from './resources';
 import { TerrainStyle } from './terrain-style';
 import { SpriteEffects } from './vfx/sprite-effects';
-import { SPELLS } from '../data/spells';
+import { SPELLS, type SpellId } from '../data/spells';
 interface Visual {
   group: THREE.Group;
   bar: THREE.Mesh;
@@ -83,7 +83,7 @@ export class World {
   >();
   instanceColor = new THREE.Color();
   deployZone = new THREE.Group();
-  hoverRing: THREE.Mesh;
+  hoverRing: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
   selected = false;
   selectedLane = -1;
   stats = { calls: 0, triangles: 0, geometries: 0, textures: 0 };
@@ -284,12 +284,17 @@ export class World {
     const point = pickDeployment(hit.x, hit.z);
     return { ...point, spellValid: Math.abs(hit.x) <= 14 && Math.abs(hit.z - LANES[point.lane]) < 1.55 };
   }
-  setHover(clientX: number, clientY: number, ability = false) {
+  setHover(clientX: number, clientY: number, ability = false, spellId?: SpellId) {
     const p = this.pick(clientX, clientY);
-    this.hoverRing.visible = !!p && (ability ? p.spellValid : p.valid);
+    const spell = spellId ? SPELLS[spellId] : undefined;
+    this.hoverRing.visible = !!p && (ability || spell ? p.spellValid : p.valid);
     if (p) {
       this.hoverRing.position.set(p.x, 0.27, LANES[p.lane]);
-      this.hoverRing.scale.setScalar(ability ? 3 : 1);
+      if (spell) {
+        const outerRadius = this.hoverRing.geometry.parameters.outerRadius;
+        this.hoverRing.scale.set(spell.radius / outerRadius, 1.35 / outerRadius, 1);
+      } else this.hoverRing.scale.setScalar(ability ? 3 : 1);
+      this.hoverRing.material.color.set(spell?.color || 0xa2ffdd);
       this.selectedLane = p.lane;
     }
     return p;

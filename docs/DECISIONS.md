@@ -1,5 +1,15 @@
 # Các quyết định đang áp dụng
 
+## 13/10/2026 — Ổn định MVP và quy tắc làm chậm
+
+Người dùng đã chốt: trong trận tactical, giữ hiệu ứng làm chậm mạnh nhất còn hiệu lực và thời hạn riêng của từng mức làm chậm. Quy tắc áp dụng cho Băng, synergy Băng Thệ và kỹ năng tướng; không cộng phần trăm làm chậm.
+
+- Hiệu ứng yếu hơn không ghi đè hoặc kéo dài thời hạn của hiệu ứng mạnh hơn. Khi hiệu ứng mạnh hết hạn, quân chuyển sang hiệu ứng yếu còn thời gian; hết mọi hiệu ứng thì trở về tốc độ thường.
+- Hiệu ứng cùng mức làm chậm cập nhật thời hạn tới thời điểm hết hạn muộn hơn, không cộng thời lượng. Ví dụ Băng 40% hết ở giây 2,4 và Băng Thệ 20% hết ở giây 2,5: giữ 40% tới giây 2,4, sau đó 20% tới giây 2,5.
+- Chỉ đường tactical dùng các bản ghi thời hạn này. `new Battle()` legacy tiếp tục hành vi ghi đè cũ để bảo toàn replay và golden fixture `e792b00`; không tạo lại hash fixture.
+- Sửa sai số hết hạn Lửa để vùng có đủ 60 tick sát thương, tổng 135 khi mục tiêu ở trong vùng suốt 3 giây. Giữ thông số mana, sát thương, thời gian cảnh báo và hồi chiêu.
+- Preview phép dùng đúng bán kính và màu của thẻ được chọn; các sửa retry, vòng đời phòng và selection PvP là thay đổi kỹ thuật ổn định MVP.
+
 ## 13/10/2026 — MVP Tactical Card Arena được phê duyệt
 
 Người dùng yêu cầu phân tích project và triển khai `Game_desgin.md`, sau đó xác nhận: **“Áp dụng MVP thiết kế mới: 4 tướng + 2 phép, mana 4, PvP chuẩn hóa; giữ lore và luật khác”**. Quyết định này thay thế deck chỉ bốn thẻ và mana bắt đầu 5 trong bản chơi mới.

@@ -50,6 +50,17 @@ npm run preview
 - Ví vàng, mảnh thẻ, rương, cửa hàng và nâng cấp lưu SQLite; server mô phỏng lại command log để xác minh thưởng trận.
 - F3: FPS/frame p95/simulation time/draw calls/triangles/units; debug mana, auto-play, 2×/4×, thử kết quả và xuất JSON trạng thái. Debug không cộng chiến thắng.
 
+## Ổn định MVP ngày 13/10/2026
+
+- Lửa giữ đúng 60 tick / 135 sát thương trong 3 giây, kể cả khi thời điểm cast làm số thực lệch tại biên hết hạn.
+- Tactical giữ mức slow mạnh nhất còn hiệu lực, với thời hạn riêng; khi hết hiệu ứng mạnh sẽ dùng hiệu ứng yếu còn thời gian. Legacy/replay cũ và golden hash giữ nguyên.
+- PvP thử lại lệnh mất phản hồi bằng cùng ID, giữ mã khi mạng tạm mất, tra phòng hiện hành khi mã cũ hết hạn và hủy request khi rời phiên.
+- Phòng xử lý timeout theo thứ tự thời gian, dừng combat tại deadline và thu hồi sức chứa theo TTL thực tế. Content/loadout/state trả về là bản sao.
+- Preview phép khớp bán kính/màu của thẻ; phản hồi lệnh chậm giữ lựa chọn thẻ mới của người chơi.
+- Chặn lệnh mới khi đang rời phòng; nút lane và thông báo reconnect không che sân trên màn hình nhỏ.
+
+`npm run check` đã đạt **98/98 test**, kiểm tra kiến trúc, TypeScript server/client và production build Vite. Bundle Three.js còn cảnh báo vượt 500 kB; chưa có benchmark điện thoại thật hoặc kiểm thử WAN. Chi tiết tại [phân tích project](docs/PROJECT-REVIEW.md) và [quyết định gameplay](docs/DECISIONS.md).
+
 ## Điều khiển
 
 | Thao tác | Chuột/cảm ứng | Phím |
@@ -73,7 +84,7 @@ npm run preview
 - `src/engine/`: lifetime, asset registry, object pool và nhận diện gesture; không quyết định luật chiến đấu.
 - `server/`: HTTP API, SQLite, auth admin, asset ingestion và giao dịch economy.
 - `src/admin/`: Content Studio và preview 3D.
-- `tests/`: 65 bài test, gồm 20 trận AI-v-AI và đối chiếu bốn seed với bản gốc trước refactor.
+- `tests/`: 95 bài test, gồm 20 trận AI-v-AI, đối chiếu bốn seed với bản gốc trước refactor, biên tick phép/slow, preview và phục hồi/vòng đời phòng PvP.
 - [Audio/texture/prop](assets/media/README.md): nguồn, giấy phép, tải và nhập thư viện. Studio điều chỉnh mixer, âm thanh theo tướng, texture và map props.
 - [ASP.NET Core / PostgreSQL](docs/BACKEND-MIGRATION.md): service asset, đồng bộ có retry, storage local/R2 và lộ trình chuyển dữ liệu. Ví/trận vẫn ghi SQLite; chưa bật R2/CDN.
 - [Module engine](docs/ENGINE.md), [quy ước asset](assets/README.md), [mobile UX](docs/MOBILE-UX.md), [kết quả QA](docs/06-implementation/qa.md).

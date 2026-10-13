@@ -1,0 +1,68 @@
+[
+  {
+    "file": "gegx-flame_spiral_128x128_8f_loop.png",
+    "sourceUrl": "https://gegx.itch.io/free-spell-vfx-sampler",
+    "author": "GegX",
+    "license": "GegX sampler license: game use and modification permitted; no standalone redistribution",
+    "sha256": "6f134527f57dd61d3ba538d70ad4934e714f128c93eee614578f66885938b078",
+    "bytes": 87372,
+    "columns": 8,
+    "rows": 1,
+    "fps": 8
+  },
+  {
+    "file": "gegx-frost_rune_circle_128x128_8f_loop.png",
+    "sourceUrl": "https://gegx.itch.io/free-spell-vfx-sampler",
+    "author": "GegX",
+    "license": "GegX sampler license: game use and modification permitted; no standalone redistribution",
+    "sha256": "0c4da31758c10f2ed7161b1527ee8110b8ac16dde22ad2ef747d6c1c1e274bbc",
+    "bytes": 66636,
+    "columns": 8,
+    "rows": 1,
+    "fps": 8
+  },
+  {
+    "file": "gegx-storm_spiral_128x128_8f_loop.png",
+    "sourceUrl": "https://gegx.itch.io/free-spell-vfx-sampler",
+    "author": "GegX",
+    "license": "GegX sampler license: game use and modification permitted; no standalone redistribution",
+    "sha256": "0f8546e978a8867786523805e3ffd309105630c5c2987118a85f55a567dc056c",
+    "bytes": 71709,
+    "columns": 8,
+    "rows": 1,
+    "fps": 8
+  },
+  {
+    "file": "gegx-laser_bolt_blue_128x128_8f_loop.png",
+    "sourceUrl": "https://gegx.itch.io/free-spell-vfx-sampler",
+    "author": "GegX",
+    "license": "GegX sampler license: game use and modification permitted; no standalone redistribution",
+    "sha256": "126699a6b0e5d422ffc47b884931e2aa45e5d30361f7e833a5da710405b621ae",
+    "bytes": 19573,
+    "columns": 8,
+    "rows": 1,
+    "fps": 12
+  },
+  {
+    "file": "gegx-small_explosion_128x128_8f.png",
+    "sourceUrl": "https://gegx.itch.io/free-spell-vfx-sampler",
+    "author": "GegX",
+    "license": "GegX sampler license: game use and modification permitted; no standalone redistribution",
+    "sha256": "a518561351592127128b71a0de0f36da99d67878927dcf8ab73d03a8d576e42f",
+    "bytes": 52482,
+    "columns": 8,
+    "rows": 1,
+    "fps": 14
+  },
+  {
+    "file": "gegx-energy_shield_bubble_128x128_8f_loop.png",
+    "sourceUrl": "https://gegx.itch.io/free-spell-vfx-sampler",
+    "author": "GegX",
+    "license": "GegX sampler license: game use and modification permitted; no standalone redistribution",
+    "sha256": "68206fa8e06a378f83a9c8d36cd600a44cd7839fb80b5289c6063a52521f1aa4",
+    "bytes": 33903,
+    "columns": 8,
+    "rows": 1,
+    "fps": 10
+  }
+]

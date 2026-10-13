@@ -30,6 +30,15 @@ export interface TextureBinding {
   repeat: number;
   tint: string;
 }
+
+export const VFX_EVENTS = ['spawn', 'skill', 'heal', 'death', 'pulse'] as const;
+export type VfxEvent = (typeof VFX_EVENTS)[number];
+export interface SpriteBinding {
+  assetId: string;
+  columns: number;
+  rows: number;
+  fps: number;
+}
 export function defaultAudio(): AudioProfile {
   return { master: 0.7, effects: 0.8, ui: 0.6, maxVoices: 12, cues: {}, heroes: {} };
 }

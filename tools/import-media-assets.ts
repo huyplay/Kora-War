@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { GameDatabase } from '../server/database';
 import { importAsset } from '../server/assets';
-import { defaultAudio, type SoundCue } from '../src/data/media';
+import { defaultAudio, type SoundCue, type VfxEvent } from '../src/data/media';
 
 const root = resolve('.data/source-assets/media');
 const records = JSON.parse(readFileSync(join(root, 'download-report.json'), 'utf8')) as {
@@ -15,6 +15,8 @@ const records = JSON.parse(readFileSync(join(root, 'download-report.json'), 'utf
 }[];
 const propReport = 'assets/media/polyhaven-prop-report.json';
 if (existsSync(propReport)) records.push(...JSON.parse(readFileSync(propReport, 'utf8')));
+const vfxReport = 'assets/media/gegx-report.json';
+if (existsSync(vfxReport)) records.push(...JSON.parse(readFileSync(vfxReport, 'utf8')));
 const store = new GameDatabase(
   resolve(process.env.KORA_DATA_DIR || '.data'),
   process.env.KORA_ADMIN_PASSWORD,
@@ -73,6 +75,19 @@ try {
       { assetId: rock, x: -8, z: -8, scale: 1.2, yaw: 0.4 },
       { assetId: rock, x: 8, z: 8, scale: 1, yaw: 2.1 },
     );
+  }
+  const eventSheets: Partial<Record<VfxEvent, [string, number]>> = {
+    spawn: ['gegx-energy_shield_bubble_128x128_8f_loop.png', 10],
+    skill: ['gegx-storm_spiral_128x128_8f_loop.png', 8],
+    heal: ['gegx-frost_rune_circle_128x128_8f_loop.png', 8],
+    death: ['gegx-small_explosion_128x128_8f.png', 14],
+    pulse: ['gegx-flame_spiral_128x128_8f_loop.png', 8],
+  };
+  for (const [event, [file, fps]] of Object.entries(eventSheets)) {
+    const assetId = assets.get(file);
+    if (!assetId) continue;
+    state.draft.vfx.eventSprites ||= {};
+    state.draft.vfx.eventSprites[event as VfxEvent] ||= { assetId, columns: 8, rows: 1, fps };
   }
   if (apply) {
     store.saveDraft(state.draft, state.version);

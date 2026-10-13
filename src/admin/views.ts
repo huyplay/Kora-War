@@ -3,6 +3,7 @@ import { abilityEditor } from './ability-editor';
 import { esc, input } from './html';
 import type { State } from './types';
 import { audioEditor } from './audio-editor';
+import { eventVfxEditor } from './vfx-editor';
 export function renderStudioPage(state: State, section: string, hero: string, selectedAsset: string): string {
   if (section === 'audio') return audioEditor(state);
   const labels: Record<string, string> = {
@@ -93,7 +94,7 @@ export function renderStudioPage(state: State, section: string, hero: string, se
       return `<div class="columns"><article class="panel"><span class="eyebrow">VISUAL EFFECTS</span><h2>Aether Resonance</h2><div class="vfx-preview" style="--glow:${c.vfx.ally}"><span>✧</span><i></i><i></i></div></article><article class="panel"><h3>VFX profile</h3><div class="form-grid">${input('vfx.ally', 'Đồng minh', c.vfx.ally, 'color')}${input('vfx.enemy', 'Đối thủ', c.vfx.enemy, 'color')}${input('vfx.heal', 'Hồi máu', c.vfx.heal, 'color')}${input('vfx.intensity', 'Kích thước hiệu ứng', c.vfx.intensity)}${input('vfx.spriteColumns', 'Atlas: cột', c.vfx.spriteColumns || 8)}${input('vfx.spriteRows', 'Atlas: hàng', c.vfx.spriteRows || 1)}</div><label>Sprite / atlas<select data-path="vfx.spriteAssetId">${options(
         state.assets.filter((a) => a.kind === 'image'),
         c.vfx.spriteAssetId,
-      )}</select></label><p class="muted">Dùng pool giới hạn để kiểm soát hiệu ứng trên mobile.</p></article></div>`;
+      )}</select></label><p class="muted">Dùng pool giới hạn để kiểm soát hiệu ứng trên mobile.</p></article></div>${eventVfxEditor(state)}`;
     if (section === 'economy')
       return `<article class="panel"><h3>Cân bằng phần thưởng</h3><div class="form-grid rules-grid">${Object.entries(
         c.economy,

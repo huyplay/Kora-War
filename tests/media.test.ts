@@ -81,6 +81,45 @@ test('audio metadata is persisted and publication rejects audio used as a textur
   c.audio!.maxVoices = 1000;
   assert.throws(() => validateContent(c), /Audio/);
 });
+test('VFX event publication validates asset type and sheet divisions without changing legacy content', (t) => {
+  const directory = mkdtempSync(join(tmpdir(), 'kora-vfx-'));
+  const db = new GameDatabase(directory, 'test');
+  t.after(() => {
+    db.close();
+    rmSync(directory, { recursive: true, force: true });
+  });
+  const meta = {
+    name: 'Fixture',
+    author: 'Test',
+    license: 'CC0',
+    sourceUrl: 'https://example.com/test',
+    rightsConfirmed: true,
+  };
+  const image = importAsset(
+    db,
+    Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1sAAAAASUVORK5CYII=',
+      'base64',
+    ),
+    meta,
+  );
+  const audio = importAsset(db, wav(), meta);
+  const content = defaultContent();
+  validateContent(content);
+  content.vfx.eventSprites = { skill: { assetId: image.id, columns: 1, rows: 1, fps: 8 } };
+  db.saveDraft(content, db.config().version);
+  db.publish(db.config().version);
+  assert.ok(assetReferences(content).includes(image.id));
+  content.vfx.eventSprites.skill!.columns = 8;
+  db.saveDraft(content, db.config().version);
+  assert.throws(() => db.publish(db.config().version), /chia hết/);
+  content.vfx.eventSprites.skill!.columns = 1;
+  content.vfx.eventSprites.skill!.assetId = audio.id;
+  db.saveDraft(content, db.config().version);
+  assert.throws(() => db.publish(db.config().version), /Sprite VFX event/);
+  content.vfx.eventSprites.skill!.fps = 0;
+  assert.throws(() => validateContent(content), /VFX/);
+});
 test('audio voice cap, cooldown and teardown work without affecting game state', () => {
   const sources: { started: boolean; stop(): void; onended?: () => void }[] = [];
   const param = { value: 0, setValueAtTime() {}, exponentialRampToValueAtTime() {} };

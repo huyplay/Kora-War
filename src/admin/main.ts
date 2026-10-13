@@ -132,6 +132,16 @@ async function save() {
   notice('Đã lưu bản nháp.');
 }
 function wire() {
+  document.querySelectorAll<HTMLSelectElement>('[data-vfx-event]').forEach((el) => {
+    el.onchange = () => {
+      setPath(
+        `vfx.eventSprites.${el.dataset.vfxEvent}`,
+        el.value ? { assetId: el.value, columns: 8, rows: 1, fps: 12 } : undefined,
+      );
+      dirty = true;
+      render();
+    };
+  });
   document.querySelectorAll<HTMLSelectElement>('[data-texture]').forEach((el) => {
     el.onchange = () => {
       setPath(

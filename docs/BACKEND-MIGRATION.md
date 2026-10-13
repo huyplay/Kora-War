@@ -30,7 +30,7 @@ flowchart LR
 
 `backend:dev` build rồi chạy DLL từ thư mục gốc; tránh `dotnet run` đổi working directory và đọc sai `.env.local`/object root. Nếu PostgreSQL không kết nối được, service thoát với SQLSTATE và thông báo đã lọc, không in connection string.
 
-Ngày 13/10/2026: đã tạo database riêng `kora_war`, chạy schema migration và đồng bộ 37 asset cùng snapshot SQLite bằng cấu hình local được người dùng cung cấp. Đọc lại 84,69 MiB của toàn thư viện (gồm cả bản nguồn/bản nhập trước đây) khớp SHA-256; đây không phải dung lượng tải mỗi trận. Đã bật service reads trong cấu hình local. Ví/trận vẫn ghi SQLite. Thông tin đăng nhập và service token chỉ nằm trong `.env.local`.
+Ngày 13/10/2026: đã tạo database riêng `kora_war`, chạy schema migration và đồng bộ 43 asset cùng snapshot SQLite bằng cấu hình local được người dùng cung cấp, gồm sáu sheet GegX mới. Đọc lại 85,01 MiB của toàn thư viện (gồm cả bản nguồn/bản nhập trước đây) khớp SHA-256; đây không phải dung lượng tải mỗi trận. Đã bật service reads trong cấu hình local. Ví/trận vẫn ghi SQLite. Thông tin đăng nhập và service token chỉ nằm trong `.env.local`.
 
 Service token cần truyền nội bộ qua `X-Kora-Service-Token`; không mở API này trực tiếp làm API đăng nhập public. Ngoài loopback, cần HTTPS và mạng riêng/reverse proxy. API chỉ nhận asset đã được gateway kiểm tra ngân sách mesh/audio; lớp C# kiểm tra lại checksum, magic, loại file và provenance.
 

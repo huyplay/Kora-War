@@ -2,7 +2,15 @@ import { ABILITIES, type AbilityDefinition } from './abilities';
 import { HEROES } from './heroes';
 import { RULES } from './rules';
 import type { Hero } from './types';
-import { defaultAudio, SOUND_CUES, type AudioProfile, type TextureBinding } from './media';
+import {
+  defaultAudio,
+  SOUND_CUES,
+  VFX_EVENTS,
+  type AudioProfile,
+  type TextureBinding,
+  type SpriteBinding,
+  type VfxEvent,
+} from './media';
 export type BattleRules = {
   [K in keyof typeof RULES]: number;
 };
@@ -45,6 +53,7 @@ export interface ContentConfig {
     spriteAssetId?: string;
     spriteColumns?: number;
     spriteRows?: number;
+    eventSprites?: Partial<Record<VfxEvent, SpriteBinding>>;
   };
   economy: {
     winGold: number;
@@ -246,6 +255,19 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
   for (const size of [c.vfx.spriteColumns, c.vfx.spriteRows])
     if (size !== undefined && (!Number.isInteger(size) || !num(size, 1, 8)))
       fail('Sprite atlas có 1–8 cột/hàng.');
+  for (const [event, binding] of Object.entries(c.vfx.eventSprites || {})) {
+    if (
+      !(VFX_EVENTS as readonly string[]).includes(event) ||
+      !binding ||
+      !asset(binding.assetId) ||
+      !Number.isInteger(binding.columns) ||
+      !num(binding.columns, 1, 8) ||
+      !Number.isInteger(binding.rows) ||
+      !num(binding.rows, 1, 8) ||
+      !num(binding.fps, 4, 60)
+    )
+      fail('VFX event atlas không hợp lệ.');
+  }
   if (!c.economy) fail('Thiếu economy.');
   for (const k of ['winGold', 'lossGold', 'chestCost', 'chestGold', 'upgradeBase'] as const)
     if (!Number.isInteger(c.economy[k]) || !num(c.economy[k], 1, 100000))
@@ -280,6 +302,7 @@ export function assetReferences(c: ContentConfig): string[] {
       ...c.map.props.map((p) => p.assetId),
       ...c.items.flatMap((i) => (i.iconAssetId ? [i.iconAssetId] : [])),
       ...(c.vfx.spriteAssetId ? [c.vfx.spriteAssetId] : []),
+      ...Object.values(c.vfx.eventSprites || {}).map((binding) => binding.assetId),
       ...[c.map.towerAssetId, c.map.coreAssetId].filter((id): id is string => !!id),
       ...Object.values(c.map.textures || {}).map((b) => b.assetId),
       ...Object.values(c.audio?.cues || {}).map((b) => b.assetId),

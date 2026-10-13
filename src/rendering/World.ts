@@ -18,6 +18,8 @@ import {
 import { TerrainStyle } from './terrain-style';
 import { SpriteEffects } from './vfx/sprite-effects';
 import { SPELLS, type SpellId } from '../data/spells';
+import { SpellEffects } from './vfx/spell-effects';
+import { ArenaCamera } from './arena-camera';
 interface Visual {
   group: THREE.Group;
   bar: THREE.Mesh;
@@ -50,17 +52,10 @@ export class World {
   private sprites = new SpriteEffects();
   private resizeObserver: ResizeObserver;
   private disposed = false;
-  private spellMeshes = new Map<number, THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>>();
-  private clearSpells() {
-    for (const mesh of this.spellMeshes.values()) {
-      mesh.removeFromParent();
-      mesh.geometry.dispose();
-      mesh.material.dispose();
-    }
-    this.spellMeshes.clear();
-  }
+  private spellEffects = new SpellEffects();
   scene = new THREE.Scene();
   camera: THREE.OrthographicCamera;
+  private arenaCamera: ArenaCamera;
   renderer: THREE.WebGLRenderer;
   canvas: HTMLCanvasElement;
   units = new Map<number, Visual>();
@@ -96,7 +91,7 @@ export class World {
     this.canvas = this.renderer.domElement;
     this.canvas.setAttribute('aria-label', 'Chiến trường 3D: chọn thẻ rồi chạm vùng bên trái để thả quân');
     this.canvas.tabIndex = 0;
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.25));
+    this.renderer.setPixelRatio(Math.max(1, Math.min(devicePixelRatio, 2)));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.shadowMap.autoUpdate = false;
@@ -108,10 +103,11 @@ export class World {
     this.scene.background = new THREE.Color(0x142c31);
     this.scene.fog = new THREE.FogExp2(0x142c31, 0.011);
     this.camera = new THREE.OrthographicCamera(-20, 20, 12, -12, 0.1, 150);
-    this.camera.position.set(0, 28, 25);
-    this.camera.lookAt(0, 0, 0);
-    this.scene.add(new THREE.HemisphereLight(0xe6fff3, 0x324436, 2.7));
-    const sun = new THREE.DirectionalLight(0xffe3ab, 3.2);
+    this.camera.position.set(0, 24, 30);
+    this.camera.lookAt(0, 0.5, 0);
+    this.arenaCamera = new ArenaCamera(this.camera);
+    this.scene.add(new THREE.HemisphereLight(0xb6cee8, 0x272330, 2.2));
+    const sun = new THREE.DirectionalLight(0xffd6a0, 3);
     sun.position.set(-12, 24, 6);
     sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024);
@@ -121,12 +117,13 @@ export class World {
     sun.shadow.camera.bottom = -19;
     sun.shadow.normalBias = 0.06;
     this.scene.add(sun);
-    const rim = new THREE.DirectionalLight(0x79dacc, 1.5);
+    const rim = new THREE.DirectionalLight(0x89b5ff, 1.15);
     rim.position.set(6, 10, -14);
     this.scene.add(rim);
     this.buildEnvironment();
     this.terrain.apply(this.scene);
     this.scene.add(this.sprites.root);
+    this.scene.add(this.spellEffects.root);
     for (let lane = 0; lane < 3; lane++) {
       const zone = new THREE.Mesh(
         new THREE.PlaneGeometry(7.7, 2.9),
@@ -183,6 +180,19 @@ export class World {
   buildEnvironment() {
     buildEnvironment(this);
   }
+  zoomBy(factor: number, x?: number, y?: number) {
+    let anchor: THREE.Vector3 | undefined;
+    if (x !== undefined && y !== undefined) {
+      const rect = this.canvas.getBoundingClientRect();
+      this.pointer.set(((x - rect.left) / rect.width) * 2 - 1, (-(y - rect.top) / rect.height) * 2 + 1);
+      this.ray.setFromCamera(this.pointer, this.camera);
+      anchor = this.ray.ray.intersectPlane(this.plane, new THREE.Vector3()) || undefined;
+    }
+    this.arenaCamera.zoomBy(factor, anchor);
+  }
+  resetZoom() {
+    this.arenaCamera.reset();
+  }
   async prepareContent(content: ContentConfig) {
     this.content = content;
     this.scene.background = new THREE.Color(content.map.background);
@@ -190,7 +200,11 @@ export class World {
     this.renderer.toneMappingExposure = content.map.exposure;
     await this.models.supportTextures(this.renderer);
     this.sprites.configure(content.vfx);
-    await this.terrain.configure(content.map.textures);
+    await this.spellEffects.configure(content.vfx);
+    await this.terrain.configure(
+      content.map.textures,
+      Math.min(8, this.renderer.capabilities.getMaxAnisotropy()),
+    );
     const results = await Promise.allSettled(
       Object.entries(content.models).map(async ([id, binding]) => {
         const instance = await this.models.instance(binding);
@@ -217,7 +231,7 @@ export class World {
         try {
           const instance = await this.models.instance({
             assetId: content.map.towerAssetId,
-            height: 3,
+            height: 2.4,
             yaw: 0,
             clips: {},
           });
@@ -275,17 +289,43 @@ export class World {
     model.removeFromParent();
     return url;
   }
-  pick(clientX: number, clientY: number) {
+  pick(clientX: number, clientY: number, spellTarget = false) {
     const r = this.canvas.getBoundingClientRect();
     this.pointer.set(((clientX - r.left) / r.width) * 2 - 1, (-(clientY - r.top) / r.height) * 2 + 1);
     this.ray.setFromCamera(this.pointer, this.camera);
+    if (spellTarget) {
+      // A touch on a tall model must target the unit, not the ground behind its
+      // head. Lightweight body volumes also work for batched procedural units.
+      const box = new THREE.Box3(),
+        hit = new THREE.Vector3();
+      let nearest: Visual | undefined,
+        distance = Infinity;
+      for (const visual of this.units.values()) {
+        const unit = visual.unit;
+        if (unit.side !== 1 || unit.hp <= 0) continue;
+        const position = visual.group.position;
+        const height = (this.content?.models[unit.heroId]?.height ?? 2.65) * visual.group.scale.y;
+        box.min.set(position.x - 0.7, position.y, position.z - 0.7);
+        box.max.set(position.x + 0.7, position.y + height, position.z + 0.7);
+        if (!this.ray.ray.intersectBox(box, hit)) continue;
+        const nextDistance = hit.distanceToSquared(this.ray.ray.origin);
+        if (nextDistance < distance) {
+          distance = nextDistance;
+          nearest = visual;
+        }
+      }
+      if (nearest) {
+        const unit = nearest.unit;
+        return { x: unit.x, z: LANES[unit.lane], lane: unit.lane, valid: false, spellValid: true };
+      }
+    }
     const hit = this.ray.ray.intersectPlane(this.plane, new THREE.Vector3());
     if (!hit) return null;
     const point = pickDeployment(hit.x, hit.z);
     return { ...point, spellValid: Math.abs(hit.x) <= 14 && Math.abs(hit.z - LANES[point.lane]) < 1.55 };
   }
   setHover(clientX: number, clientY: number, ability = false, spellId?: SpellId) {
-    const p = this.pick(clientX, clientY);
+    const p = this.pick(clientX, clientY, !!spellId);
     const spell = spellId ? SPELLS[spellId] : undefined;
     this.hoverRing.visible = !!p && (ability || spell ? p.spellValid : p.valid);
     if (p) {
@@ -301,12 +341,14 @@ export class World {
   }
   setQuality(q: 'high' | 'low') {
     this.quality = q;
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, q === 'high' ? 1.25 : 0.85));
+    this.renderer.setPixelRatio(Math.max(1, Math.min(devicePixelRatio, q === 'high' ? 2 : 1)));
     this.renderer.shadowMap.enabled = q === 'high';
     this.renderer.shadowMap.needsUpdate = true;
   }
   reset() {
-    this.clearSpells();
+    this.renderer.shadowMap.needsUpdate = true;
+    this.arenaCamera.reset();
+    this.spellEffects.reset();
     this.corpses.forEach((c) => c.model.dispose());
     this.corpses = [];
     this.sprites.reset();
@@ -346,6 +388,7 @@ export class World {
     this.scene.remove(this.sprites.root);
     this.prefabs.dispose();
     this.reset();
+    this.spellEffects.dispose();
     this.mapInstances.forEach((m) => m.dispose());
     this.coreModels.forEach((m) => m.dispose());
     this.templates.forEach((m) => m.dispose());
@@ -480,36 +523,7 @@ export class World {
     });
   }
   render(battle: Battle, dt: number, selected: boolean, spellTarget = false) {
-    const zones = new Set(battle.spellZones.map((z) => z.id));
-    for (const [id, mesh] of this.spellMeshes)
-      if (!zones.has(id)) {
-        mesh.removeFromParent();
-        mesh.geometry.dispose();
-        mesh.material.dispose();
-        this.spellMeshes.delete(id);
-      }
-    for (const z of battle.spellZones) {
-      let mesh = this.spellMeshes.get(z.id);
-      if (!mesh) {
-        mesh = new THREE.Mesh(
-          new THREE.RingGeometry(0.88, 1, 40),
-          new THREE.MeshBasicMaterial({
-            color: SPELLS[z.spellId].color,
-            transparent: true,
-            opacity: 0.85,
-            side: THREE.DoubleSide,
-            depthWrite: false,
-          }),
-        );
-        mesh.rotation.x = -Math.PI / 2;
-        mesh.position.set(z.x, 0.16, LANES[z.lane]);
-        mesh.scale.set(SPELLS[z.spellId].radius, 1.35, 1);
-        this.scene.add(mesh);
-        this.spellMeshes.set(z.id, mesh);
-      }
-      mesh.material.opacity =
-        battle.time < z.starts ? 0.35 + 0.45 * Math.abs(Math.sin(this.clock * 10)) : 0.85;
-    }
+    this.arenaCamera.update(dt);
     this.clock += dt;
     this.deployZone.visible = selected && !spellTarget && battle.phase === 'playing';
     if (!selected) this.hoverRing.visible = false;
@@ -539,6 +553,7 @@ export class World {
       v.shield.scale.x = 0.94 * Math.min(1, u.shield / 200);
       v.shield.visible = u.shield > 0;
     }
+    this.spellEffects.update(battle.spellZones, battle.tactical ? battle.units : [], battle.time, this.clock);
     for (const t of battle.towers) {
       const mesh = this.towerMeshes.get(t.id)!;
       mesh.scale.y = t.hp <= 0 ? 0.22 : 1;

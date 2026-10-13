@@ -27,11 +27,13 @@ export interface AudioProfile {
 }
 export interface TextureBinding {
   assetId: string;
+  normalAssetId?: string;
+  roughnessAssetId?: string;
   repeat: number;
   tint: string;
 }
 
-export const VFX_EVENTS = ['spawn', 'skill', 'heal', 'death', 'pulse'] as const;
+export const VFX_EVENTS = ['spawn', 'skill', 'heal', 'death', 'pulse', 'hit', 'projectile'] as const;
 export type VfxEvent = (typeof VFX_EVENTS)[number];
 export interface SpriteBinding {
   assetId: string;

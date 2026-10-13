@@ -1,0 +1,93 @@
+[
+  {
+    "file": "polyhaven-moon-rock-01.glb",
+    "sha256": "cac58d6deb07f1d172b64a53a626dbc52f7ed333880625340cc719b38526ab65",
+    "sourceUrl": "https://polyhaven.com/a/moon_rock_01",
+    "downloadUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/moon_rock_01/moon_rock_01_1k.gltf",
+    "author": "Greg Zaal, Rico Cilliers, Jenelle van Heerden, Dario Barresi",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "name": "Moon Rock 01",
+    "kind": "model",
+    "bytes": 1704936,
+    "triangles": 18668,
+    "resolution": "1k",
+    "lod": "Official glTF; API exposes no separate glTF LOD variant",
+    "geometryModified": false,
+    "sources": [
+      {
+        "file": "moon_rock_01_1k.gltf",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/moon_rock_01/moon_rock_01_1k.gltf",
+        "bytes": 7088,
+        "md5": "86c6b4f7792f9600ae33cb3b4d42bb20",
+        "sha256": "004cc353fa0c29572a9ba40535f3716c297466fdf2c650d36deaf9e27eed5ce7"
+      },
+      {
+        "file": "moon_rock_01.bin",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/moon_rock_01/moon_rock_01.bin",
+        "bytes": 448168,
+        "md5": "5dc30dc1be5e8dd5fff64dd824cad828",
+        "sha256": "c6671327046efd27ab1a97c4c716412f209a063184e65f0376e3be6583e8f52a"
+      },
+      {
+        "file": "textures/moon_rock_01_arm_1k.jpg",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/moon_rock_01/moon_rock_01_arm_1k.jpg",
+        "bytes": 330395,
+        "md5": "f04ce87fb751ced28add48ad9eb50d0f",
+        "sha256": "168cbef24f61a6602068d634f858a297bfa7b3675a43be6230e0daf2e8953cf9"
+      },
+      {
+        "file": "textures/moon_rock_01_diff_1k.jpg",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/moon_rock_01/moon_rock_01_diff_1k.jpg",
+        "bytes": 276354,
+        "md5": "4cd48b9b451eef5f35c7be91deca6ead",
+        "sha256": "1cdcb7dea183431326751abc03d30f89f1c51e99ce5b851401d51bd38f606c0b"
+      },
+      {
+        "file": "textures/moon_rock_01_nor_gl_1k.jpg",
+        "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/moon_rock_01/moon_rock_01_nor_gl_1k.jpg",
+        "bytes": 645714,
+        "md5": "5d222c1e40b180e8f376d72aec26703a",
+        "sha256": "0b58d5009e7b317698eaff224bcf01c912c11ffc52203a728940e5e46a7494e9"
+      }
+    ],
+    "textures": [
+      {
+        "file": "textures/moon_rock_01_nor_gl_1k.jpg",
+        "sourceDimensions": [
+          1024,
+          1024
+        ],
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "runtimeSha256": "0b58d5009e7b317698eaff224bcf01c912c11ffc52203a728940e5e46a7494e9"
+      },
+      {
+        "file": "textures/moon_rock_01_diff_1k.jpg",
+        "sourceDimensions": [
+          1024,
+          1024
+        ],
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "runtimeSha256": "1cdcb7dea183431326751abc03d30f89f1c51e99ce5b851401d51bd38f606c0b"
+      },
+      {
+        "file": "textures/moon_rock_01_arm_1k.jpg",
+        "sourceDimensions": [
+          1024,
+          1024
+        ],
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "runtimeSha256": "168cbef24f61a6602068d634f858a297bfa7b3675a43be6230e0daf2e8953cf9"
+      }
+    ]
+  }
+]

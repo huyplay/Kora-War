@@ -224,3 +224,46 @@
     bottom: auto;
   }
 }
+
+.arena-zoom {
+  display: none;
+  position: absolute;
+  right: 16px;
+  top: 42%;
+  z-index: 12;
+  gap: 4px;
+  padding: 4px;
+  background: #121825d9;
+  border: 1px solid #ad8b54;
+  border-radius: 8px;
+}
+.in-battle .arena-zoom {
+  display: flex;
+  flex-direction: column;
+}
+.arena-zoom button {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: #2c3045;
+  color: #f7e4b9;
+  border-radius: 4px;
+  font-size: 23px;
+}
+.arena-zoom button:hover {
+  background: #464362;
+}
+#stage canvas {
+  touch-action: none;
+}
+@media (max-height: 500px) {
+  .arena-zoom {
+    right: 5px;
+    top: 37%;
+  }
+  .arena-zoom button {
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+  }
+}

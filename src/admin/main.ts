@@ -132,6 +132,16 @@ async function save() {
   notice('Đã lưu bản nháp.');
 }
 function wire() {
+  document.querySelectorAll<HTMLSelectElement>('[data-vfx-spell]').forEach((el) => {
+    el.onchange = () => {
+      setPath(
+        `vfx.spellSprites.${el.dataset.vfxSpell}`,
+        el.value ? { assetId: el.value, columns: 8, rows: 1, fps: 12 } : undefined,
+      );
+      dirty = true;
+      render();
+    };
+  });
   document.querySelectorAll<HTMLSelectElement>('[data-vfx-event]').forEach((el) => {
     el.onchange = () => {
       setPath(
@@ -148,6 +158,13 @@ function wire() {
         `map.textures.${el.dataset.texture}`,
         el.value ? { assetId: el.value, repeat: 1, tint: '#ffffff' } : undefined,
       );
+      dirty = true;
+      render();
+    };
+  });
+  document.querySelectorAll<HTMLSelectElement>('[data-surface-map]').forEach((el) => {
+    el.onchange = () => {
+      setPath(`map.textures.${el.dataset.surfaceMap}.${el.dataset.channel}`, el.value || undefined);
       dirty = true;
       render();
     };

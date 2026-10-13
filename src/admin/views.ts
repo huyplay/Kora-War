@@ -78,14 +78,28 @@ export function renderStudioPage(state: State, section: string, hero: string, se
       return `<div class="section-title"><div><h2>Asset Library</h2><p class="muted">Model, texture, sprite, animation và âm thanh. GLB tự chứa · tối đa 30 MB.</p></div><a href="https://modelviewer.lol/" target="_blank" rel="noopener">Khada Model Viewer ↗</a></div><div class="columns"><article class="panel"><h3>Upload asset</h3><form id="upload-form"><label>File<input type="file" id="asset-file" accept=".glb,.png,.jpg,.jpeg,.webp,.wav,.ogg" required></label><div class="form-grid"><label>Tên<input name="name" required maxlength="160"></label><label>Tác giả<input name="author" required placeholder="Riot Games"></label><label>Nguồn URL<input name="sourceUrl" type="url" required placeholder="https://modelviewer.lol/..."></label><label>Quyền sử dụng / giấy phép<input name="license" required placeholder="Giấy phép do chủ dự án cung cấp"></label></div><label class="checkbox"><input type="checkbox" name="rights" required> Tôi có quyền dùng asset này trong Kora War</label><button class="gold" type="submit">Upload vào thư viện ↑</button><progress id="upload-progress" hidden></progress></form></article><article class="panel preview-panel"><div id="asset-preview"></div><span class="preview-label">MODEL INSPECTOR</span><select id="inspect-asset">${options(state.assets, selectedAsset)}</select><select id="inspect-clip"><option>Chọn clip sau khi nạp model</option></select><div id="asset-info" class="muted"></div></article></div><div class="asset-grid">${state.assets.map((a) => `<article class="asset-card ${a.archived ? 'archived' : ''}"><button class="asset-open" data-inspect="${a.id}"><span class="asset-symbol">${a.kind === 'model' ? '⬡' : a.kind === 'audio' ? '♫' : '▧'}</span><b>${esc(a.name)}</b><small>${a.kind.toUpperCase()} · ${(a.bytes / 1024 / 1024).toFixed(2)} MB</small><small>${a.metadata.clips?.length || 0} clips · ${a.metadata.triangles?.toLocaleString() || '—'} tris</small><span>${esc(a.metadata.author)}</span></button><button class="asset-archive" data-archive="${a.id}" data-archived="${a.archived ? 0 : 1}">${a.archived ? 'Khôi phục' : 'Ẩn khỏi thư viện'}</button></article>`).join('') || '<article class="panel muted">Thư viện chưa có asset. Xuất GLB với toàn bộ animation từ Khada rồi upload tại đây.</article>'}</div>`;
     if (section === 'map')
       return `<div class="columns"><article class="panel"><span class="eyebrow">CHAPTER I / THREE LANES</span><h2>${esc(c.map.name)}</h2><div class="map-diagram"><div class="map-core">◈</div><div class="map-lanes">${[0, 1, 2].map((i) => `<div><i></i><span>LANE 0${i + 1}</span><i></i></div>`).join('')}</div><div class="map-core enemy">◈</div>${c.map.props.map((p) => `<span class="map-prop" style="left:${((p.x + 22) / 44) * 100}%;top:${((p.z + 13) / 26) * 100}%" title="${esc(p.assetId)}">⬡</span>`).join('')}</div><p class="muted">Prop là trang trí; ba lane và vùng triển khai giữ vị trí chiến đấu đã chốt.</p></article><article class="panel"><h3>Môi trường</h3><div class="form-grid">${input('map.name', 'Tên màn', c.map.name, 'text')}${input('map.background', 'Màu sương / nền', c.map.background, 'color')}${input('map.exposure', 'Exposure', c.map.exposure)}</div><h3>Texture địa hình</h3>${(
-        ['stone', 'grass'] as const
+        ['stone', 'grass', 'wall'] as const
       )
         .map((kind) => {
           const b = c.map.textures?.[kind];
-          return `<label>${kind === 'stone' ? 'Đường đá' : 'Cỏ'}<select data-texture="${kind}">${options(
+          return `<label>${kind === 'stone' ? 'Đường đá' : kind === 'wall' ? 'Tường đá' : 'Nền cảnh'}<select data-texture="${kind}">${options(
             state.assets.filter((a) => a.kind === 'image'),
             b?.assetId,
-          )}</select></label>${b ? input(`map.textures.${kind}.repeat`, 'Lặp texture', b.repeat) + input(`map.textures.${kind}.tint`, 'Màu nền', b.tint, 'color') : ''}`;
+          )}</select></label>${
+            b
+              ? input(`map.textures.${kind}.repeat`, 'Lặp texture', b.repeat) +
+                input(`map.textures.${kind}.tint`, 'Màu nền', b.tint, 'color') +
+                (['normalAssetId', 'roughnessAssetId'] as const)
+                  .map(
+                    (channel) =>
+                      `<label>${channel === 'normalAssetId' ? 'Normal map' : 'Roughness map'}<select data-surface-map="${kind}" data-channel="${channel}">${options(
+                        state.assets.filter((asset) => asset.kind === 'image'),
+                        b[channel],
+                      )}</select></label>`,
+                  )
+                  .join('')
+              : ''
+          }`;
         })
         .join(
           '',

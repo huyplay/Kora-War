@@ -67,3 +67,7 @@ Người dùng xác nhận có giấy phép dùng toàn bộ asset Riot. Ngoại
 ## Chuyển backend và mở rộng media
 
 Người dùng chọn chuyển từng bước sang ASP.NET Core/PostgreSQL, ưu tiên asset/admin/database và tiếp tục chơi AI. PvP chỉ chuẩn bị kiến trúc. Database riêng là `kora_war`, cấu hình bí mật qua `.env.local`; hiện chưa có R2. File lớn dùng object storage, PostgreSQL lưu metadata; không lưu binary model/audio vào bảng game. Bước hiện tại bổ sung service asset và snapshot chuyển dữ liệu, giữ một nơi ghi ví/trận ở SQLite đến khi hoàn tất migration nghiệp vụ.
+
+## Nâng cấp hình ảnh theo mẫu và zoom — 14/10/2026
+
+Người dùng yêu cầu map trước, sau đó hiệu ứng/animation/âm thanh và Home riêng theo ảnh tham chiếu; bổ sung zoom in/out. Giữ Three.js và lore Elyndra. Camera nghiêng, ba lane ngang, Home có huy hiệu Aether riêng; không thêm ranked, timer rương hoặc tiền tệ giả theo ảnh mẫu. Zoom giới hạn 1–1,85×, projection 3D, HUD giữ kích thước; pinch hủy chọn thẻ và chặn click phát sinh. Texture/model Poly Haven và atlas GegX được dùng qua asset service local. Đây là thay đổi trình bày, không đổi Băng thành stun hoặc sửa sát thương phép. Xem [QA đồ họa](VISUAL-QA.md).

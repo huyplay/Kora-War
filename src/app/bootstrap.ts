@@ -27,7 +27,9 @@ import { renderShell } from '../ui/shell';
 import '../ui/styles/economy.css';
 import '../ui/styles/landscape.css';
 import '../ui/styles/tactical.css';
+import '../ui/styles/home.css';
 import { FixedStepRunner } from './fixed-step-runner';
+import { ArenaGestures } from './arena-gestures';
 const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
 lifetime.defer(() => inputLifetime.abort());
@@ -386,6 +388,7 @@ function formatTime(t: number) {
     .padStart(2, '0')}`;
 }
 function updateHud() {
+  $('#home-wins').textContent = String(wins);
   $('#wallet-gold').textContent = gameSession.wallet ? String(gameSession.wallet.gold) : '—';
   $('#best-record').textContent = `${wins} chiến thắng · Dữ liệu lưu trên thiết bị`;
   if (mode === 'battle') {
@@ -542,7 +545,7 @@ const gestures = lifetime.own(
         clearSelection();
         return;
       }
-      const point = world.pick(x, y);
+      const point = world.pick(x, y, isSpell(id));
       if (point && (isSpell(id) ? point.spellValid : point.valid)) {
         selected = id;
         skillSelected = false;
@@ -568,9 +571,25 @@ const landscape = lifetime.own(
   }),
 );
 $('#fullscreen').onclick = () => void landscape.fullscreen();
+const arenaGestures = lifetime.own(
+  new ArenaGestures(
+    world.canvas,
+    world,
+    () => mode === 'battle' && !landscape.blocked,
+    () => {
+      gestures.cancel();
+      clearSelection();
+    },
+  ),
+);
+$('#zoom-in').onclick = () => world.zoomBy(1.2);
+$('#zoom-out').onclick = () => world.zoomBy(1 / 1.2);
+$('#zoom-reset').onclick = () => world.resetZoom();
 $('#vault-shop').onclick = () => economy(screenContext, 'shop');
 $('#vault-forge').onclick = () => economy(screenContext, 'forge');
 $('#vault-chest').onclick = () => economy(screenContext, 'chest');
+$('#home-roster').onclick = () => openRoster();
+$('#home-story').onclick = () => openStory();
 $('#wallet-gold').textContent = gameSession.wallet ? String(gameSession.wallet.gold) : '—';
 document.addEventListener(
   'pointermove',
@@ -588,8 +607,14 @@ document.addEventListener(
 world.canvas.addEventListener(
   'click',
   (e) => {
-    if (gestures.suppressClick || mode !== 'battle' || battle.phase !== 'playing') return;
-    const p = world.pick(e.clientX, e.clientY);
+    if (
+      gestures.suppressClick ||
+      arenaGestures.suppressClick ||
+      mode !== 'battle' ||
+      battle.phase !== 'playing'
+    )
+      return;
+    const p = world.pick(e.clientX, e.clientY, !!selected && isSpell(selected));
     if (!p) return;
     if (skillSelected) deploy(p.lane);
     else if (selected) {
@@ -856,7 +881,7 @@ function loop(now: number) {
     sound.movement(battle.units);
     if ((battle.phase as string) === 'ended') result();
   }
-  if (!landscape.blocked)
+  if (!landscape.blocked && mode === 'battle')
     world.render(battle, dt, !!selected || skillSelected, !!selected && isSpell(selected));
   if (now - lastUi > 160) {
     updateHud();

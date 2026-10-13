@@ -14,6 +14,7 @@ export class Sound {
   private master?: GainNode;
   private disposed = false;
   private active = true;
+  private variation = 0;
   get enabled() {
     return this.active;
   }
@@ -36,9 +37,21 @@ export class Sound {
       limiter.ratio.value = 12;
       this.master.connect(limiter);
       limiter.connect(this.ctx.destination);
-      for (const b of Object.values(this.profile.cues)) void this.load(b.assetId);
+      void this.preload();
     }
     if (this.ctx.state === 'suspended') void this.ctx.resume().catch(() => {});
+  }
+  private async preload() {
+    const ids = [
+      ...new Set(
+        [
+          ...Object.values(this.profile.cues),
+          ...Object.values(this.profile.heroes).flatMap((cues) => Object.values(cues)),
+        ].map((binding) => binding.assetId),
+      ),
+    ];
+    for (let i = 0; i < ids.length && !this.disposed; i += 4)
+      await Promise.allSettled(ids.slice(i, i + 4).map((id) => this.load(id)));
   }
   private load(id: string): Promise<void> {
     if (this.loading.has(id)) return this.loading.get(id)!;
@@ -94,7 +107,8 @@ export class Sound {
     if (buffer) {
       source = c.createBufferSource();
       source.buffer = buffer;
-      source.playbackRate.value = binding.rate;
+      const varied = ['hit', 'footstep', 'tower', 'death'].includes(cue);
+      source.playbackRate.value = binding.rate * (varied ? 0.96 + (++this.variation % 5) * 0.02 : 1);
     } else {
       if (binding) void this.load(binding.assetId);
       source = c.createOscillator();
@@ -124,7 +138,7 @@ export class Sound {
           ? 'skill'
           : event.type === 'projectile'
             ? event.heroId
-              ? 'hit'
+              ? 'launch'
               : 'tower'
             : event.type;
     if (!['play', 'hit', 'skill', 'tower', 'core', 'death'].includes(cue)) return;
@@ -144,8 +158,7 @@ export class Sound {
     for (const unit of units) {
       const previous = this.attackTimes.get(unit.id) ?? 0;
       this.attackTimes.set(unit.id, unit.attackAt);
-      const binding =
-        this.profile.heroes[unit.heroId]?.attack || (unit.range <= 2 ? this.profile.cues.hit : undefined);
+      const binding = this.profile.heroes[unit.heroId]?.attack;
       if (binding && unit.attackAt > previous) this.tone('hit', unit.x, binding, `${unit.heroId}:attack`);
     }
     for (const unit of units.filter((u) => u.hp > 0 && u.state === 'move').slice(0, 3)) {

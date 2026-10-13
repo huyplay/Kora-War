@@ -1,6 +1,7 @@
 import { ABILITIES, type AbilityDefinition } from './abilities';
 import { HEROES } from './heroes';
 import { RULES } from './rules';
+import { isSpell, type SpellId } from './spells';
 import type { Hero } from './types';
 import {
   defaultAudio,
@@ -43,7 +44,7 @@ export interface ContentConfig {
     props: MapProp[];
     towerAssetId?: string;
     coreAssetId?: string;
-    textures?: Partial<Record<'stone' | 'grass', TextureBinding>>;
+    textures?: Partial<Record<'stone' | 'grass' | 'wall', TextureBinding>>;
   };
   vfx: {
     ally: string;
@@ -54,6 +55,7 @@ export interface ContentConfig {
     spriteColumns?: number;
     spriteRows?: number;
     eventSprites?: Partial<Record<VfxEvent, SpriteBinding>>;
+    spellSprites?: Partial<Record<SpellId, SpriteBinding>>;
   };
   economy: {
     winGold: number;
@@ -205,8 +207,10 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
     if (id && !asset(id)) fail('Asset cấu trúc map không hợp lệ.');
   for (const [kind, binding] of Object.entries(c.map.textures || {}))
     if (
-      !['stone', 'grass'].includes(kind) ||
+      !['stone', 'grass', 'wall'].includes(kind) ||
       !asset(binding.assetId) ||
+      (binding.normalAssetId !== undefined && !asset(binding.normalAssetId)) ||
+      (binding.roughnessAssetId !== undefined && !asset(binding.roughnessAssetId)) ||
       !num(binding.repeat, 0.1, 16) ||
       !color(binding.tint)
     )
@@ -255,9 +259,12 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
   for (const size of [c.vfx.spriteColumns, c.vfx.spriteRows])
     if (size !== undefined && (!Number.isInteger(size) || !num(size, 1, 8)))
       fail('Sprite atlas có 1–8 cột/hàng.');
-  for (const [event, binding] of Object.entries(c.vfx.eventSprites || {})) {
+  for (const event of Object.keys(c.vfx.eventSprites || {}))
+    if (!(VFX_EVENTS as readonly string[]).includes(event)) fail('VFX event không hợp lệ.');
+  for (const spell of Object.keys(c.vfx.spellSprites || {}))
+    if (!isSpell(spell)) fail('VFX spell không hợp lệ.');
+  for (const binding of Object.values({ ...c.vfx.eventSprites, ...c.vfx.spellSprites })) {
     if (
-      !(VFX_EVENTS as readonly string[]).includes(event) ||
       !binding ||
       !asset(binding.assetId) ||
       !Number.isInteger(binding.columns) ||
@@ -303,8 +310,12 @@ export function assetReferences(c: ContentConfig): string[] {
       ...c.items.flatMap((i) => (i.iconAssetId ? [i.iconAssetId] : [])),
       ...(c.vfx.spriteAssetId ? [c.vfx.spriteAssetId] : []),
       ...Object.values(c.vfx.eventSprites || {}).map((binding) => binding.assetId),
+      ...Object.values(c.vfx.spellSprites || {}).map((binding) => binding.assetId),
       ...[c.map.towerAssetId, c.map.coreAssetId].filter((id): id is string => !!id),
-      ...Object.values(c.map.textures || {}).map((b) => b.assetId),
+      ...Object.values(c.map.textures || {}).flatMap((b) => [
+        b.assetId,
+        ...[b.normalAssetId, b.roughnessAssetId].filter((id): id is string => !!id),
+      ]),
       ...Object.values(c.audio?.cues || {}).map((b) => b.assetId),
       ...Object.values(c.audio?.heroes || {}).flatMap((bindings) =>
         Object.values(bindings).map((b) => b.assetId),

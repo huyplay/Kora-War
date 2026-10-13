@@ -1,4 +1,5 @@
 import { icon } from './icons';
+import { renderHome } from './home';
 export function renderShell() {
   return `
  <header class="topbar">
@@ -8,7 +9,8 @@ export function renderShell() {
  </header>
  <main>
   <div id="stage"><div class="vignette"></div></div>
-  <div class="vault-launcher" aria-label="Kho Aether"><button id="vault-shop" aria-label="Cửa hàng">◉ <b id="wallet-gold">—</b></button><button id="vault-forge" aria-label="Nâng cấp tướng">⚒ <small>Nâng cấp</small></button><button id="vault-chest" aria-label="Rương Aether">▣ <small>Kho báu</small></button></div>
+  <div class="arena-zoom" aria-label="Thu phóng chiến trường"><button id="zoom-out" aria-label="Thu nhỏ">−</button><button id="zoom-reset" aria-label="Xem toàn sân" title="Xem toàn sân">⛶</button><button id="zoom-in" aria-label="Phóng to">+</button></div>
+  ${renderHome()}
   <div class="arena-heading"><div class="eyebrow"><span class="line"></span> CHƯƠNG I <span class="line"></span></div><h1>Thung lũng Khởi Nguyên</h1><p>Nơi ánh sáng cuối cùng thức giấc</p></div>
   <section class="battle-hud" hidden aria-label="Trạng thái trận đấu">
    <div class="base-health ally"><span class="core-icon">◈</span><div><div class="base-title">LÕI BÌNH MINH <b id="ally-hp">1500</b></div><div class="hp-track"><i id="ally-health"></i></div><small>Đội của bạn <span id="ally-towers">3 trụ</span></small></div></div>
@@ -24,7 +26,6 @@ export function renderShell() {
   <section class="command-deck">
    <div class="synergy-panel"><div class="section-kicker"><span>LIÊN KẾT ĐỘI HÌNH</span><button id="edit-deck" aria-label="Sửa đội hình">Chỉnh sửa ${icon('chevron')}</button></div><div id="synergies"></div><div class="team-note">4 tướng. Ba chiến tuyến.<br><em>Một quyết định thay đổi trận chiến.</em></div></div>
    <div class="cards-area"><div class="hand-caption"><span id="hand-caption">ĐỘI HÌNH XUẤT TRẬN</span><span id="hand-tip">4 tướng + 2 phép</span></div><div id="hand" class="hand"></div><div class="mana-panel" hidden><span class="mana-crystal">◆</span><strong id="mana">4</strong><div class="mana-track" id="mana-track"></div><span class="mana-regen" id="mana-regen">+1,05 / giây</span></div></div>
-   <div class="action-panel" id="lobby-actions"><span class="ready-tag">${icon('shield')} SẴN SÀNG CHINH PHẠT</span><button class="primary start-button" id="start">LUYỆN TẬP ${icon('chevron')}</button><button class="secondary" id="pvp-open">PvP · Đấu bạn bè</button><div class="match-details"><span>1 người vs AI</span><i></i><span>3–4 phút</span></div><button class="text-button" id="tutorial-open">${icon('info')} Cách chơi</button></div>
    <div class="action-panel battle-actions" hidden><button aria-label="Cộng hưởng lõi" id="pulse" class="pulse-button"><span class="pulse-symbol">✧</span><span>CỘNG HƯỞNG LÕI<small id="pulse-value">Đang tích năng lượng · 0%</small></span><kbd>Q</kbd><i id="pulse-fill"></i></button><p id="selection-hint">Chọn thẻ <kbd>1</kbd>–<kbd>4</kbd>, rồi thả vào vùng bên trái.</p><button class="text-button" id="cancel-select">Hủy chọn <kbd>Esc</kbd></button></div>
   </section>
   <footer class="statusbar"><span><i class="status-dot"></i> KORA WAR · BẢN CHƠI THỬ 0.1</span><span id="best-record"></span><button id="debug-toggle" aria-label="Hiệu năng và debug">${icon('chart')} <span id="fps-mini">60 FPS</span><span class="debug-label">Hiệu năng / F3</span></button></footer>

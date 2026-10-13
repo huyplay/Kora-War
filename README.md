@@ -59,7 +59,7 @@ npm run preview
 - Preview phép khớp bán kính/màu của thẻ; phản hồi lệnh chậm giữ lựa chọn thẻ mới của người chơi.
 - Chặn lệnh mới khi đang rời phòng; nút lane và thông báo reconnect không che sân trên màn hình nhỏ.
 
-`npm run check` đã đạt **98/98 test**, kiểm tra kiến trúc, TypeScript server/client và production build Vite. Bundle Three.js còn cảnh báo vượt 500 kB; chưa có benchmark điện thoại thật hoặc kiểm thử WAN. Chi tiết tại [phân tích project](docs/PROJECT-REVIEW.md) và [quyết định gameplay](docs/DECISIONS.md).
+`npm run check` đã đạt **113/113 test**, kiểm tra kiến trúc, TypeScript server/client và production build Vite. Bundle Three.js còn cảnh báo vượt 500 kB; chưa có benchmark điện thoại thật hoặc kiểm thử WAN. Chi tiết tại [phân tích project](docs/PROJECT-REVIEW.md), [QA đồ họa](docs/VISUAL-QA.md) và [quyết định gameplay](docs/DECISIONS.md).
 
 ## Điều khiển
 

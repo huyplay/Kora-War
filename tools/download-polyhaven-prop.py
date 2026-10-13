@@ -184,4 +184,14 @@ def main():
 
 
 if __name__ == "__main__":
+    import argparse
+    import re
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--asset', default=ASSET)
+    parser.add_argument('--report', default=str(REPORT))
+    args = parser.parse_args()
+    if not re.fullmatch(r'[a-zA-Z0-9_-]+', args.asset):
+        raise ValueError('Invalid Poly Haven asset ID')
+    ASSET = args.asset
+    REPORT = Path(args.report)
     main()

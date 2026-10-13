@@ -136,7 +136,10 @@ export class GameDatabase {
         if (id && this.asset(id)?.kind !== 'model') throw new Error('Trụ/lõi phải là model GLB.');
       if (current.draft.vfx.spriteAssetId && this.asset(current.draft.vfx.spriteAssetId)?.kind !== 'image')
         throw new Error('Sprite VFX phải là ảnh.');
-      for (const binding of Object.values(current.draft.vfx.eventSprites || {})) {
+      for (const binding of Object.values({
+        ...current.draft.vfx.eventSprites,
+        ...current.draft.vfx.spellSprites,
+      })) {
         const sprite = this.asset(binding.assetId);
         if (sprite?.kind !== 'image') throw new Error('Sprite VFX event phải là ảnh.');
         const dimensions = JSON.parse(sprite.metadata as string);
@@ -149,7 +152,10 @@ export class GameDatabase {
           throw new Error('Sprite sheet không chia hết cho số cột/hàng.');
       }
       for (const binding of Object.values(current.draft.map.textures || {}))
-        if (this.asset(binding.assetId)?.kind !== 'image') throw new Error('Texture map phải là ảnh.');
+        for (const id of [binding.assetId, binding.normalAssetId, binding.roughnessAssetId].filter(
+          (id): id is string => !!id,
+        ))
+          if (this.asset(id)?.kind !== 'image') throw new Error('Texture map phải là ảnh.');
       for (const binding of [
         ...Object.values(current.draft.audio?.cues || {}),
         ...Object.values(current.draft.audio?.heroes || {}).flatMap((b) => Object.values(b)),

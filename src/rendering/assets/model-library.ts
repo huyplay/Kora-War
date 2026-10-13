@@ -126,7 +126,10 @@ export class ModelInstance {
     this.lastStrike = unit.attackAt;
     this.lastCast = unit.skillAt;
     this.play(state, restart);
-    if (phase === 'playing') this.mixer.update(dt);
+    if (phase === 'playing') {
+      const rate = state === 'walk' && unit.slowUntil > time ? unit.slowFactor : state === 'stunned' ? 0 : 1;
+      this.mixer.update(dt * rate);
+    }
   }
   tick(dt: number) {
     this.mixer.update(dt);

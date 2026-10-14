@@ -101,7 +101,7 @@
 }
 .deck-slots {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--deck-columns, 7), minmax(0, 1fr));
   gap: 8px;
   padding: 10px;
   border: 1px solid #8d7952;
@@ -263,6 +263,15 @@
 }
 .hand .hero-card.drawn-card {
   animation: draw-card-in 0.2s ease-out;
+}
+.hand.large-hand {
+  max-width: calc(90vw - 130px);
+  overflow-x: auto;
+  padding-top: 10px;
+}
+.opening-hand {
+  overflow-x: auto;
+  justify-content: safe center;
 }
 .in-battle .hero-card .card-cost {
   background: linear-gradient(145deg, #8bd7ed, #26688c);

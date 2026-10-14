@@ -9,11 +9,12 @@ export function updateUnits(battle: Battle) {
     if (u.hp <= 0) continue;
     if (battle.tactical) refreshSlowEffects(u, battle.time);
     u.previousX = u.x;
-    const haste = (u.hasteUntil ?? 0) > battle.time ? 1.35 : 1;
+    const haste = (u.hasteUntil ?? 0) > battle.time ? (u.hasteFactor ?? 1) : 1;
     u.attackCd -= STEP * haste;
     u.skillCd -= STEP;
-    if (battle.has(u.side, 'grove')) {
-      const amount = Math.min(u.maxHp - u.hp, 4 * STEP);
+    const regeneration = battle.buff(u.side, u.heroId, 'regeneration', 0);
+    if (regeneration) {
+      const amount = Math.min(u.maxHp - u.hp, regeneration * STEP);
       u.hp += amount;
       battle.stats[u.side].healed += amount;
     }
@@ -24,33 +25,34 @@ export function updateUnits(battle: Battle) {
     const enemies = battle.units.filter((e) => e.side !== u.side && e.hp > 0);
     const h = battle.heroes[u.heroId];
     if (u.skillCd <= 0 && battle.skill(u, h, enemies))
-      u.skillCd =
-        h.skillCooldown *
-        ((h.role === 'mage' && battle.has(u.side, 'mage')) ||
-        (h.role === 'support' && battle.has(u.side, 'support'))
-          ? 0.75
-          : 1);
+      u.skillCd = battle.buff(u.side, u.heroId, 'skillCooldown', h.skillCooldown);
     const dir = u.side === 0 ? 1 : -1;
     const target = enemies
       .filter((e) => e.hp > 0 && e.lane === u.lane && Math.abs(e.x - u.x) <= u.range)
       .sort((a, b) => Math.abs(a.x - u.x) - Math.abs(b.x - u.x) || a.id - b.id)[0];
     const tower = battle.towers.find((t) => t.side !== u.side && t.lane === u.lane && t.hp > 0);
-    const structureX = tower ? tower.x : dir * 14;
-    const inStructureRange = Math.abs(structureX - u.x) <= u.range + 0.45;
+    const structureX = tower ? tower.x : dir * battle.gameplay.board.coreX;
+    const inStructureRange = Math.abs(structureX - u.x) <= u.range + battle.gameplay.combat.structureReach;
     if (target || inStructureRange) {
       u.state = 'attack';
       if (u.attackCd <= 0) {
-        u.attackCd = h.interval / (h.role === 'vanguard' && battle.has(u.side, 'vanguard') ? 1.2 : 1);
+        u.attackCd = h.interval / battle.buff(u.side, u.heroId, 'attackSpeed', 1);
         u.attackAt = battle.time;
         const x = target ? target.x : structureX;
         if (u.range > 2)
           battle.emit({ type: 'projectile', side: u.side, lane: u.lane, x: u.x, toX: x, heroId: h.id });
         if (target) battle.damage(target, u.attack, u.side, u);
         else if (tower) {
-          const value = Math.min(tower.hp, u.attack * ((u.weakenUntil ?? 0) > battle.time ? 0.7 : 1));
+          const value = Math.min(
+            tower.hp,
+            u.attack * ((u.weakenUntil ?? 0) > battle.time ? (u.weakenFactor ?? 1) : 1),
+          );
           tower.hp -= value;
           battle.stats[u.side].damage += value;
-          battle.resonance[u.side] = Math.min(100, battle.resonance[u.side] + 2);
+          battle.resonance[u.side] = Math.min(
+            battle.gameplay.resonance.cap,
+            battle.resonance[u.side] + battle.gameplay.resonance.structureGain,
+          );
           if (tower.hp <= 0) {
             battle.stats[u.side].towers++;
             battle.emit({
@@ -65,7 +67,7 @@ export function updateUnits(battle: Battle) {
           const victim = (1 - u.side) as Side;
           const value = Math.min(
             battle.cores[victim],
-            u.attack * ((u.weakenUntil ?? 0) > battle.time ? 0.7 : 1),
+            u.attack * ((u.weakenUntil ?? 0) > battle.time ? (u.weakenFactor ?? 1) : 1),
           );
           battle.cores[victim] -= value;
           battle.stats[u.side].damage += value;
@@ -75,7 +77,7 @@ export function updateUnits(battle: Battle) {
     } else {
       u.state = 'move';
       const speed = u.speed * haste * (u.slowUntil > battle.time ? u.slowFactor : 1);
-      u.x = advanceAlongLane(u.x, dir, speed, STEP);
+      u.x = advanceAlongLane(u.x, dir, speed, STEP, battle.gameplay.board);
     }
   }
 }

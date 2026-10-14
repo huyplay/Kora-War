@@ -98,6 +98,7 @@ aside {
   flex-direction: column;
 }
 .studio-brand {
+  flex-shrink: 0;
   display: block;
   text-align: center;
   color: var(--gold);
@@ -139,6 +140,7 @@ nav button.active {
   color: #ead1a3;
 }
 .sidebar-footer {
+  flex-shrink: 0;
   margin-top: auto;
   padding: 16px 4px 0;
   color: #708392;
@@ -893,4 +895,57 @@ th {
   .sound-row {
     grid-template-columns: 100px 1fr 1fr;
   }
+}
+/* Gameplay controls share the draft/revision lifecycle with all content editors. */
+.config-card {
+  margin: 12px 0;
+  border: 1px solid #30454e;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+.config-card summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #dfca9a;
+  padding: 8px 0;
+}
+.config-card[open] summary {
+  margin-bottom: 14px;
+}
+.gameplay-intro p {
+  max-width: 850px;
+  line-height: 1.7;
+}
+.gameplay-nav {
+  margin-top: 0;
+  display: flex;
+  gap: 18px;
+  padding: 12px 0;
+  flex-wrap: wrap;
+}
+aside > nav {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  align-content: start;
+  margin-top: 24px;
+  scrollbar-width: thin;
+}
+main > header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #0c121bf5;
+}
+.page [id^='config-'] {
+  scroll-margin-top: 128px;
+}
+@media (max-width: 760px) {
+  aside > nav {
+    margin-top: 14px;
+    overflow-y: hidden;
+  }
+}
+.gameplay-nav a {
+  color: #9be3dc;
 }

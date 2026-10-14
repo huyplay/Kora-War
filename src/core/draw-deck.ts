@@ -1,5 +1,6 @@
-import { HAND_SIZE, MAX_MULLIGAN, validateCardDeck } from '../data/card-decks';
+import { validateCardDeck } from '../data/card-decks';
 import { isSpell } from '../data/spells';
+import { COMPAT_GAMEPLAY, type GameplayConfig } from '../data/gameplay';
 export interface HandCard {
   id: string;
   uid: number;
@@ -10,7 +11,7 @@ export interface DrawInfo {
   cycle: number;
 }
 
-/** Physical cards: hand + draw pile + discard always contains exactly the original 14 cards. */
+/** Physical cards: hand + draw pile + discard conserves the configured starting deck. */
 export class DrawDeck {
   readonly hand: HandCard[] = [];
   readonly pile: string[];
@@ -21,14 +22,16 @@ export class DrawDeck {
   constructor(
     cards: string[],
     private random: () => number,
+    private config: GameplayConfig = COMPAT_GAMEPLAY,
   ) {
-    validateCardDeck(cards);
+    validateCardDeck(cards, config);
     this.pile = cards.slice();
-    this.shuffle(this.pile);
+    if (config.deck.shuffle) this.shuffle(this.pile);
     // A single seeded shuffle, followed by minimal swaps to satisfy the opening composition.
-    const opening = this.pile.splice(0, HAND_SIZE);
-    while (opening.filter((id) => !isSpell(id)).length < 4) this.swapOpening(opening, false);
-    if (!opening.some(isSpell)) this.swapOpening(opening, true);
+    const opening = this.pile.splice(0, config.deck.handSize);
+    while (opening.filter((id) => !isSpell(id)).length < config.deck.minHeroes)
+      this.swapOpening(opening, false);
+    while (opening.filter(isSpell).length < config.deck.minSpells) this.swapOpening(opening, true);
     this.hand.push(...opening.map((id) => this.card(id)));
   }
   private swapOpening(opening: string[], wantSpell: boolean) {
@@ -58,31 +61,32 @@ export class DrawDeck {
     const index = this.hand.findIndex((card) => card.id === id && (uid === undefined || card.uid === uid));
     if (index < 0) return false;
     this.discard.push(this.hand[index].id);
-    if (!this.pile.length) {
+    if (!this.pile.length && this.config.deck.recycle) {
       this.pile.push(...this.discard.splice(0));
       this.shuffle(this.pile);
       this.cycle++;
     }
-    this.hand[index] = this.card(this.pile.shift()!);
+    if (this.pile.length) this.hand[index] = this.card(this.pile.shift()!);
+    else this.hand.splice(index, 1);
     return true;
   }
   mulligan(uids: number[]): string | null {
     if (this.confirmed) return 'Đã chốt bài đầu trận.';
     if (
       !Array.isArray(uids) ||
-      uids.length > MAX_MULLIGAN ||
+      uids.length > this.config.deck.mulligan ||
       new Set(uids).size !== uids.length ||
       uids.some((uid) => !Number.isSafeInteger(uid) || !this.hand.some((card) => card.uid === uid))
     )
-      return 'Chỉ được đổi tối đa 2 thẻ đang cầm.';
+      return `Chỉ được đổi tối đa ${this.config.deck.mulligan} thẻ đang cầm.`;
     const indexes = this.hand.flatMap((card, i) => (uids.includes(card.uid) ? [i] : []));
     const kept = this.hand.filter((card) => !uids.includes(card.uid)).map((card) => card.id);
     const pile = this.pile.slice(),
       replacements: string[] = [];
     for (let i = 0; i < indexes.length; i++) {
       const slots = indexes.length - i;
-      const heroesNeeded = Math.max(0, 4 - kept.filter((id) => !isSpell(id)).length);
-      const spellsNeeded = kept.some(isSpell) ? 0 : 1;
+      const heroesNeeded = Math.max(0, this.config.deck.minHeroes - kept.filter((id) => !isSpell(id)).length);
+      const spellsNeeded = Math.max(0, this.config.deck.minSpells - kept.filter(isSpell).length);
       const pick = pile.findIndex((id) =>
         heroesNeeded >= slots ? !isSpell(id) : spellsNeeded >= slots ? isSpell(id) : true,
       );

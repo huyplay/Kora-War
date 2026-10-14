@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { SpellZone } from '../../core/systems/spells';
 import type { Unit } from '../../core/types';
 import { LANES } from '../../data/map';
-import { SPELLS } from '../../data/spells';
+import { COMPAT_GAMEPLAY, type GameplayConfig } from '../../data/gameplay';
 import type { SpellId } from '../../data/spells';
 import type { ContentConfig } from '../../data/content';
 import { loadAtlas } from './atlas';
@@ -23,6 +23,15 @@ interface StatusVisual {
 
 /** Presentation only: all visibility and lifetimes come from the combat snapshot. */
 export class SpellEffects {
+  private config = COMPAT_GAMEPLAY;
+  setConfig(config: GameplayConfig) {
+    if (this.config === config) return;
+    this.reset();
+    this.config = config;
+    this.iceMaterial.color.set(config.spells.ice.color);
+    this.hasteMaterial.color.set(config.spells.haste.color);
+    this.weakenMaterial.color.set(config.spells.weaken.color);
+  }
   readonly root = new THREE.Group();
   private zones = new Map<number, ZoneVisual>();
   private statuses = new Map<number, StatusVisual>();
@@ -130,7 +139,7 @@ export class SpellEffects {
     const group = new THREE.Group();
     group.name = `spell-zone-${zone.id}`;
     const material = new THREE.MeshBasicMaterial({
-      color: SPELLS[zone.spellId].color,
+      color: this.config.spells[zone.spellId].color,
       transparent: true,
       opacity: 0.85,
       side: THREE.DoubleSide,
@@ -141,10 +150,14 @@ export class SpellEffects {
     for (const mesh of [ring, fill]) {
       mesh.rotation.x = -Math.PI / 2;
       mesh.position.y = 0.28;
-      mesh.scale.set(SPELLS[zone.spellId].radius, 1.35, 1);
+      mesh.scale.set(this.config.spells[zone.spellId].radius, 1.35, 1);
       group.add(mesh);
     }
-    const flames = this.flames(zone.spellId === 'fire' ? 18 : 0, SPELLS[zone.spellId].radius * 0.9, 1.1);
+    const flames = this.flames(
+      zone.spellId === 'fire' ? 18 : 0,
+      this.config.spells[zone.spellId].radius * 0.9,
+      1.1,
+    );
     if (zone.spellId === 'fire')
       for (const x of [-1.5, 0, 1.5]) {
         const sprite = this.sprite('fire', 2.8);
@@ -227,11 +240,15 @@ export class SpellEffects {
       const burning = zones.some(
         (zone) =>
           zone.spellId === 'fire' &&
-          zone.side !== unit.side &&
+          this.config.spells[zone.spellId].effects.some((e) => e.kind === 'damage' && e.amount > 0) &&
+          (this.config.spells[zone.spellId].target === 'all' ||
+            (this.config.spells[zone.spellId].target === 'ally'
+              ? zone.side === unit.side
+              : zone.side !== unit.side)) &&
           zone.lane === unit.lane &&
           time + 1e-8 >= zone.starts &&
           time < zone.ends &&
-          Math.abs(unit.x - zone.x) <= SPELLS.fire.radius,
+          Math.abs(unit.x - zone.x) <= this.config.spells[zone.spellId].radius,
       );
       const hasted = (unit.hasteUntil ?? 0) > time,
         weakened = (unit.weakenUntil ?? 0) > time;

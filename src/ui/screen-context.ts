@@ -3,8 +3,10 @@ import type { Hero } from '../data/index';
 import type { World } from '../rendering/World';
 import type { Sound } from '../services/audio';
 import type { SpellId } from '../data/spells';
+import type { GameplayConfig } from '../data/gameplay';
 /** Dữ liệu và hành động mà các màn hình được phép sử dụng. */
 export interface ScreenContext {
+  readonly gameplay: GameplayConfig;
   readonly heroes: Hero[];
   readonly heroMap: Record<string, Hero>;
   deck: string[];

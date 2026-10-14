@@ -1,5 +1,15 @@
 # Các quyết định đang áp dụng
 
+## 14/10/2026 — Gameplay cấu hình từ database
+
+Người dùng yêu cầu admin điều chỉnh các cơ chế gameplay và lưu cấu hình trên database, sau đó chọn **“Giữ gameplay đã chốt, ưu tiên config đầy đủ”**. Không tự thêm tăng trần mana, bỏ bài hoặc thay luật mặc định.
+
+`ContentConfig.gameplay` chứa luật deck/tay bài/đổi bài, phép và chuỗi hiệu ứng, synergy, Cộng Hưởng Lõi, vùng triển khai/combat, AI, thời hạn PvP và bộ sưu tập. Chỉ số tướng/kỹ năng, rules, giá/phần thưởng và media tiếp tục dùng các nhóm content hiện có. Admin lưu nháp, validate, phát hành revision hoặc khôi phục revision về nháp. AI, luyện tập, PvP, HUD và renderer đọc cùng profile.
+
+SQLite hiện là nơi ghi gameplay config. PostgreSQL tiếp tục phụ trách asset/snapshot theo lộ trình backend, chưa chuyển nơi ghi gameplay nghiệp vụ. Migration bổ sung profile cho draft/published, tạo revision mới và audit; giữ nguyên content của revision/trận cũ. Trận mới khóa bản sao content; phiên app đang mở cần nạp lại để nhận bản phát hành mới.
+
+Preset trong code phục vụ khởi tạo, demo offline và replay thiếu profile. Ba lane, fixed tick 20 Hz, catalog 10 tướng/8 phép và giới hạn 100 quân là ranh giới engine. Có thể ghép các loại hiệu ứng đã hỗ trợ trong admin; loại cơ chế hoàn toàn mới cần handler và test. Xem [cấu hình và QA](GAMEPLAY-CONFIG.md).
+
 ## 14/10/2026 — Deck 14 thẻ, tay 6 và chiến thuật hậu tuyến
 
 Người dùng yêu cầu cơ chế rút bài theo Castle Crush và đã xác nhận: **mỗi thẻ 1 bản**, thêm **hồi máu/lá chắn/suy yếu/tăng tốc**, **Băng đóng băng 2 giây**, hết chồng rút **chỉ xáo thẻ đã dùng, giữ nguyên tay 6 thẻ**. Đây là luật hiện hành `cycle-v1`, thay thế deck cố định 4 tướng + 2 phép của MVP ngày 13/10.

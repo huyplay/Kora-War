@@ -2,7 +2,14 @@ import { DatabaseSync } from 'node:sqlite';
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdirSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { defaultContent, validateContent, assetReferences, type ContentConfig } from '../src/data/content';
+import {
+  defaultContent,
+  upgradeContent,
+  validateContent,
+  assetReferences,
+  type ContentConfig,
+} from '../src/data/content';
+import { gameplayOf } from '../src/data/gameplay';
 
 export class GameDatabase {
   readonly db: DatabaseSync;
@@ -36,6 +43,28 @@ export class GameDatabase {
     const initial = JSON.stringify(defaultContent());
     this.db.prepare('INSERT OR IGNORE INTO config VALUES(1,1,?,?,1)').run(initial, initial);
     this.db.prepare('INSERT OR IGNORE INTO revisions(id,content) VALUES(1,?)').run(initial);
+    const existing = this.config();
+    if (
+      !existing.draft.gameplay ||
+      !existing.published.gameplay ||
+      existing.draft.gameplay.board.quickSpawnX === undefined ||
+      existing.published.gameplay.board.quickSpawnX === undefined
+    ) {
+      this.transaction(() => {
+        const draft = upgradeContent(existing.draft),
+          published = upgradeContent(existing.published);
+        validateContent(draft);
+        validateContent(published);
+        const revision = Number(
+          this.db.prepare('INSERT INTO revisions(content) VALUES(?)').run(JSON.stringify(published))
+            .lastInsertRowid,
+        );
+        this.db
+          .prepare('UPDATE config SET draft=?,published=?,version=version+1,revision=? WHERE id=1')
+          .run(JSON.stringify(draft), JSON.stringify(published), revision);
+        this.audit('gameplay.migrate', { revision, from: existing.revision });
+      });
+    }
     if (!this.db.prepare('SELECT id FROM admins').get()) {
       const secret = password || randomBytes(18).toString('base64url'),
         salt = randomBytes(16).toString('hex');
@@ -102,6 +131,7 @@ export class GameDatabase {
   }
   saveDraft(content: unknown, version: number) {
     validateContent(content);
+    content = upgradeContent(content);
     const result = this.db
       .prepare('UPDATE config SET draft=?,version=version+1 WHERE id=1 AND version=?')
       .run(JSON.stringify(content), version);
@@ -204,7 +234,9 @@ export class GameDatabase {
   player() {
     return this.transaction(() => {
       const id = randomUUID();
-      this.db.prepare('INSERT INTO players(id,gold) VALUES(?,300)').run(id);
+      this.db
+        .prepare('INSERT INTO players(id,gold) VALUES(?,?)')
+        .run(id, gameplayOf(this.config().published).collection.initialGold);
       for (const h of defaultContent().heroes)
         this.db.prepare('INSERT INTO cards(player,hero) VALUES(?,?)').run(id, h.id);
       return id;

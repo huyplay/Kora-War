@@ -6,7 +6,6 @@ import { onlineState } from '../src/core/online-state';
 import type { Battle } from '../src/core/Battle';
 import type { Side } from '../src/core/types';
 import { cycleBattle } from '../src/core/cycle-battle';
-const RECONNECT_GRACE = 30000;
 const WAITING_TTL = 600000;
 const FINISHED_TTL = 300000;
 export interface Loadout {
@@ -49,8 +48,8 @@ export class PvpRooms {
       cycleBattle(input.cards, content, 1);
       return {
         cards: input.cards.slice(),
-        deck: input.cards.filter((id) => !isSpell(id)),
-        spells: input.cards.filter(isSpell),
+        deck: [...new Set(input.cards.filter((id) => !isSpell(id)))],
+        spells: [...new Set(input.cards.filter(isSpell))],
       };
     }
     validateSpellDeck(input.spells);
@@ -67,13 +66,16 @@ export class PvpRooms {
     }
     if (b.phase !== 'playing') return;
     const disconnected = r.seen[0] <= r.seen[1] ? 0 : 1;
-    const deadline = r.seen[disconnected] + RECONNECT_GRACE;
+    const deadline = r.seen[disconnected] + b.gameplay.match.reconnectSeconds * 1000;
     const timedOut = at > deadline;
     // Resolve in chronological order: combat must not run past a disconnect deadline.
-    const target = Math.min(18000, Math.floor((Math.min(at, deadline) - r.started) / 50));
+    const target = Math.min(
+      Math.ceil(b.gameplay.match.maximumSeconds * b.content.rules.tickRate),
+      Math.floor(((Math.min(at, deadline) - r.started) * b.content.rules.tickRate) / 1000),
+    );
     while (b.tick < target && b.phase === 'playing') b.step();
     if (b.phase !== 'playing') {
-      r.finished = r.started + b.tick * 50;
+      r.finished = r.started + (b.tick * 1000) / b.content.rules.tickRate;
     } else if (timedOut) {
       b.winner = (1 - disconnected) as Side;
       b.phase = 'ended';
@@ -90,7 +92,10 @@ export class PvpRooms {
   private prune(at = this.now()) {
     for (const [code, r] of this.rooms) {
       // A room can finish while nobody polls it; reclaim it from its real deadline.
-      if (r.battle?.phase === 'playing' && at - Math.min(...r.seen) > RECONNECT_GRACE + FINISHED_TTL)
+      if (
+        r.battle?.phase === 'playing' &&
+        at - Math.min(...r.seen) > r.battle.gameplay.match.reconnectSeconds * 1000 + FINISHED_TTL
+      )
         this.advance(r, at);
       if (this.expired(r, at)) this.rooms.delete(code);
     }
@@ -156,7 +161,7 @@ export class PvpRooms {
       : tacticalBattle(r.loadouts[0].deck, r.loadouts[0].spells, r.content, r.seed, input.deck, input.spells);
     r.battle.aiEnabled = false;
     r.battle.start();
-    if (input.cards) r.openingEnds = at + 15000;
+    if (input.cards) r.openingEnds = at + r.battle.gameplay.match.openingSeconds * 1000;
     r.started = at;
     r.seen = [at, at];
     return this.state(player, code);

@@ -1,8 +1,9 @@
-import { ABILITIES, type AbilityDefinition } from './abilities';
+import { ABILITIES, DEFAULT_ENGAGE, type AbilityDefinition } from './abilities';
 import { HEROES } from './heroes';
 import { RULES } from './rules';
 import { isSpell, type SpellId } from './spells';
 import type { Hero } from './types';
+import { defaultGameplay, validateGameplay, type GameplayConfig } from './gameplay';
 import {
   defaultAudio,
   SOUND_CUES,
@@ -13,7 +14,7 @@ import {
   type VfxEvent,
 } from './media';
 export type BattleRules = {
-  [K in keyof typeof RULES]: number;
+  -readonly [K in keyof typeof RULES]: number;
 };
 export interface ModelBinding {
   assetId: string;
@@ -34,6 +35,7 @@ export interface ContentConfig {
   heroes: Hero[];
   abilities: Record<string, AbilityDefinition>;
   rules: BattleRules;
+  gameplay?: GameplayConfig;
   models: Record<string, ModelBinding>;
   audio?: AudioProfile;
   map: {
@@ -76,9 +78,14 @@ export interface ContentConfig {
 export function defaultContent(): ContentConfig {
   return structuredClone({
     schema: 1,
-    heroes: HEROES,
-    abilities: ABILITIES,
+    heroes: HEROES.map((hero) =>
+      hero.id === 'nyx'
+        ? { ...hero, description: 'Ám Kích ưu tiên hậu tuyến theo cấu hình áp sát của kỹ năng.' }
+        : hero,
+    ),
+    abilities: { ...ABILITIES, nyx: { ...ABILITIES.nyx, engage: DEFAULT_ENGAGE } },
     rules: RULES,
+    gameplay: defaultGameplay(),
     models: {},
     audio: defaultAudio(),
     map: { id: 'genesis', name: 'Thung lũng Khởi Nguyên', background: '#142c31', exposure: 1.25, props: [] },
@@ -91,7 +98,20 @@ export function defaultContent(): ContentConfig {
       heroId: h.id,
       copies: 2,
     })),
-  });
+  }) as ContentConfig;
+}
+/** Upgrade active DB content once; immutable historical match snapshots are left intact. */
+export function upgradeContent(input: ContentConfig): ContentConfig {
+  const c = structuredClone(input);
+  if (!c.gameplay) {
+    c.gameplay = defaultGameplay();
+    c.abilities.nyx.engage ??= structuredClone(DEFAULT_ENGAGE);
+    const nyx = c.heroes.find((h) => h.id === 'nyx');
+    if (nyx && nyx.description === HEROES.find((h) => h.id === 'nyx')!.description)
+      nyx.description = 'Ám Kích ưu tiên hậu tuyến theo cấu hình áp sát của kỹ năng.';
+  }
+  c.gameplay.board.quickSpawnX ??= defaultGameplay().board.quickSpawnX;
+  return c;
 }
 export function validateContent(input: unknown): asserts input is ContentConfig {
   const c = input as ContentConfig;
@@ -119,7 +139,8 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
       if (!text(h[key], 1000)) fail(`Nội dung ${h.id}.${key} không hợp lệ.`);
     for (const key of ['hp', 'attack', 'range', 'speed', 'interval', 'skillCooldown'] as const)
       if (!num(h[key], 0.05, key === 'hp' ? 10000 : 1000)) fail(`Chỉ số ${h.id}.${key} không hợp lệ.`);
-    if (!Number.isInteger(h.cost) || !num(h.cost, 1, 10)) fail('Mana thẻ phải từ 1–10.');
+    if (!Number.isInteger(h.cost) || !num(h.cost, 1, c.gameplay ? (c.rules?.maxMana ?? 30) : 10))
+      fail('Mana thẻ phải nằm trong giới hạn mana trận.');
     if (!num(h.color, 0, 0xffffff) || !num(h.accent, 0, 0xffffff)) fail('Màu tướng không hợp lệ.');
     const a = c.abilities?.[h.id];
     if (
@@ -131,6 +152,15 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
     )
       fail(`Kỹ năng ${h.id} không hợp lệ.`);
     if (a.missingHp !== undefined && !num(a.missingHp, 0, 10000)) fail('missingHp không hợp lệ.');
+    if (
+      a.engage &&
+      (typeof a.engage.enabled !== 'boolean' ||
+        !num(a.engage.radius, 0.05, 28) ||
+        !num(a.engage.offset, 0, 5) ||
+        !num(a.engage.minRange, 0, 28) ||
+        !['', 'vanguard', 'ranger', 'mage', 'guardian', 'support'].includes(a.engage.preferredRole))
+    )
+      fail('Áp sát kỹ năng không hợp lệ.');
     for (const e of a.effects) {
       if (
         !['damage', 'heal', 'shield', 'slow', 'stun'].includes(e.kind) ||
@@ -156,16 +186,35 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
   }
   if (!c.rules) fail('Thiếu luật trận.');
   for (const k of Object.keys(RULES) as (keyof BattleRules)[])
-    if (!num(c.rules[k], 0.01, 10000)) fail(`Luật ${k} không hợp lệ.`);
+    if (
+      !num(
+        c.rules[k],
+        [
+          'towerDamage',
+          'manaPerSecond',
+          'cardCooldown',
+          'overtimeAt',
+          'overtimeBaseDamage',
+          'overtimeAcceleration',
+          'startingMana',
+        ].includes(k)
+          ? 0
+          : 0.01,
+        10000,
+      )
+    )
+      fail(`Luật ${k} không hợp lệ.`);
   if (
     c.rules.tickRate !== 20 ||
-    c.rules.maxMana !== 10 ||
+    c.rules.maxMana > 30 ||
     c.rules.maxUnits > 100 ||
-    c.rules.startingMana > 10 ||
+    (!c.gameplay && c.rules.startingMana > c.rules.maxMana) ||
+    !Number.isInteger(c.rules.maxMana) ||
     !Number.isInteger(c.rules.maxUnits) ||
     !Number.isInteger(c.rules.eventLimit)
   )
-    fail('Giữ tick 20 Hz, mana tối đa 10, tối đa 100 quân.');
+    fail('Giữ tick 20 Hz, mana tối đa 30, tối đa 100 quân.');
+  if (c.gameplay !== undefined) validateGameplay(c.gameplay, c.rules.maxMana);
   if (!c.models || Object.keys(c.models).some((id) => !HEROES.some((h) => h.id === id)))
     fail('Model gán vào tướng không tồn tại.');
   for (const m of Object.values(c.models)) {

@@ -145,7 +145,9 @@ export class ModelInstance {
     this.play(state, restart);
     if (phase === 'playing') {
       const rate = state === 'walk' && unit.slowUntil > time ? unit.slowFactor : state === 'stunned' ? 0 : 1;
-      this.mixer.update(dt * rate * (state === 'walk' && (unit.hasteUntil ?? 0) > time ? 1.35 : 1));
+      this.mixer.update(
+        dt * rate * (state === 'walk' && (unit.hasteUntil ?? 0) > time ? (unit.hasteFactor ?? 1) : 1),
+      );
     }
   }
   tick(dt: number) {

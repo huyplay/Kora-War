@@ -8,12 +8,15 @@ export function applyDamage(battle: Battle, target: Unit, amount: number, side: 
   const actual = Math.min(target.hp, Math.max(0, amount - absorb));
   target.hp -= actual;
   battle.stats[side].damage += actual;
-  battle.resonance[side] = Math.min(100, battle.resonance[side] + actual * 0.035);
-  if (source && battle.has(side, 'frost')) {
-    if (battle.tactical) applySlowEffect(target, 0.8, battle.time + 1.5, battle.time);
+  const r = battle.gameplay.resonance;
+  battle.resonance[side] = Math.min(r.cap, battle.resonance[side] + actual * r.damageGain);
+  for (const effect of source
+    ? battle.activeBuffs(side, source.heroId).filter((e) => e.kind === 'slowOnHit')
+    : []) {
+    if (battle.tactical) applySlowEffect(target, effect.amount, battle.time + effect.duration!, battle.time);
     else {
-      target.slowUntil = Math.max(target.slowUntil, battle.time + 1.5);
-      target.slowFactor = 0.8;
+      target.slowUntil = Math.max(target.slowUntil, battle.time + effect.duration!);
+      target.slowFactor = effect.amount;
     }
   }
   battle.emit({
@@ -26,7 +29,7 @@ export function applyDamage(battle: Battle, target: Unit, amount: number, side: 
   });
   if (target.hp <= 0) {
     battle.stats[side].kills++;
-    battle.resonance[side] = Math.min(100, battle.resonance[side] + 5);
+    battle.resonance[side] = Math.min(r.cap, battle.resonance[side] + r.killGain);
     battle.emit({ type: 'death', side: target.side, lane: target.lane, x: target.x, heroId: target.heroId });
   }
 }

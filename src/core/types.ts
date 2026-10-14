@@ -28,6 +28,8 @@ export interface Unit {
   frozenUntil?: number;
   weakenUntil?: number;
   hasteUntil?: number;
+  hasteFactor?: number;
+  weakenFactor?: number;
   born: number;
   attackAt: number;
   skillAt: number;

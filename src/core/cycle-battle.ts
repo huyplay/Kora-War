@@ -1,22 +1,23 @@
 import { Battle } from './Battle';
 import type { Difficulty } from './types';
 import type { ContentConfig } from '../data/content';
-import { ENEMY_CARD_DECK, validateCardDeck } from '../data/card-decks';
+import { validateCardDeck } from '../data/card-decks';
 import { isSpell } from '../data/spells';
+import { gameplayOf } from '../data/gameplay';
 export function cycleBattle(
   cards: string[],
   content: ContentConfig,
   seed: number,
-  enemyCards = ENEMY_CARD_DECK,
+  enemyCards = gameplayOf(content).deck.aiCards,
   difficulty: Difficulty = 'normal',
 ) {
-  validateCardDeck(cards);
-  validateCardDeck(enemyCards);
+  validateCardDeck(cards, gameplayOf(content));
+  validateCardDeck(enemyCards, gameplayOf(content));
   return new Battle(
-    cards.filter((id) => !isSpell(id)),
+    [...new Set(cards.filter((id) => !isSpell(id)))],
     difficulty,
     seed,
-    enemyCards.filter((id) => !isSpell(id)),
+    [...new Set(enemyCards.filter((id) => !isSpell(id)))],
     content,
     {},
     {

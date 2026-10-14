@@ -1,4 +1,5 @@
 import { validateContent } from '../data/content';
+import { DEFAULT_ENGAGE } from '../data/abilities';
 import { api } from '../services/api';
 import { esc } from './html';
 import { AssetPreview } from './preview';
@@ -16,7 +17,7 @@ function render() {
   document.querySelector<HTMLAudioElement>('#sound-preview')?.pause();
   preview?.dispose();
   preview = undefined;
-  root.innerHTML = `<aside><a class="studio-brand" href="/">◈ <b>KORA WAR</b><small>CONTENT STUDIO</small></a><nav>${sections.map(([id, icon, name]) => `<button data-section="${id}" class="${section === id ? 'active' : ''}"><i>${icon}</i>${name}</button>`).join('')}</nav><div class="sidebar-footer"><span class="live-dot"></span> ${state.assetService?.available ? 'PostgreSQL assets · ' + esc(state.assetService.storage) : 'SQLite · Local workspace'}<small>Revision ${state.revision}</small><button id="logout">Đăng xuất ↗</button></div></aside><main><header><div><small>WORKSPACE / ${esc(sections.find((s) => s[0] === section)?.[2])}</small><h1>${esc(sections.find((s) => s[0] === section)?.[2])}</h1></div><div class="header-actions"><span id="dirty">${dirty ? '● Chưa lưu' : '✓ Đã lưu'}</span><button id="save">Lưu bản nháp</button><button id="publish" class="gold">Phát hành ↗</button></div></header><div id="notice" role="status"></div><div class="page">${renderStudioPage(state, section, hero, selectedAsset)}</div></main>`;
+  root.innerHTML = `<aside><a class="studio-brand" href="/">◈ <b>KORA WAR</b><small>CONTENT STUDIO</small></a><nav>${sections.map(([id, icon, name]) => `<button data-section="${id}" class="${section === id ? 'active' : ''}"><i>${icon}</i>${name}</button>`).join('')}</nav><div class="sidebar-footer"><span class="live-dot"></span> ${state.assetService?.available ? 'PostgreSQL assets · ' + esc(state.assetService.storage) : 'SQLite · Local workspace'}<small>Gameplay config · SQLite</small><small>Revision ${state.revision}</small><button id="logout">Đăng xuất ↗</button></div></aside><main><header><div><small>WORKSPACE / ${esc(sections.find((s) => s[0] === section)?.[2])}</small><h1>${esc(sections.find((s) => s[0] === section)?.[2])}</h1></div><div class="header-actions"><span id="dirty">${dirty ? '● Chưa lưu' : '✓ Đã lưu'}</span><button id="save">Lưu bản nháp</button><button id="publish" class="gold">Phát hành ↗</button></div></header><div id="notice" role="status"></div><div class="page">${renderStudioPage(state, section, hero, selectedAsset)}</div></main>`;
   document.querySelectorAll<HTMLButtonElement>('[data-section]').forEach(
     (b) =>
       (b.onclick = () => {
@@ -28,14 +29,7 @@ function render() {
     (el) =>
       (el.onchange = () => {
         try {
-          setPath(
-            el.dataset.path!,
-            el instanceof HTMLInputElement && el.type === 'number'
-              ? el.value === ''
-                ? undefined
-                : Number(el.value)
-              : el.value,
-          );
+          readField(el);
           if (el.dataset.path!.startsWith('abilities.')) syncAbilityJSON();
           markDirty();
           if (el.dataset.path!.startsWith('models.') && state.draft.models[hero])
@@ -50,12 +44,47 @@ function render() {
       (el.onchange = () => {
         try {
           setPath(el.dataset.json!, JSON.parse(el.value));
+          const prefix = el.dataset.json!;
+          document.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-path]').forEach((field) => {
+            if (!field.dataset.path!.startsWith(prefix + '.')) return;
+            const value = field.dataset
+              .path!.split('.')
+              .reduce<unknown>(
+                (v, k) => (v && typeof v === 'object' ? (v as Record<string, unknown>)[k] : undefined),
+                state.draft,
+              );
+            field.value = value === undefined ? '' : String(value);
+          });
+          document.querySelectorAll<HTMLInputElement>('[data-bool]').forEach((field) => {
+            if (field.dataset.bool!.startsWith(prefix + '.'))
+              field.checked = Boolean(
+                field.dataset
+                  .bool!.split('.')
+                  .reduce<unknown>(
+                    (v, k) => (v && typeof v === 'object' ? (v as Record<string, unknown>)[k] : undefined),
+                    state.draft,
+                  ),
+              );
+          });
           markDirty();
         } catch {
           notice('JSON chưa hợp lệ; nội dung này chưa được áp dụng.');
         }
       }),
   );
+  document.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-path]').forEach((el) => {
+    el.oninput = () => {
+      readField(el);
+      if (el.dataset.path!.startsWith('abilities.')) syncAbilityJSON();
+      markDirty();
+    };
+  });
+  document.querySelectorAll<HTMLTextAreaElement>('[data-json]').forEach((el) => {
+    el.oninput = () => {
+      el.dataset.edited = 'true';
+      markDirty();
+    };
+  });
   $('#save').onclick = () => void task(save);
   $('#publish').onclick = () =>
     void task(async () => {
@@ -74,6 +103,17 @@ function render() {
 function $(selector: string) {
   return document.querySelector<HTMLElement>(selector)!;
 }
+function readField(el: HTMLInputElement | HTMLSelectElement) {
+  if (el.dataset.path!.startsWith('models.') && !state.draft.models[hero]) return;
+  setPath(
+    el.dataset.path!,
+    el instanceof HTMLInputElement && el.type === 'number'
+      ? el.value === ''
+        ? undefined
+        : Number(el.value)
+      : el.value,
+  );
+}
 function setPath(path: string, value: unknown) {
   const keys = path.split('.');
   let target: unknown = state.draft;
@@ -88,7 +128,10 @@ function setPath(path: string, value: unknown) {
 }
 function syncAbilityJSON() {
   const field = document.querySelector<HTMLTextAreaElement>(`[data-json="abilities.${hero}"]`);
-  if (field) field.value = JSON.stringify(state.draft.abilities[hero], null, 2);
+  if (field) {
+    field.value = JSON.stringify(state.draft.abilities[hero], null, 2);
+    delete field.dataset.edited;
+  }
 }
 function markDirty() {
   dirty = true;
@@ -114,7 +157,15 @@ async function load() {
   render();
 }
 async function save() {
+  document.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-path]').forEach(readField);
+  document
+    .querySelectorAll<HTMLInputElement>('[data-bool]')
+    .forEach((el) => setPath(el.dataset.bool!, el.checked));
+  document
+    .querySelectorAll<HTMLTextAreaElement>('[data-card-list]')
+    .forEach((el) => setPath(el.dataset.cardList!, el.value.split(/[\s,]+/).filter(Boolean)));
   for (const field of Array.from(document.querySelectorAll<HTMLTextAreaElement>('[data-json]'))) {
+    if (!field.dataset.edited) continue;
     try {
       setPath(field.dataset.json!, JSON.parse(field.value));
     } catch {
@@ -127,11 +178,47 @@ async function save() {
     version: state.version,
   });
   Object.assign(state, updated);
+  document.querySelectorAll<HTMLTextAreaElement>('[data-json]').forEach((el) => {
+    delete el.dataset.edited;
+  });
   dirty = false;
   $('#dirty').textContent = '✓ Đã lưu';
   notice('Đã lưu bản nháp.');
 }
 function wire() {
+  const addEngage = document.querySelector<HTMLButtonElement>('#add-engage');
+  if (addEngage)
+    addEngage.onclick = () => {
+      state.draft.abilities[hero].engage = { ...DEFAULT_ENGAGE, enabled: false };
+      dirty = true;
+      render();
+    };
+  document.querySelectorAll<HTMLTextAreaElement>('[data-card-list]').forEach((el) => {
+    el.onchange = () => {
+      setPath(el.dataset.cardList!, el.value.split(/[\s,]+/).filter(Boolean));
+      markDirty();
+    };
+  });
+  const effectList = (path: string) =>
+    path.split('.').reduce<unknown>((v, k) => (v as Record<string, unknown>)[k], state.draft) as unknown[];
+  document.querySelectorAll<HTMLButtonElement>('[data-config-add]').forEach((button) => {
+    button.onclick = () => {
+      effectList(button.dataset.configAdd!).push(
+        button.dataset.effectType === 'spell'
+          ? { kind: 'damage', amount: 25 }
+          : { kind: 'attack', amount: 1.1 },
+      );
+      dirty = true;
+      render();
+    };
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-config-remove]').forEach((button) => {
+    button.onclick = () => {
+      effectList(button.dataset.configRemove!).splice(Number(button.dataset.index), 1);
+      dirty = true;
+      render();
+    };
+  });
   document.querySelectorAll<HTMLSelectElement>('[data-vfx-spell]').forEach((el) => {
     el.onchange = () => {
       setPath(

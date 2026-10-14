@@ -2,6 +2,8 @@
 
 ## Các quyết định mới đã chốt ngày 14/10/2026
 
+- Người dùng chọn giữ gameplay đã chốt và ưu tiên cấu hình đầy đủ từ database. `ContentConfig.gameplay` trong SQLite là nguồn luật cho trận `cycle-v1` mới; admin lưu nháp/phát hành revision. Không thêm cơ chế mới ngoài phạm vi đã xác nhận.
+- Mỗi trận khóa bản sao content; publish không sửa trận/replay đang tồn tại. Các preset trong `src/data` chỉ khởi tạo database, demo offline và tương thích replay cũ. Không thêm thông số cân bằng live vào core/rendering/UI.
 - Gameplay hiện hành dùng `cycle-v1`: deck 14 thẻ khác nhau, mỗi thẻ 1 bản; tay 6 thẻ. Quyết định này thay thế deck cố định 4 tướng + 2 phép trong app mới.
 - Xáo theo seed trước trận; bài mở đầu có ít nhất 4 tướng và 1 phép. Người chơi được giữ bài hoặc đổi tối đa 2 thẻ một lần trước combat, vẫn giữ bảo đảm thành phần mở đầu.
 - Dùng thẻ thì rút thẻ kế tiếp vào đúng ô vừa dùng. Hết chồng rút chỉ xáo các thẻ đã dùng, giữ nguyên 6 thẻ trên tay; không xáo toàn deck mỗi lượt rút.

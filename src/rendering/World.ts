@@ -17,7 +17,8 @@ import {
 } from './resources';
 import { TerrainStyle } from './terrain-style';
 import { SpriteEffects } from './vfx/sprite-effects';
-import { SPELLS, type SpellId } from '../data/spells';
+import { type SpellId } from '../data/spells';
+import { gameplayOf, COMPAT_GAMEPLAY } from '../data/gameplay';
 import { SpellEffects } from './vfx/spell-effects';
 import { ArenaCamera } from './arena-camera';
 import { ArenaAtmosphere } from './arena-atmosphere';
@@ -211,6 +212,11 @@ export class World {
   }
   async prepareContent(content: ContentConfig) {
     this.content = content;
+    const board = gameplayOf(content).board;
+    for (const zone of this.deployZone.children) {
+      zone.position.x = -(board.spawnMin + board.spawnMax) / 2;
+      zone.scale.set((board.spawnMax - board.spawnMin) / 7.7, (board.halfWidth * 2) / 2.9, 1);
+    }
     this.scene.background = new THREE.Color(content.map.background);
     this.scene.fog = new THREE.FogExp2(content.map.background, 0.011);
     this.renderer.toneMappingExposure = content.map.exposure;
@@ -305,7 +311,7 @@ export class World {
     model.removeFromParent();
     return url;
   }
-  pick(clientX: number, clientY: number, spellTarget = false, friendly = false) {
+  pick(clientX: number, clientY: number, spellTarget = false, friendly: boolean | 'all' = false) {
     const r = this.canvas.getBoundingClientRect();
     this.pointer.set(((clientX - r.left) / r.width) * 2 - 1, (-(clientY - r.top) / r.height) * 2 + 1);
     this.ray.setFromCamera(this.pointer, this.camera);
@@ -318,7 +324,7 @@ export class World {
         distance = Infinity;
       for (const visual of this.units.values()) {
         const unit = visual.unit;
-        if (unit.side !== (friendly ? 0 : 1) || unit.hp <= 0) continue;
+        if ((friendly !== 'all' && unit.side !== (friendly ? 0 : 1)) || unit.hp <= 0) continue;
         const position = visual.group.position;
         const height = (this.content?.models[unit.heroId]?.height ?? 2.65) * visual.group.scale.y;
         box.min.set(position.x - 0.7, position.y, position.z - 0.7);
@@ -337,17 +343,28 @@ export class World {
     }
     const hit = this.ray.ray.intersectPlane(this.plane, new THREE.Vector3());
     if (!hit) return null;
-    const point = pickDeployment(hit.x, hit.z);
-    return { ...point, spellValid: Math.abs(hit.x) <= 14 && Math.abs(hit.z - LANES[point.lane]) < 1.55 };
+    const board = this.content ? gameplayOf(this.content).board : COMPAT_GAMEPLAY.board;
+    const point = pickDeployment(hit.x, hit.z, 0, board);
+    return {
+      ...point,
+      spellValid:
+        hit.x >= board.minX && hit.x <= board.maxX && Math.abs(hit.z - LANES[point.lane]) < board.halfWidth,
+    };
   }
   setHover(clientX: number, clientY: number, ability = false, spellId?: SpellId) {
     const p = this.pick(
       clientX,
       clientY,
       !!spellId,
-      !!spellId && ['heal', 'shield', 'haste'].includes(spellId),
+      spellId
+        ? (this.content ? gameplayOf(this.content) : COMPAT_GAMEPLAY).spells[spellId].target === 'all'
+          ? 'all'
+          : (this.content ? gameplayOf(this.content) : COMPAT_GAMEPLAY).spells[spellId].target === 'ally'
+        : false,
     );
-    const spell = spellId ? SPELLS[spellId] : undefined;
+    const spell = spellId
+      ? (this.content ? gameplayOf(this.content) : COMPAT_GAMEPLAY).spells[spellId]
+      : undefined;
     this.hoverRing.visible = !!p && (ability || spell ? p.spellValid : p.valid);
     if (p) {
       this.hoverRing.position.set(p.x, 0.27, LANES[p.lane]);
@@ -627,7 +644,9 @@ export class World {
       v.shield.position.addScaledVector(barRight, (v.shield.scale.x - 0.94) / 2);
       v.shield.visible = u.shield > 0;
     }
+    this.spellEffects.setConfig(battle.gameplay);
     this.spellEffects.update(battle.spellZones, battle.tactical ? battle.units : [], battle.time, this.clock);
+    for (const tower of battle.towers) this.towerMeshes.get(tower.id)?.position.setX(tower.x);
     this.contactShadows.end();
     this.numbers.update(animationDt, this.camera);
     this.structures.update(battle.towers, this.towerMeshes, animationDt);
@@ -673,7 +692,10 @@ export class World {
         this.corpses.splice(i, 1);
       }
     }
-    this.coreModels.forEach((model, side) => model.root.scale.setScalar(battle.cores[side] <= 0 ? 0.05 : 1));
+    this.coreModels.forEach((model, side) => {
+      model.root.scale.setScalar(battle.cores[side] <= 0 ? 0.05 : 1);
+      model.root.position.x = (side ? 1 : -1) * (battle.gameplay.board.coreX + 1);
+    });
     this.mapInstances.forEach((model) => model.tick(animationDt));
     this.syncUnitBatches();
     this.renderer.render(this.scene, this.camera);

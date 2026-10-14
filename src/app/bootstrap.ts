@@ -1,7 +1,7 @@
 import { type Difficulty } from '../core/index';
 import { tacticalBattle } from '../core/tactical';
 import { cycleBattle } from '../core/cycle-battle';
-import { DEFAULT_CARD_DECK } from '../data/card-decks';
+import { gameplayOf, fitDeck, synergyDescription, type TraitId } from '../data/gameplay';
 import { spellCard } from '../ui/spell-card';
 import { openingHand } from '../ui/screens/opening-hand';
 import { SPELLS, isSpell } from '../data/spells';
@@ -39,30 +39,39 @@ const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
 lifetime.defer(() => inputLifetime.abort());
 validateGameData();
-const HEROES = gameSession.content.heroes.map((hero) =>
-  hero.id === 'nyx'
-    ? { ...hero, description: 'Ám Kích ưu tiên Du Hiệp phía sau trong 5m, áp sát và gây 120 sát thương.' }
-    : hero,
-);
+const HEROES = gameSession.content.heroes;
 const HERO_MAP = Object.fromEntries(HEROES.map((h) => [h.id, h]));
 const RULES = gameSession.content.rules;
+const GAMEPLAY = gameplayOf(gameSession.content);
 const pvp = lifetime.own(new PvpSession());
 let onlineStarted = false;
-let saved = parseSave(null);
+let saved = parseSave(null, GAMEPLAY);
 try {
-  saved = loadSave(localStorage);
+  saved = loadSave(localStorage, GAMEPLAY);
 } catch {
   /* Storage may be disabled. */
 }
 let deck = saved.deck;
 let spells = saved.spells;
-let cardDeck = saved.cards ?? [...new Set([...deck, ...spells, ...DEFAULT_CARD_DECK])].slice(0, 14);
-deck = cardDeck.filter((id) => !isSpell(id));
+let cardDeck = fitDeck(
+  saved.cards ??
+    [...new Set([...deck, ...spells, ...GAMEPLAY.deck.defaultCards])].slice(0, GAMEPLAY.deck.size),
+  GAMEPLAY,
+);
+deck = [...new Set(cardDeck.filter((id) => !isSpell(id)))];
 spells = cardDeck.filter(isSpell);
 let selectedUid: number | undefined;
+let gestureUid: number | undefined;
 let handSignature = '',
   openingKey = '';
-const cardInfo = (id: string) => (isSpell(id) ? SPELLS[id] : HERO_MAP[id]);
+const activeGameplay = () => (mode === 'battle' ? battle.gameplay : GAMEPLAY);
+const cardInfo = (id: string) => (isSpell(id) ? activeGameplay().spells[id] : HERO_MAP[id]);
+const renderSpell = (id: keyof typeof SPELLS, index: number, roster = false) =>
+  spellCard(id, index, roster, activeGameplay().spells);
+const spellTarget = (id: string): boolean | 'all' =>
+  isSpell(id) && activeGameplay().spells[id].target === 'all'
+    ? 'all'
+    : isSpell(id) && activeGameplay().spells[id].target === 'ally';
 let difficulty: Difficulty = saved.difficulty;
 let wins = saved.wins,
   mode: 'lobby' | 'battle' = 'lobby',
@@ -102,6 +111,7 @@ function persist() {
   }
 }
 $('#app').innerHTML = renderShell();
+$('#home-roster .tile-note').textContent = `${GAMEPLAY.deck.size} thẻ · tay ${GAMEPLAY.deck.handSize} thẻ`;
 let world: World;
 try {
   world = new World($('#stage'));
@@ -133,30 +143,36 @@ function renderDeck() {
   const cards =
     mode === 'battle' && battle.cycling
       ? battle.hands[0]
-      : (mode === 'battle' ? [...deck, ...spells] : cardDeck.slice(0, 6)).map((id, i) => ({ id, uid: -i }));
+      : (mode === 'battle' ? [...deck, ...spells] : cardDeck.slice(0, GAMEPLAY.deck.handSize)).map(
+          (id, i) => ({ id, uid: -i }),
+        );
   handSignature = cards.map((card) => `${card.uid}:${card.id}`).join('|');
+  $('#hand').classList.toggle('large-hand', cards.length > 6);
   $('#hand').innerHTML = cards
-    .map(({ id }, i) => (isSpell(id) ? spellCard(id, i) : card(HERO_MAP[id], i)))
+    .map(({ id }, i) => (isSpell(id) ? renderSpell(id, i) : card(HERO_MAP[id], i)))
     .join('');
-  const counts = traits(deck);
+  const counts = traits([...new Set(deck)]);
   $('#synergies').innerHTML =
     Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
-      .filter(([, n]) => n >= 2)
+      .filter(([id, n]) => n >= activeGameplay().synergies[id as TraitId].required)
       .map(([id, n]) => {
         const t = { ...ORIGINS, ...ROLES }[id as keyof typeof ORIGINS] || ROLES[id as keyof typeof ROLES];
-        return `<div class="trait-pill" title="${t.effect}"><span>${t.icon}</span><div><b>${t.name}</b><small>${n}/2 · Kích hoạt</small></div><em>✦</em></div>`;
+        return `<div class="trait-pill" title="${escapeHTML(synergyDescription(activeGameplay(), id as TraitId))}"><span>${t.icon}</span><div><b>${t.name}</b><small>${n}/${activeGameplay().synergies[id as TraitId].required} · Kích hoạt</small></div><em>✦</em></div>`;
       })
-      .join('') || '<p class="no-traits">Ghép 2 tướng cùng hệ hoặc tộc để kích hoạt cộng hưởng.</p>';
+      .join('') || '<p class="no-traits">Ghép tướng cùng hệ hoặc tộc để đạt ngưỡng cộng hưởng.</p>';
   document.querySelectorAll<HTMLButtonElement>('#hand .hero-card').forEach((button, index) => {
     const uid = String(cards[index].uid);
     button.dataset.cardUid = uid;
     button.classList.toggle('drawn-card', !previousUids.has(uid));
     button.addEventListener('click', () => {
       if (gestures.suppressClick) return;
-      selectCard(button.dataset.hero!);
+      selectCard(button.dataset.hero!, Number(button.dataset.cardUid));
     });
-    button.addEventListener('pointerdown', (e) => gestures.begin(e, button.dataset.hero!));
+    button.addEventListener('pointerdown', (e) => {
+      gestureUid = Number(button.dataset.cardUid);
+      gestures.begin(e, button.dataset.hero!);
+    });
     button.addEventListener('mouseenter', () => {
       if (!gestures.active) showTooltip(button.dataset.hero!, button);
     });
@@ -193,16 +209,21 @@ function clearSelection() {
 function updateSelection() {
   document
     .querySelectorAll<HTMLElement>('#hand .hero-card')
-    .forEach((b) => b.classList.toggle('selected', b.dataset.hero === selected));
+    .forEach((b) =>
+      b.classList.toggle(
+        'selected',
+        b.dataset.hero === selected && (!battle.cycling || Number(b.dataset.cardUid) === selectedUid),
+      ),
+    );
   $('#pulse').classList.toggle('selected', skillSelected);
   $('#selection-hint').innerHTML = skillSelected
     ? 'Chọn chiến tuyến để gây sát thương và hồi máu đồng minh.'
     : selected
-      ? `<b>${cardInfo(selected).name}</b> · ${isSpell(selected) ? 'Chạm vị trí bất kỳ trên lane để dùng phép.' : 'Chạm vùng sáng hoặc chọn đường để thả quân.'}`
-      : 'Chọn thẻ 1–6 · tướng bên trái, phép trên chiến trường.';
+      ? `<b>${escapeHTML(cardInfo(selected).name)}</b> · ${isSpell(selected) ? 'Chạm vị trí bất kỳ trên lane để dùng phép.' : 'Chạm vùng sáng hoặc chọn đường để thả quân.'}`
+      : `Chọn thẻ 1–${activeGameplay().deck.handSize} · tướng bên trái, phép trên chiến trường.`;
   $('.lane-shortcuts').hidden = mode !== 'battle' || (!selected && !skillSelected);
 }
-function selectCard(id: string) {
+function selectCard(id: string, uid?: number) {
   if (landscape.blocked) return;
   if (mode === 'lobby') {
     openRoster(id);
@@ -215,8 +236,9 @@ function selectCard(id: string) {
     toast(`Chưa đủ mana · ${cardInfo(id).name} cần ${cardInfo(id).cost}`);
     return;
   }
-  selected = selected === id ? null : id;
-  selectedUid = selected ? battle.hands[0].find((card) => card.id === selected)?.uid : undefined;
+  const heldUid = uid ?? battle.hands[0].find((card) => card.id === id)?.uid;
+  selected = selected === id && selectedUid === heldUid ? null : id;
+  selectedUid = selected ? heldUid : undefined;
   skillSelected = false;
   selectionRevision++;
   updateSelection();
@@ -226,7 +248,10 @@ function selectCard(id: string) {
   }
   sound.tone('click');
 }
-async function deploy(lane: number, x = selected && isSpell(selected) ? 0 : -11) {
+async function deploy(
+  lane: number,
+  x = selected && isSpell(selected) ? 0 : -battle.gameplay.board.quickSpawnX,
+) {
   if (mode !== 'battle' || landscape.blocked) return;
   sound.unlock();
   let error: string | null;
@@ -392,7 +417,7 @@ function showOpening() {
   }
   openingHand(
     battle.hands[0],
-    (id, i) => (isSpell(id) ? spellCard(id, i) : card(HERO_MAP[id], i)),
+    (id, i) => (isSpell(id) ? renderSpell(id, i) : card(HERO_MAP[id], i)),
     async (uids) => {
       if (pvp.active) return pvp.command('mulligan', undefined, 0, 0, undefined, uids);
       const error = battle.mulligan(0, uids);
@@ -409,6 +434,7 @@ function showOpening() {
     },
     toast,
     lobby,
+    battle.gameplay,
   );
 }
 function lobby() {
@@ -444,7 +470,7 @@ function lobby() {
   $('.map-note').hidden = false;
   $('#tutorial-hint').hidden = true;
   $('#hand-caption').textContent = 'ĐỘI HÌNH XUẤT TRẬN';
-  $('#hand-tip').textContent = '14 thẻ · mỗi thẻ 1 bản';
+  $('#hand-tip').textContent = `${GAMEPLAY.deck.size} thẻ · tối đa ${GAMEPLAY.deck.maxCopies} bản/thẻ`;
   renderDeck();
   preview();
   updateHud();
@@ -474,12 +500,16 @@ function updateHud() {
       $('#draw-count').textContent = String(info.remaining);
       $('#draw-detail').textContent = `Vòng ${info.cycle} · ${info.discarded} đã dùng`;
       $('#enemy-hand-count').textContent = String(
-        battle.hands[1].length || (pvp.packet?.state?.opponentHandCount ?? 6),
+        battle.hands[1].length || (pvp.packet?.state?.opponentHandCount ?? battle.gameplay.deck.handSize),
       );
     }
     $('#timer').textContent = formatTime(battle.time);
     $('#phase-label').textContent =
-      battle.time >= 180 ? 'LÕI ĐANG QUÁ TẢI' : battle.phase === 'paused' ? 'TẠM DỪNG' : 'TRANH ĐOẠT LÕI';
+      battle.time >= battle.content.rules.overtimeAt
+        ? 'LÕI ĐANG QUÁ TẢI'
+        : battle.phase === 'paused'
+          ? 'TẠM DỪNG'
+          : 'TRANH ĐOẠT LÕI';
     for (const [side, label] of [
       [0, 'ally'],
       [1, 'enemy'],
@@ -491,25 +521,26 @@ function updateHud() {
     }
     $('#mana').textContent = Math.floor(battle.mana[0]).toString();
     $('#mana-track').innerHTML = Array.from(
-      { length: 10 },
+      { length: battle.content.rules.maxMana },
       (_, i) => `<span><i style="width:${Math.max(0, Math.min(1, battle.mana[0] - i)) * 100}%"></i></span>`,
     ).join('');
     $('#mana-regen').textContent =
-      `+${(battle.content.rules.manaPerSecond * (battle.has(0, 'storm') ? 1.2 : 1)).toLocaleString('vi', { maximumFractionDigits: 2 })} / giây`;
+      `+${(battle.content.rules.manaPerSecond * battle.buff(0, undefined, 'mana', 1)).toLocaleString('vi', { maximumFractionDigits: 2 })} / giây`;
     document.querySelectorAll<HTMLElement>('#hand .hero-card').forEach((el) => {
       const id = el.dataset.hero!,
         remaining = Math.max(0, (battle.cooldowns[0][id] || 0) - battle.time);
+      const cooldown = isSpell(id) ? activeGameplay().spells[id].cooldown : RULES.cardCooldown;
       el.classList.toggle('unaffordable', battle.mana[0] < cardInfo(id).cost);
-      el.style.setProperty(
-        '--cooldown',
-        `${(remaining / (isSpell(id) ? SPELLS[id].cooldown : RULES.cardCooldown)) * 100}%`,
-      );
+      el.style.setProperty('--cooldown', `${(cooldown > 0 ? remaining / cooldown : 0) * 100}%`);
     });
     const energy = battle.resonance[0];
+    $('#pulse').hidden = !battle.gameplay.resonance.enabled;
     $('#pulse-value').textContent =
-      energy >= 100 ? 'Sẵn sàng · Chọn một chiến tuyến' : `Đang tích năng lượng · ${Math.floor(energy)}%`;
-    $('#pulse-fill').style.width = `${energy}%`;
-    $('#pulse').classList.toggle('charged', energy >= 100);
+      energy >= battle.gameplay.resonance.cap
+        ? 'Sẵn sàng · Chọn một chiến tuyến'
+        : `Đang tích năng lượng · ${Math.floor((energy / battle.gameplay.resonance.cap) * 100)}%`;
+    $('#pulse-fill').style.width = `${(energy / battle.gameplay.resonance.cap) * 100}%`;
+    $('#pulse').classList.toggle('charged', energy >= battle.gameplay.resonance.cap);
     $('#objective p').textContent = battle.stats[0].towers
       ? `${battle.stats[0].towers}/3 trụ đã phá · Tiếp tục tấn công lõi.`
       : 'Phá trụ một đường → đánh sập lõi đối phương.';
@@ -523,6 +554,9 @@ function updateHud() {
   }
 }
 const screenContext: ScreenContext = {
+  get gameplay() {
+    return activeGameplay();
+  },
   heroes: HEROES,
   heroMap: HERO_MAP,
   get cards() {
@@ -620,13 +654,13 @@ const gestures = lifetime.own(
     move: (id, x, y) => {
       if (selected !== id || skillSelected) selectionRevision++;
       selected = id;
-      selectedUid = battle.hands[0].find((card) => card.id === id)?.uid;
+      selectedUid = gestureUid ?? battle.hands[0].find((card) => card.id === id)?.uid;
       skillSelected = false;
       updateSelection();
       const ghost = $('#drag-ghost');
       ghost.hidden = false;
       ghost.innerHTML = isSpell(id)
-        ? `<span class="spell-symbol">${SPELLS[id].icon}</span>`
+        ? `<span class="spell-symbol">${escapeHTML(activeGameplay().spells[id].icon)}</span>`
         : `<img src="${portraits[id]}" alt=""/>`;
       ghost.style.transform = `translate(${x - 35}px,${y - 90}px)`;
       world.setHover(x, y, isSpell(id), isSpell(id) ? id : undefined);
@@ -637,10 +671,10 @@ const gestures = lifetime.own(
         clearSelection();
         return;
       }
-      const point = world.pick(x, y, isSpell(id), ['heal', 'shield', 'haste'].includes(id));
+      const point = world.pick(x, y, isSpell(id), spellTarget(id));
       if (point && (isSpell(id) ? point.spellValid : point.valid)) {
         selected = id;
-        selectedUid = battle.hands[0].find((card) => card.id === id)?.uid;
+        selectedUid = gestureUid ?? battle.hands[0].find((card) => card.id === id)?.uid;
         skillSelected = false;
         selectionRevision++;
         deploy(point.lane, point.x);
@@ -653,6 +687,7 @@ const gestures = lifetime.own(
     cancel: () => clearSelection(),
     end: () => {
       $('#drag-ghost').hidden = true;
+      gestureUid = undefined;
     },
   }),
 );
@@ -711,7 +746,7 @@ world.canvas.addEventListener(
       e.clientX,
       e.clientY,
       !!selected && isSpell(selected),
-      !!selected && ['heal', 'shield', 'haste'].includes(selected),
+      !!selected && spellTarget(selected!),
     );
     if (!p) return;
     if (skillSelected) deploy(p.lane);
@@ -727,7 +762,7 @@ document
   .forEach((b) => (b.onclick = () => deploy(Number(b.dataset.lane))));
 $('#pulse').onclick = () => {
   if (battle.phase !== 'playing') return;
-  if (battle.resonance[0] < 100) {
+  if (battle.resonance[0] < battle.gameplay.resonance.cap) {
     toast('Gây sát thương để tích đầy Cộng Hưởng Lõi.');
     return;
   }
@@ -769,8 +804,8 @@ $('#debug-toggle').onclick = toggleDebug;
 $('#debug-close').onclick = toggleDebug;
 $('#debug-mana').onclick = () => {
   if (!pvp.active && mode === 'battle') {
-    battle.mana[0] = 10;
-    battle.resonance[0] = 100;
+    battle.mana[0] = battle.content.rules.maxMana;
+    battle.resonance[0] = battle.gameplay.resonance.cap;
     battle.debugUsed = true;
     toast('Debug: mana và cộng hưởng đã đầy.');
   }
@@ -857,11 +892,10 @@ document.addEventListener(
       else pause();
     }
     if (battle.phase !== 'playing') return;
-    if (/^[1-6]$/.test(e.key)) {
-      const id = battle.cycling
-        ? battle.hands[0][Number(e.key) - 1]?.id
-        : [...deck, ...spells][Number(e.key) - 1];
-      if (id) selectCard(id);
+    if (/^[0-9]$/.test(e.key)) {
+      const index = e.key === '0' ? 9 : Number(e.key) - 1;
+      const id = battle.cycling ? battle.hands[0][index]?.id : [...deck, ...spells][index];
+      if (id) selectCard(id, battle.hands[0][index]?.uid);
     }
     if (e.key.toLowerCase() === 'q') $('#pulse').click();
     const lane = ['w', 'e', 'r'].indexOf(e.key.toLowerCase());
@@ -921,7 +955,7 @@ pvp.onState = (packet: PvpPacket) => {
     closeModal();
     world.reset();
     battle = packet.loadout.cards
-      ? cycleBattle(cardDeck, packet.content, 1, DEFAULT_CARD_DECK)
+      ? cycleBattle(cardDeck, packet.content, 1, cardDeck)
       : tacticalBattle(
           deck,
           spells,

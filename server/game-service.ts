@@ -7,6 +7,7 @@ import type { GameDatabase } from './database';
 import { tacticalBattle } from '../src/core/tactical';
 import { validateSpellDeck, type SpellId } from '../src/data/spells';
 import { cycleBattle } from '../src/core/cycle-battle';
+import { gameplayOf } from '../src/data/gameplay';
 export interface Command {
   tick: number;
   type: 'play' | 'pulse' | 'spell' | 'mulligan';
@@ -72,12 +73,14 @@ export function finishMatch(
   if (match.result) return JSON.parse(match.result);
   if (debug) throw new Error('Trận debug không nhận thưởng.');
   if (!Array.isArray(commands) || commands.length > 2000) throw new Error('Command log không hợp lệ.');
+  const content = JSON.parse(match.content) as ContentConfig;
+  const maximumTicks = Math.ceil(gameplayOf(content).match.maximumSeconds * content.rules.tickRate);
   let lastTick = 0;
   for (const c of commands) {
     if (
       !Number.isInteger(c.tick) ||
       c.tick < lastTick ||
-      c.tick > 18000 ||
+      c.tick > maximumTicks ||
       !['play', 'pulse', 'spell', 'mulligan'].includes(c.type) ||
       !Number.isInteger(c.lane) ||
       c.lane < 0 ||
@@ -87,7 +90,6 @@ export function finishMatch(
       throw new Error('Lệnh trận không hợp lệ.');
     lastTick = c.tick;
   }
-  const content = JSON.parse(match.content) as ContentConfig;
   const savedDeck = JSON.parse(match.deck);
   const battle =
     savedDeck.ruleset === 'cycle-v1'
@@ -111,7 +113,7 @@ export function finishMatch(
       throw new Error('Đổi bài đầu trận không hợp lệ.');
   }
   battle.start();
-  while (battle.phase === 'playing' && battle.tick < 18000) {
+  while (battle.phase === 'playing' && battle.tick < maximumTicks) {
     while (commands[cursor]?.tick === battle.tick) {
       const c = commands[cursor++];
       if (battle.cycling && ['play', 'spell'].includes(c.type) && !Number.isSafeInteger(c.cardUid))
@@ -157,7 +159,10 @@ export function buyItem(store: GameDatabase, player: string, itemId: string, req
 export function openChest(store: GameDatabase, player: string, request: string) {
   return store.trade(player, request, () => {
     const c = store.config().published;
-    const rewards = Array.from({ length: 3 }, () => c.heroes[randomInt(c.heroes.length)].id);
+    const rewards = Array.from(
+      { length: gameplayOf(c).collection.chestDraws },
+      () => c.heroes[randomInt(c.heroes.length)].id,
+    );
     for (const id of rewards)
       store.db.prepare('UPDATE cards SET copies=copies+1 WHERE player=? AND hero=?').run(player, id);
     return {
@@ -173,11 +178,12 @@ export function upgradeCard(store: GameDatabase, player: string, hero: string, r
     const card = store.db
       .prepare('SELECT level,copies FROM cards WHERE player=? AND hero=?')
       .get(player, hero) as { level: number; copies: number } | undefined;
-    if (!card || card.level >= 10 || card.copies < card.level * 2)
-      throw new Error('Cần đủ mảnh thẻ, cấp tối đa 10.');
+    const collection = gameplayOf(store.config().published).collection;
+    if (!card || card.level >= collection.maxLevel || card.copies < card.level * collection.copiesPerLevel)
+      throw new Error(`Cần đủ mảnh thẻ, cấp tối đa ${collection.maxLevel}.`);
     store.db
       .prepare('UPDATE cards SET level=level+1,copies=copies-? WHERE player=? AND hero=?')
-      .run(card.level * 2, player, hero);
+      .run(card.level * collection.copiesPerLevel, player, hero);
     return {
       delta: -store.config().published.economy.upgradeBase * card.level,
       reason: `Nâng cấp ${hero}`,

@@ -54,7 +54,7 @@ Các file export tương thích ở gốc `src` giữ đường import cũ hoạ
 
 ## Luồng dữ liệu
 
-App hiện hành tạo `cycleBattle()` (`cycle-v1`): `DrawDeck` quản lý hand/pile/discard bằng PRNG của Battle, luật 14/6 trong `data/card-decks.ts`. `play`/`cast` xác thực UID, mana/cooldown/vị trí rồi mới tiêu thẻ và rút vào cùng ô. Mulligan chỉ ở phase ready; cả hai phía chốt mới chạy tick. `tacticalBattle()` và constructor legacy giữ đường replay/fixture cũ.
+App hiện hành tạo `cycleBattle()` (`cycle-v1`): `DrawDeck` quản lý hand/pile/discard bằng PRNG của Battle, đọc luật từ `content.gameplay` (mặc định 14/6). `play`/`cast` xác thực UID, mana/cooldown/vị trí rồi mới tiêu thẻ và rút vào cùng ô. Mulligan chỉ ở phase ready; cả hai phía chốt mới chạy tick. `tacticalBattle()` và constructor legacy giữ đường replay/fixture cũ.
 
 PvP chỉ trả tay của người xem, số thẻ đối thủ và thông tin chồng rút của mình; seed/pile/discard không truyền ra client. Client dùng `hands` nhận từ snapshot để kiểm tra chọn thẻ, không dùng DrawDeck dự phòng của renderer để quyết định lượt rút. Server sở hữu combat và rút bài. Replay luyện tập lưu `cycle-v1`, deck 14, chốt bài tick 0 và UID lệnh play/spell; save local có trường `cards`, vẫn đọc được key/schema cũ.
 
@@ -83,13 +83,13 @@ Các geometry/material dùng chung thuộc World, không bị hủy khi một un
 
 | Thay đổi | Nơi sửa chính | Kiểm tra |
 |---|---|---|
-| HP/mana/trụ/thời gian quá tải | `data/rules.ts` | regression và test luật |
-| Chỉ số/tên tướng | `data/heroes.ts` | validate và test deck/combat |
-| Sát thương/điều kiện kỹ năng | `data/abilities.ts` | test hiệu ứng và trận seeded |
+| HP/mana/trụ/thời gian quá tải | Admin Gameplay → database rules/gameplay | regression và test luật |
+| Chỉ số/tên tướng | Admin Nhân vật → database heroes | validate và test deck/combat |
+| Sát thương/điều kiện kỹ năng | Admin Nhân vật → database abilities | test hiệu ứng và trận seeded |
 | Mô hình/animation | `rendering/hero-model.ts` | hình ảnh, FPS, restart |
 | Map và cây/cầu | `rendering/environment.ts` | camera, vùng thả, mobile |
 | Cốt truyện | `data/story.ts` | màn hình mở đầu, hướng dẫn |
-| Chính sách AI | `core/ai/heuristic.ts` | trận seeded, ngân sách mana |
+| Deck, phép, synergy, AI | Admin Gameplay → database gameplay | trận seeded, ngân sách mana |
 
 Đã có Content Studio, GLB rigged animation và backend xác minh thưởng từ command log. Đã bổ sung PvP phòng riêng trên Node với reconnect cùng cookie; chưa persist trận qua server restart. `snapshot()` là ảnh chụp chẩn đoán, không phải save/restore trận đấu hoàn chỉnh. Những phần này cần triển khai riêng khi được chọn làm bước tiếp theo.
 
@@ -105,6 +105,6 @@ Các geometry/material dùng chung thuộc World, không bị hủy khi một un
 
 ## Tactical MVP và PvP
 
-`core/cycle-battle.ts` tạo luật hiện hành với 4 mana, deck 14/tay 6 và chỉ số chuẩn hóa. `core/tactical.ts` giữ bản 4 tướng + 2 phép để replay cũ tiếp tục hoạt động. `core/systems/spells.ts` validate/cast/update vùng phép; `data/spells.ts` giữ thông số. `Battle()` mặc định giữ compatibility với fixture/replay legacy.
+`core/cycle-battle.ts` tạo luật hiện hành từ content database, mặc định 4 mana, deck 14/tay 6 và chỉ số chuẩn hóa. `core/tactical.ts` giữ bản 4 tướng + 2 phép để replay cũ tiếp tục hoạt động. `core/systems/spells.ts` validate/cast/update vùng phép, `spell-effect.ts` diễn giải chuỗi hiệu ứng; `data/gameplay.ts` định nghĩa schema/validation/preset tương thích. `Battle()` mặc định giữ compatibility với fixture/replay legacy. Core không đọc database trực tiếp; app/server cấp content snapshot. Xem [cấu hình gameplay](GAMEPLAY-CONFIG.md).
 
 `server/pvp.ts` sở hữu Battle và đồng hồ server, nhận command có ID, khóa loadout và xác thực thành viên theo cookie gateway. `core/online-state.ts` trả bản sao state theo góc nhìn phe; `services/pvp-session.ts` poll khoảng 10 Hz, loại packet cũ theo version, giữ mã phòng cho reconnect. App online không gọi `step()`. Renderer đọc spell zones để vẽ cảnh báo. Room không persist; SignalR/PostgreSQL match persistence vẫn là bước sau.

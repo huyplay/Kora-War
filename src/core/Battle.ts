@@ -13,6 +13,14 @@ import type { Difficulty, GameEvent, Phase, Side, Stats, Tower, Unit } from './t
 import { validateSpellDeck, type SpellId } from '../data/spells';
 import { castSpell, validateSpell, updateSpells, type SpellZone } from './systems/spells';
 import { DrawDeck, type HandCard, type DrawInfo } from './draw-deck';
+import {
+  LEGACY_GAMEPLAY,
+  gameplayOf,
+  type GameplayConfig,
+  type BuffKind,
+  type TraitId,
+} from '../data/gameplay';
+import { DEFAULT_ENGAGE } from '../data/abilities';
 const freshStats = (): Stats => ({
   deployed: 0,
   kills: 0,
@@ -53,6 +61,7 @@ export class Battle {
   readonly levels: Record<string, number>;
   readonly tactical: boolean;
   readonly cycling: boolean;
+  readonly gameplay: GameplayConfig;
   drawDecks?: DrawDeck[];
   hands: HandCard[][] = [[], []];
   cardDrawInfo: DrawInfo[] = [];
@@ -76,14 +85,21 @@ export class Battle {
         throw new Error('Cấp tướng không hợp lệ.');
     this.tactical = !!options;
     this.cycling = !!options?.cardDecks;
+    this.gameplay = structuredClone(this.cycling ? gameplayOf(this.content) : LEGACY_GAMEPLAY);
+    if (this.cycling && !this.content.gameplay)
+      this.content.abilities.nyx.engage ??= structuredClone(DEFAULT_ENGAGE);
+    this.aiAt = this.gameplay.ai.firstDecision;
     if (options) {
       if (!this.cycling) options.spells.forEach(validateSpellDeck);
-      this.spellDecks = options.spells.map((d) => d.slice());
-      this.content.rules = { ...this.content.rules, startingMana: 4 };
+      this.spellDecks = options.spells.map((d) => [...new Set(d)]);
+      this.content.rules = {
+        ...this.content.rules,
+        startingMana: this.cycling ? this.gameplay.startingMana : 4,
+      };
     }
     this.levels = options ? {} : { ...levels };
     this.mana = [content.rules.startingMana, content.rules.startingMana];
-    if (options) this.mana = [4, 4];
+    if (options) this.mana = [this.content.rules.startingMana, this.content.rules.startingMana];
     this.cores = [content.rules.coreHp, content.rules.coreHp];
     this.maxCore = content.rules.coreHp;
     this.maxUnits = content.rules.maxUnits;
@@ -100,7 +116,9 @@ export class Battle {
     this.seed = seed >>> 0;
     this.rng = this.seed || 1;
     if (options?.cardDecks) {
-      this.drawDecks = options.cardDecks.map((cards) => new DrawDeck(cards, () => this.random()));
+      this.drawDecks = options.cardDecks.map(
+        (cards) => new DrawDeck(cards, () => this.random(), this.gameplay),
+      );
       this.hands = this.drawDecks.map((deck) => deck.hand);
       this.refreshDrawInfo();
     }
@@ -110,7 +128,7 @@ export class Battle {
           id: `${side}-${lane}`,
           side,
           lane,
-          x: side === 0 ? -9 : 9,
+          x: (side === 0 ? -1 : 1) * this.gameplay.board.towerX,
           hp: this.content.rules.towerHp,
           maxHp: this.content.rules.towerHp,
           cooldown: 0,
@@ -159,19 +177,50 @@ export class Battle {
       this.events.splice(0, this.events.length - this.content.rules.eventLimit);
   }
   has(side: Side, trait: string) {
-    return (this.synergies[side][trait] || 0) >= 2;
+    return (
+      (this.synergies[side][trait] || 0) >= (this.gameplay.synergies[trait as TraitId]?.required ?? Infinity)
+    );
   }
-  canPlay(side: Side, heroId: string, lane: number, x = side === 0 ? -12 : 12, uid?: number): string | null {
+  activeBuffs(side: Side, heroId?: string) {
+    const hero = heroId ? this.heroes[heroId] : undefined;
+    return Object.entries(this.gameplay.synergies).flatMap(([id, rule]) =>
+      this.has(side, id) && (rule.scope === 'team' || (hero && (hero.origin === id || hero.role === id)))
+        ? rule.effects
+        : [],
+    );
+  }
+  buff(side: Side, heroId: string | undefined, kind: BuffKind, initial: number) {
+    return this.activeBuffs(side, heroId)
+      .filter((effect) => effect.kind === kind)
+      .reduce(
+        (value, effect) =>
+          ['shield', 'regeneration'].includes(kind) ? value + effect.amount : value * effect.amount,
+        initial,
+      );
+  }
+  canPlay(
+    side: Side,
+    heroId: string,
+    lane: number,
+    x = (side === 0 ? -1 : 1) * this.gameplay.board.spawnX,
+    uid?: number,
+  ): string | null {
     return validateDeployment(this, side, heroId, lane, x, uid);
   }
-  play(side: Side, heroId: string, lane: number, x = side === 0 ? -12 : 12, uid?: number): string | null {
+  play(
+    side: Side,
+    heroId: string,
+    lane: number,
+    x = (side === 0 ? -1 : 1) * this.gameplay.board.spawnX,
+    uid?: number,
+  ): string | null {
     return deployUnit(this, side, heroId, lane, x, uid);
   }
   damage(target: Unit, amount: number, side: Side, source?: Unit) {
     return applyDamage(
       this,
       target,
-      amount * (source && (source.weakenUntil ?? 0) > this.time ? 0.7 : 1),
+      amount * (source && (source.weakenUntil ?? 0) > this.time ? (source.weakenFactor ?? 1) : 1),
       side,
       source,
     );
@@ -202,9 +251,7 @@ export class Battle {
     if (this.aiEnabled && this.time >= this.aiAt) {
       this.ai(1);
       this.aiAt =
-        this.time +
-        (this.difficulty === 'story' ? 2.6 : this.difficulty === 'hard' ? 0.8 : 1.5) +
-        this.random() * 0.5;
+        this.time + this.gameplay.ai[`${this.difficulty}Interval`] + this.random() * this.gameplay.ai.jitter;
     }
     updateUnits(this);
     if (this.tactical) updateSpells(this);

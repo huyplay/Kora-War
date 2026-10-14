@@ -26,6 +26,7 @@ export interface State {
 export const sections = [
   ['overview', '◈', 'Tổng quan'],
   ['heroes', '♜', 'Nhân vật'],
+  ['gameplay', '⚔', 'Gameplay'],
   ['assets', '⬡', 'Thư viện asset'],
   ['map', '▧', 'Màn chơi'],
   ['vfx', '✧', 'Hiệu ứng'],

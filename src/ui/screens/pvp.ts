@@ -1,4 +1,6 @@
 import { $, escapeHTML } from '../dom';
+import { gameplayOf } from '../../data/gameplay';
+import { gameSession } from '../../services/game-session';
 import { modal, closeModal } from '../modal';
 import type { PvpSession } from '../../services/pvp-session';
 import type { SpellId } from '../../data/spells';
@@ -10,8 +12,9 @@ export function pvpScreen(
   cards?: string[],
 ) {
   const code = session.packet?.code;
+  const config = gameplayOf(session.packet?.content ?? gameSession.content);
   modal(
-    `<div class="modal-content centered"><span class="eyebrow">ĐẤU ĐỐI KHÁNG · CHỈ SỐ CHUẨN HÓA</span><h2>PvP 1 đấu 1</h2>${code ? `<p>Mã phòng · gửi cho bạn chơi</p><strong class="room-code">${escapeHTML(code)}</strong><p id="pvp-status" role="status">Đang chờ đối thủ…</p><button class="secondary full" id="pvp-leave">Rời phòng</button>` : '<p>Deck 14 thẻ · tay 6 thẻ · chỉ số chuẩn hóa</p><button class="primary full" id="pvp-create">Tạo phòng</button><label class="room-label">Mã phòng<input id="pvp-code" maxlength="12" autocomplete="off" placeholder="Mã từ bạn chơi" /></label><button class="secondary full" id="pvp-join">Vào phòng</button><p id="pvp-status" role="status"></p><button class="text-button" id="pvp-close">Quay lại</button>'}</div>`,
+    `<div class="modal-content centered"><span class="eyebrow">ĐẤU ĐỐI KHÁNG · CHỈ SỐ CHUẨN HÓA</span><h2>PvP 1 đấu 1</h2>${code ? `<p>Mã phòng · gửi cho bạn chơi</p><strong class="room-code">${escapeHTML(code)}</strong><p id="pvp-status" role="status">Đang chờ đối thủ…</p><button class="secondary full" id="pvp-leave">Rời phòng</button>` : `<p>Deck ${config.deck.size} thẻ · tay ${config.deck.handSize} thẻ · chỉ số chuẩn hóa</p><button class="primary full" id="pvp-create">Tạo phòng</button><label class="room-label">Mã phòng<input id="pvp-code" maxlength="12" autocomplete="off" placeholder="Mã từ bạn chơi" /></label><button class="secondary full" id="pvp-join">Vào phòng</button><p id="pvp-status" role="status"></p><button class="text-button" id="pvp-close">Quay lại</button>`}</div>`,
   );
   const run = async (fn: () => Promise<void>) => {
     const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.modal button'));

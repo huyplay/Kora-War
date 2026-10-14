@@ -1,5 +1,6 @@
 import { SPELLS, type SpellId } from '../data/spells';
 import { escapeHTML } from './dom';
+import type { SpellConfig } from '../data/gameplay';
 const paths: Record<SpellId, string> = {
   fire: '<path d="M48 16c8 25-18 23-4 43 4-13 16-15 14-27 29 31 11 55-10 55S14 66 48 16Z"/>',
   ice: '<path d="m48 12 17 25-4 34-13 19-17-19-4-34Z"/><path d="m48 12 0 78M27 37l21 14 17-14M31 71l17-20 13 20" fill="none" stroke="#fff"/>',
@@ -13,8 +14,13 @@ const paths: Record<SpellId, string> = {
   haste:
     '<path d="m24 23 27 27-27 27 17 0 28-27-28-27Z"/><path d="M12 33h14M8 49h26M12 65h14" fill="none" stroke-width="5" stroke-linecap="round"/>',
 };
-export function spellCard(id: SpellId, index: number, roster = false) {
-  const spell = SPELLS[id];
+export function spellCard(
+  id: SpellId,
+  index: number,
+  roster = false,
+  catalog: Record<SpellId, Pick<SpellConfig, 'name' | 'cost' | 'color' | 'description'>> = SPELLS,
+) {
+  const spell = catalog[id];
   const art = `<svg class="spell-art" viewBox="0 0 96 104" aria-hidden="true"><circle cx="48" cy="53" r="34" fill="none" stroke="currentColor" opacity=".22"/><g fill="currentColor" stroke="currentColor" stroke-width="2">${paths[id]}</g></svg>`;
-  return `<button class="hero-card spell-card ${roster ? 'roster-card' : ''}" data-hero="${id}" style="--hero-color:${spell.color}" aria-label="${spell.name}, ${spell.cost} mana. ${escapeHTML(spell.description)}"><span class="card-cost">${spell.cost}</span>${roster ? '' : `<kbd>${index + 1}</kbd>`}${art}<span class="card-shade"></span><span class="card-name">${spell.name}</span><span class="card-cooldown"></span>${roster ? '<span class="checkmark">✓</span>' : ''}</button>`;
+  return `<button class="hero-card spell-card ${roster ? 'roster-card' : ''}" data-hero="${id}" style="--hero-color:${spell.color}" aria-label="${escapeHTML(spell.name)}, ${spell.cost} mana. ${escapeHTML(spell.description)}"><span class="card-cost">${spell.cost}</span>${roster ? '' : `<kbd>${index + 1}</kbd>`}${art}<span class="card-shade"></span><span class="card-name">${escapeHTML(spell.name)}</span><span class="card-cooldown"></span>${roster ? '<span class="checkmark">✓</span>' : ''}</button>`;
 }

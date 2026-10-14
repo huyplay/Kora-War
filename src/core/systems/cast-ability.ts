@@ -31,47 +31,45 @@ function selectTargets(query: TargetQuery, ctx: AbilityContext): Unit[] {
 }
 export function castAbility(battle: Battle, caster: Unit, hero: Hero, enemies: Unit[]): boolean {
   if (caster.hp <= 0) return false;
-  if (battle.cycling && hero.id === 'nyx') {
+  const definition = battle.content.abilities[hero.id];
+  if (!definition) return false;
+  let engaged: Unit | undefined;
+  if (battle.cycling && definition.engage?.enabled) {
+    const engage = definition.engage;
     const backline = enemies
       .filter(
         (unit) =>
-          unit.hp > 0 && unit.lane === caster.lane && unit.range > 2 && Math.abs(unit.x - caster.x) <= 5,
+          unit.hp > 0 &&
+          unit.lane === caster.lane &&
+          unit.range > engage.minRange &&
+          Math.abs(unit.x - caster.x) <= engage.radius,
       )
       .sort(
         (a, b) =>
-          (battle.heroes[a.heroId].role === 'ranger' ? 0 : 1) -
-            (battle.heroes[b.heroId].role === 'ranger' ? 0 : 1) ||
+          (battle.heroes[a.heroId].role === engage.preferredRole ? 0 : 1) -
+            (battle.heroes[b.heroId].role === engage.preferredRole ? 0 : 1) ||
           a.hp - b.hp ||
           a.id - b.id,
       )[0];
     if (backline) {
-      caster.x = Math.max(-14, Math.min(14, backline.x + (caster.side === 0 ? 0.65 : -0.65)));
-      battle.damage(backline, 120, caster.side, caster);
-      caster.skillAt = battle.time;
-      battle.stats[caster.side].skills++;
-      battle.emit({
-        type: 'skill',
-        side: caster.side,
-        lane: caster.lane,
-        x: caster.x,
-        toX: backline.x,
-        heroId: hero.id,
-        label: hero.ability,
-      });
-      return true;
+      engaged = backline;
     }
   }
-  const definition = battle.content.abilities[hero.id];
-  if (!definition) return false;
-  const near = enemies
-    .filter((unit) => unit.lane === caster.lane && Math.abs(unit.x - caster.x) < caster.range + 2.5)
-    .sort((a, b) => Math.abs(a.x - caster.x) - Math.abs(b.x - caster.x));
+  const near = engaged
+    ? [engaged]
+    : enemies
+        .filter(
+          (unit) =>
+            unit.lane === caster.lane &&
+            Math.abs(unit.x - caster.x) < caster.range + battle.gameplay.combat.nearEnemyBonus,
+        )
+        .sort((a, b) => Math.abs(a.x - caster.x) - Math.abs(b.x - caster.x));
   const allies = battle.units.filter(
     (unit) =>
       unit.side === caster.side &&
       unit.hp > 0 &&
       unit.lane === caster.lane &&
-      Math.abs(unit.x - caster.x) < 5,
+      Math.abs(unit.x - caster.x) < battle.gameplay.combat.allyRadius,
   );
   const target = near[0];
   if (definition.trigger === 'enemy' && !target) return false;
@@ -83,6 +81,14 @@ export function castAbility(battle: Battle, caster: Unit, hero: Hero, enemies: U
   )
     return false;
   const ctx = { caster, near, allies, enemies, target };
+  if (engaged)
+    caster.x = Math.max(
+      battle.gameplay.board.minX,
+      Math.min(
+        battle.gameplay.board.maxX,
+        engaged.x + (caster.side === 0 ? 1 : -1) * definition.engage!.offset,
+      ),
+    );
   for (const effect of definition.effects) {
     for (const unit of selectTargets(effect.targets, ctx)) {
       switch (effect.kind) {

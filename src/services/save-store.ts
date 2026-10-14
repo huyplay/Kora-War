@@ -2,6 +2,7 @@ import type { Difficulty } from '../core/types';
 import { DEFAULT_DECK, HERO_MAP } from '../data/index';
 import { DEFAULT_SPELLS, isSpell, type SpellId } from '../data/spells';
 import { cardDeckError } from '../data/card-decks';
+import type { GameplayConfig } from '../data/gameplay';
 export interface SaveData {
   cards?: string[];
   deck: string[];
@@ -13,7 +14,7 @@ export interface SaveData {
 }
 const KEY = 'kora-war-save';
 const LEGACY_KEY = 'aetherfall-save';
-export function parseSave(raw: string | null): SaveData {
+export function parseSave(raw: string | null, gameplay?: GameplayConfig): SaveData {
   let value: Partial<SaveData> = {};
   try {
     const parsed: unknown = JSON.parse(raw ?? '{}');
@@ -22,7 +23,7 @@ export function parseSave(raw: string | null): SaveData {
     /* Invalid or old saves fall back to the original starting deck. */
   }
   return {
-    ...(cardDeckError(value.cards) === null ? { cards: value.cards!.slice() } : {}),
+    ...(cardDeckError(value.cards, gameplay) === null ? { cards: value.cards!.slice() } : {}),
     spells:
       Array.isArray(value.spells) &&
       value.spells.length === 2 &&
@@ -44,9 +45,9 @@ export function parseSave(raw: string | null): SaveData {
     quality: value.quality === 'low' ? 'low' : 'high',
   };
 }
-export function loadSave(storage: Pick<Storage, 'getItem'>): SaveData {
+export function loadSave(storage: Pick<Storage, 'getItem'>, gameplay?: GameplayConfig): SaveData {
   try {
-    return parseSave(storage.getItem(KEY) ?? storage.getItem(LEGACY_KEY));
+    return parseSave(storage.getItem(KEY) ?? storage.getItem(LEGACY_KEY), gameplay);
   } catch {
     return parseSave(null);
   }

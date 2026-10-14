@@ -4,7 +4,7 @@ Người dùng giao Codex quản lý kiến trúc/backend/gameplay/tích hợp/Q
 
 ## Backlog và phạm vi
 
-Milestone [M1](https://github.com/huyplay/Kora-War/milestone/1). [Issue #1](https://github.com/huyplay/Kora-War/issues/1): formation/chat; [#2](https://github.com/huyplay/Kora-War/issues/2): workflow/CI/CD. Gemini nhận [#3](https://github.com/huyplay/Kora-War/issues/3) reaction art trước, rồi [#4](https://github.com/huyplay/Kora-War/issues/4) arena art và [#5](https://github.com/huyplay/Kora-War/issues/5) HUD. Có checklist nghiệm thu và đường dẫn độc quyền trong từng issue.
+Milestone [M1](https://github.com/huyplay/Kora-War/milestone/1). [Issue #1](https://github.com/huyplay/Kora-War/issues/1): formation/chat; [#2](https://github.com/huyplay/Kora-War/issues/2): phối hợp và QA/merge thủ công. Task Gemini: [#3](https://github.com/huyplay/Kora-War/issues/3) reaction art, [#4](https://github.com/huyplay/Kora-War/issues/4) arena art và [#5](https://github.com/huyplay/Kora-War/issues/5) HUD. Có checklist nghiệm thu và đường dẫn độc quyền trong từng issue; cập nhật claim để Codex biết task đang chạy song song.
 
 Trước khi làm, comment `Claimed by <agent>`, đổi `status:ready` → `status:in-progress`, ghi các file sở hữu. Một issue chỉ có một owner. Không sửa file ngoài scope hoặc cùng file với task đang chạy; tạo dependency/tích hợp task cho Codex. Đổi sang `status:ready` khi cần chuyển người nhận. Issue bị chặn dùng comment lý do và dependency, không giả hoàn thành.
 
@@ -14,18 +14,26 @@ Codex sở hữu `server`, `src/core`, `src/data`, `src/app`, `.github`, tools v
 
 Mỗi task có checkout riêng, không dùng chung working tree. Từ checkout sạch, chạy `git fetch origin`, rồi `git worktree add ../kora-gemini-3 -b gemini/3-reaction-art origin/main` (Codex tương tự `codex/<issue>-<task>`). Thư mục mặc định của dự án không phải nơi hai agent cùng sửa file. Không checkout/reset/clean một working tree mà agent kia đang dùng.
 
-PR vào `main`, có `Closes #N`, agent, file scope, trước/sau, validation và giới hạn. Rebase nhánh lên `origin/main` trước review; nếu đụng file được owner khác sửa thì để Codex giải quyết hoặc chuyển thay đổi thành file riêng. Chỉ Codex tích hợp sau review và CI xanh. Không merge task chưa có QA chỉ vì test unit đạt.
+PR vào `main`, có `Closes #N`, agent, file scope, trước/sau, validation và giới hạn. Rebase nhánh lên `origin/main` trước review; nếu đụng file được owner khác sửa thì để Codex giải quyết hoặc chuyển thay đổi thành file riêng. Chỉ Codex tích hợp sau review và QA local. Không merge task chưa có QA chỉ vì test unit đạt.
 
-Cả hai dùng cùng account nên GitHub không cho tự approve PR như hai người khác nhau. Main yêu cầu PR và status checks, không đặt required approval=1 gây khóa quy trình. CODEOWNERS xác định tài khoản quản lý; review thực tế và người thực hiện ghi trong PR/issue. Đây là phối hợp công việc, không phải cách ly quyền bảo mật giữa hai agent cùng credential.
+Cả hai dùng cùng account nên GitHub không cho tự approve PR như hai người khác nhau. Main yêu cầu PR, không đặt required approval=1 gây khóa quy trình. CODEOWNERS xác định tài khoản quản lý; review thực tế và người thực hiện ghi trong PR/issue. Đây là phối hợp công việc, không phải cách ly quyền bảo mật giữa hai agent cùng credential.
 
-## CI/CD
+Branch protection áp dụng cả admin: bắt buộc PR, giải quyết hội thoại và lịch sử tuyến tính; cấm force push/xóa main. Required status checks đã gỡ theo yêu cầu mới nhất của người dùng. Codex kiểm tra diff và HEAD so với main, ghi QA rồi squash/rebase merge đúng HEAD đã review; không dùng admin bypass.
 
-`.github/workflows/ci.yml` chạy trên PR/push main/codex/gemini và thủ công: Node 24 + npm ci + check + runtime smoke trên Ubuntu/Windows; ASP.NET .NET 10 build riêng. Package chỉ chạy sau các gate đạt. Action pin bằng commit SHA; workflow đọc repo, chỉ job Pages có quyền deploy cần thiết. Source tham khảo: [setup-node](https://github.com/actions/setup-node), [Pages workflow](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+Người dùng xác nhận Gemini đang chạy song song ở phiên ngoài. Phiên Codex hiện tại không có công cụ gọi Gemini trực tiếp; `GEMINI.md` và issue là điểm giao việc. Agent ghi claim/nhánh/file scope để đồng bộ tracking, và gửi PR cho Codex kiểm tra; không suy đoán task nào hoàn thành khi chưa có bàn giao.
 
-Gói `kora-war-<commit>` chứa production frontend, source runtime và lockfile, không có database/secrets/upload/cache. Chạy `npm run package` để chuẩn bị local, `npm run smoke` để kiểm entrypoint trên database tạm. Package API hiện cần `npm ci --include=dev` vì runtime dùng tsx. Không dùng gói này để ghi đè `.data` của bản đang chạy.
+## QA và tích hợp thủ công
 
-CD `main` lên [GitHub Pages](https://huyplay.github.io/Kora-War/) sau CI đạt. Pages là website tĩnh: bản demo AI dùng preset/procedural model; PvP/admin/database cần Node server hiện có hoặc hosting runtime bổ sung. Không upload model có quyền riêng hoặc `.data` lên Pages. Release artifact phục vụ triển khai backend sau này, không tuyên bố backend đã chạy trên Pages.
+Ngày 14/10/2026, người dùng quyết định không cần CI/CD, giao Codex tự QA và merge main. GitHub workflow `CI` đã được disable (`disabled_manually`); file cấu hình được giữ để tham khảo, không tự chạy/deploy. Billing không còn là điều kiện chặn tích hợp. Không tự bật lại automation khi chưa có yêu cầu mới.
+
+Codex kiểm tra scope/diff và cập nhật nhánh trước tích hợp. Thay logic/cấu trúc: chạy `npm run check`; thay runtime/đóng gói: chạy smoke/package; thay backend asset: build .NET Release. UI/renderer/art cần QA trình duyệt desktop/mobile ngang, kiểm nguồn/budget và ghi kết quả. Chỉ báo kiểm tra đã chạy; kết quả Windows local không được gọi là kiểm tra Ubuntu hoặc benchmark điện thoại thật.
+
+Gói `kora-war-<commit>` chứa production frontend, source runtime và lockfile, không có database/secrets/upload/cache. Mỗi lần đóng gói xóa và tạo lại đúng thư mục `.release/kora-war` đã kiểm tra đường dẫn, từ chối symlink để tệp cũ không lọt vào artifact. Chạy `npm run package` để chuẩn bị local, `npm run smoke` để kiểm entrypoint trên database tạm. Package API hiện cần `npm ci --include=dev` vì runtime dùng tsx. Không dùng gói này để ghi đè `.data` của bản đang chạy.
+
+GitHub Pages đã cấu hình nhưng chưa có deployment thành công và CD đang tắt. Pages là website tĩnh; PvP/admin/database tiếp tục chạy trên Node server hiện có. Gói runtime phục vụ triển khai thủ công sau này, không tuyên bố backend đã chạy trên Pages hoặc tự upload `.data`/model lên Pages.
+
+Local `npm run check` đạt 163/163 sau khi bổ sung regression đóng gói; smoke/package và .NET Release build đạt. QA Edge kiểm chat PvP hai chiều, mute, bảng chat 844×390 và admin revision 13/17 module. Các run CI lịch sử bị khóa Billing trước khi chạy job; quyết định QA thủ công thay thế luồng chờ mở khóa đó.
 
 ## Bàn giao và nghiệm thu
 
-Codex cập nhật issue/PR, kiểm asset budget/provenance, import trong môi trường QA, chạy `npm run check` + smoke, QA desktop/mobile và giữ snapshot/replay. Thay luật đã chốt cần quyết định của người dùng; thay đổi trình bày không được gây damage/mana/win logic. Khi CI fail, sửa trong nhánh task; không tắt required check để merge. Không force push main. Mỗi task đã đạt được commit/merge và đóng issue với bằng chứng.
+Codex cập nhật issue/PR, kiểm asset budget/provenance, import trong môi trường QA, chạy các kiểm tra phù hợp, QA desktop/mobile và giữ snapshot/replay. Thay luật đã chốt cần quyết định của người dùng; thay đổi trình bày không được gây damage/mana/win logic. Khi QA fail, sửa trong nhánh task trước merge. Không force push main. Mỗi task đã đạt được commit/merge và đóng issue với bằng chứng.

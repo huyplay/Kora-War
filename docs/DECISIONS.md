@@ -114,3 +114,7 @@ Cờ vải dùng texture dệt và huy hiệu Aether tạo bằng canvas, mesh u
 ## Hoàn thiện phản hồi giao chiến — 14/10/2026
 
 Số nổi lấy chênh lệch HP giữa các snapshot, không lấy giá trị hit trước khi trừ lá chắn. Nhịp hồi nhỏ tích lũy ít nhất 3 HP trước khi hiển thị; damage liên tiếp được gom theo cửa sổ 0,18 giây. Các số chỉ mô tả thay đổi nhìn thấy giữa snapshot, không thay log sát thương server. Thanh máu có nền, vệt tụt và neo trái; độ cao theo model. Hit flash có material riêng cho từng instance, giữ texture nguồn. Bóng mềm dùng một texture radial và instancing tối đa 100 quân, vẫn có ở low. Trụ HP bằng 0 có animation sụp 0,65 giây và pool tối đa 72 mảnh; trạng thái combat vẫn theo simulation ngay lập tức. Reset phục hồi transform trụ và xóa toàn bộ pool.
+
+## QA thủ công và phối hợp Codex/Gemini — quyết định mới nhất 14/10/2026
+
+Người dùng yêu cầu không cần CI/CD, giao Codex tự QA và merge main; Gemini đang chạy song song phần design. Tắt GitHub workflow CI và gỡ required status checks, giữ PR/bảo vệ main. Codex review đúng HEAD sau các kiểm tra local phù hợp rồi squash/rebase merge; không chờ Billing hoặc tự bật lại CI/CD. Task/nhánh/worktree/scope riêng theo GitHub issues để hai agent không cùng sửa file. Xem [quy trình nhóm](TEAM-WORKFLOW.md).

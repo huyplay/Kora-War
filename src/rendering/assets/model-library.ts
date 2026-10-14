@@ -72,6 +72,9 @@ export class ModelInstance {
   private lastCast = -1;
   private clips: THREE.AnimationClip[];
   private ownedMaterials: THREE.Material[] = [];
+  private hitUniform = { value: 0 };
+  private impactMaterialsReady = false;
+  private motion = new THREE.Group();
   constructor(
     source: THREE.Object3D,
     clips: THREE.AnimationClip[],
@@ -91,7 +94,7 @@ export class ModelInstance {
     normalizer.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
     normalizer.scale.setScalar(scale);
     normalizer.add(this.model);
-    const pivot = new THREE.Group();
+    const pivot = this.motion;
     pivot.rotation.y = (binding.yaw * Math.PI) / 180;
     pivot.add(normalizer);
     this.root.add(pivot);
@@ -147,6 +150,42 @@ export class ModelInstance {
   }
   tick(dt: number) {
     this.mixer.update(dt);
+  }
+  setHitFlash(strength: number) {
+    this.hitUniform.value = Math.max(0, Math.min(1, strength));
+    this.motion.rotation.x = -this.hitUniform.value * 0.08;
+    if (this.impactMaterialsReady || strength <= 0) return;
+    this.impactMaterialsReady = true;
+    const variants = new Map<THREE.Material, THREE.Material>();
+    this.model.traverse((object) => {
+      if (!(object instanceof THREE.Mesh)) return;
+      const convert = (source: THREE.Material) => {
+        const cached = variants.get(source);
+        if (cached) return cached;
+        const material = source.clone(),
+          compile = source.onBeforeCompile,
+          key = source.customProgramCacheKey();
+        material.customProgramCacheKey = () => `${key}:kora-impact-v1`;
+        material.onBeforeCompile = (shader, renderer) => {
+          compile.call(material, shader, renderer);
+          shader.uniforms.koraImpact = this.hitUniform;
+          shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <common>',
+            '#include <common>\nuniform float koraImpact;',
+          );
+          shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <opaque_fragment>',
+            'outgoingLight = mix(outgoingLight, vec3(1.0, .84, .62), koraImpact * .45);\n#include <opaque_fragment>',
+          );
+        };
+        variants.set(source, material);
+        this.ownedMaterials.push(material);
+        return material;
+      };
+      object.material = Array.isArray(object.material)
+        ? object.material.map(convert)
+        : convert(object.material);
+    });
   }
   teamPalette(side: number) {
     if (side !== 1) return;

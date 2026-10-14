@@ -75,3 +75,7 @@ Người dùng yêu cầu map trước, sau đó hiệu ứng/animation/âm than
 ## Animation và vật liệu — tiếp tục ngày 14/10/2026
 
 Cờ vải dùng texture dệt và huy hiệu Aether tạo bằng canvas, mesh uốn với mép trên cố định; đuốc dùng texture gradient, tàn lửa theo pool. Tia trúng đòn và vệt chém cận chiến là lớp trình bày giới hạn 128 tia/16 vệt. PBR giữ sắc độ từng loại đá; texture model được áp anisotropy theo GPU. Clip đánh/cast/spawn/death được căn theo cửa sổ animation, idle fallback luôn lặp. Pause giữ pose và dừng cả VFX/cảnh vật; render-frame delta theo tốc độ chơi giữ chuyển động mượt giữa các tick mô phỏng. Mira được đóng gói lại từ nguồn đã kiểm SHA để bổ sung clip đi/đánh/cast gốc; không thay chỉ số hoặc luật trận.
+
+## Hoàn thiện phản hồi giao chiến — 14/10/2026
+
+Số nổi lấy chênh lệch HP giữa các snapshot, không lấy giá trị hit trước khi trừ lá chắn. Nhịp hồi nhỏ tích lũy ít nhất 3 HP trước khi hiển thị; damage liên tiếp được gom theo cửa sổ 0,18 giây. Các số chỉ mô tả thay đổi nhìn thấy giữa snapshot, không thay log sát thương server. Thanh máu có nền, vệt tụt và neo trái; độ cao theo model. Hit flash có material riêng cho từng instance, giữ texture nguồn. Bóng mềm dùng một texture radial và instancing tối đa 100 quân, vẫn có ở low. Trụ HP bằng 0 có animation sụp 0,65 giây và pool tối đa 72 mảnh; trạng thái combat vẫn theo simulation ngay lập tức. Reset phục hồi transform trụ và xóa toàn bộ pool.

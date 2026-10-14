@@ -6,6 +6,7 @@ import { tacticalBattle } from '../src/core/tactical';
 import { defaultContent } from '../src/data/content';
 import { DEFAULT_DECK } from '../src/data/heroes';
 import { LANES } from '../src/data/map';
+import { UnitFeedback } from '../src/rendering/animation/unit-feedback';
 
 function scene() {
   const b = tacticalBattle(DEFAULT_DECK, ['fire', 'ice'], defaultContent(), 1, DEFAULT_DECK);
@@ -28,7 +29,18 @@ function scene() {
   const group = new THREE.Group();
   group.position.set(enemy.x, 0, LANES[enemy.lane] + ((enemy.id % 3) - 1) * 0.32);
   world.units = new Map([
-    [enemy.id, { group, unit: enemy, bar: new THREE.Mesh(), shield: new THREE.Mesh() }],
+    [
+      enemy.id,
+      {
+        group,
+        unit: enemy,
+        bar: new THREE.Mesh(),
+        shield: new THREE.Mesh(),
+        barBack: new THREE.Mesh(),
+        barTrail: new THREE.Mesh(),
+        feedback: new UnitFeedback(enemy),
+      },
+    ],
   ]);
   const screen = (x: number, y: number, z: number) => {
     const p = new THREE.Vector3(x, y, z).project(world.camera);

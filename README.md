@@ -45,6 +45,7 @@ npm run preview
 - Luyện tập tạm dừng khi chuyển tab; PvP tiếp tục trên server, SFX WAV/Ogg với mixer và âm thanh dự phòng, high/low graphics và tự hạ chất lượng khi FPS thấp kéo dài.
 - Giao diện ngang dành cho mobile, sáu thẻ luôn hiện, HUD gọn, kéo/vuốt thẻ để thả quân; yêu cầu xoay khi màn hình dọc; chỉ pause luyện tập.
 - Module vật lý lane, asset registry, prefab tướng, animation theo trạng thái và sprite VFX dùng pool; quản lý vòng đời tài nguyên tập trung.
+- Phản hồi giao chiến: bóng mềm tiếp đất, thanh máu có nền/vệt tụt, nháy trúng đòn và số HP thay đổi; trụ sụp dần với mảnh vỡ. Số hồi nhỏ được gộp để giảm rối mắt.
 - 10 model rigged từ Khada, trụ/lõi nhập ngoài, clip animation có ánh xạ, map prop và sprite CommunityDragon; bản mobile bỏ dữ liệu animation không dùng.
 - Content Studio: upload/preview/ẩn/khôi phục asset, sửa chỉ số và chuỗi kỹ năng, map/VFX/economy, ví người chơi, lưu nháp/phát hành/khôi phục revision.
 - Ví vàng, mảnh thẻ, rương, cửa hàng và nâng cấp lưu SQLite; server mô phỏng lại command log để xác minh thưởng trận.
@@ -59,7 +60,7 @@ npm run preview
 - Preview phép khớp bán kính/màu của thẻ; phản hồi lệnh chậm giữ lựa chọn thẻ mới của người chơi.
 - Chặn lệnh mới khi đang rời phòng; nút lane và thông báo reconnect không che sân trên màn hình nhỏ.
 
-`npm run check` đã đạt **117/117 test**, kiểm tra kiến trúc, TypeScript server/client và production build Vite. Bundle Three.js còn cảnh báo vượt 500 kB; chưa có benchmark điện thoại thật hoặc kiểm thử WAN. Chi tiết tại [phân tích project](docs/PROJECT-REVIEW.md), [QA đồ họa](docs/VISUAL-QA.md) và [quyết định gameplay](docs/DECISIONS.md).
+`npm run check` đã đạt **123/123 test**, kiểm tra kiến trúc, TypeScript server/client và production build Vite. Bundle Three.js còn cảnh báo vượt 500 kB; chưa có benchmark điện thoại thật hoặc kiểm thử WAN. Chi tiết tại [phân tích project](docs/PROJECT-REVIEW.md), [QA đồ họa](docs/VISUAL-QA.md) và [quyết định gameplay](docs/DECISIONS.md).
 
 ## Điều khiển
 

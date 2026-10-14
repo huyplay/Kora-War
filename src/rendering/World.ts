@@ -11,7 +11,7 @@ import {
   disposeSharedResources,
   healthGeometry,
   healthMaterial,
-  part,
+  geo,
   teamRings,
   unitRingGeometry,
 } from './resources';
@@ -22,15 +22,22 @@ import { SpellEffects } from './vfx/spell-effects';
 import { ArenaCamera } from './arena-camera';
 import { ArenaAtmosphere } from './arena-atmosphere';
 import { CombatAccents } from './vfx/combat-accents';
+import { ContactShadows } from './vfx/contact-shadows';
+import { FloatingNumbers } from './vfx/floating-numbers';
+import { StructureAnimator } from './animation/structure-animator';
+import { UnitFeedback } from './animation/unit-feedback';
 interface Visual {
   group: THREE.Group;
   bar: THREE.Mesh;
   shield: THREE.Mesh;
+  barBack: THREE.Mesh;
+  barTrail: THREE.Mesh;
+  feedback: UnitFeedback;
   unit: Unit;
   imported?: ModelInstance;
 }
 interface Effect {
-  mesh: THREE.Object3D;
+  mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>;
   start: number;
   duration: number;
   kind: string;
@@ -57,6 +64,9 @@ export class World {
   private spellEffects = new SpellEffects();
   private atmosphere = new ArenaAtmosphere();
   private accents = new CombatAccents();
+  private contactShadows = new ContactShadows();
+  private numbers = new FloatingNumbers();
+  private structures = new StructureAnimator();
   scene = new THREE.Scene();
   camera: THREE.OrthographicCamera;
   private arenaCamera: ArenaCamera;
@@ -129,6 +139,7 @@ export class World {
     this.scene.add(this.sprites.root);
     this.scene.add(this.spellEffects.root);
     this.scene.add(this.atmosphere.root, this.accents.root);
+    this.scene.add(this.contactShadows.root, this.numbers.root, this.structures.root);
     for (let lane = 0; lane < 3; lane++) {
       const zone = new THREE.Mesh(
         new THREE.PlaneGeometry(7.7, 2.9),
@@ -355,6 +366,9 @@ export class World {
     this.arenaCamera.reset();
     this.spellEffects.reset();
     this.accents.reset();
+    this.numbers.reset();
+    this.contactShadows.begin();
+    this.structures.reset(this.towerMeshes);
     this.corpses.forEach((c) => c.model.dispose());
     this.corpses = [];
     this.sprites.reset();
@@ -371,7 +385,10 @@ export class World {
       this.disposeUnit(v);
     }
     this.units.clear();
-    for (const e of this.effects) this.scene.remove(e.mesh);
+    for (const e of this.effects) {
+      this.scene.remove(e.mesh);
+      e.mesh.material.dispose();
+    }
     this.effects = [];
     this.lastEvent = 0;
     for (const t of this.towerMeshes.values()) {
@@ -397,6 +414,9 @@ export class World {
     this.spellEffects.dispose();
     this.accents.dispose();
     this.atmosphere.dispose();
+    this.numbers.dispose();
+    this.contactShadows.dispose();
+    this.structures.dispose();
     this.mapInstances.forEach((m) => m.dispose());
     this.coreModels.forEach((m) => m.dispose());
     this.templates.forEach((m) => m.dispose());
@@ -432,7 +452,9 @@ export class World {
     bar.scale.set(0.94, 0.085, 1);
     const shield = new THREE.Mesh(healthGeometry, healthMaterial);
     shield.scale.set(0.94, 0.038, 1);
-    const v: Visual = { group, bar, shield, unit: u };
+    const barBack = new THREE.Mesh(healthGeometry, healthMaterial);
+    const barTrail = new THREE.Mesh(healthGeometry, healthMaterial);
+    const v: Visual = { group, bar, shield, barBack, barTrail, feedback: new UnitFeedback(u), unit: u };
     this.units.set(u.id, v);
     const binding = this.content?.models[u.heroId];
     if (binding && this.templates.has(u.heroId))
@@ -484,6 +506,10 @@ export class World {
           if (o instanceof THREE.Mesh && o.visible) this.batchUnitMesh(o);
         });
       v.bar.updateMatrixWorld(true);
+      v.barBack.updateMatrixWorld(true);
+      v.barTrail.updateMatrixWorld(true);
+      this.batchUnitMesh(v.barBack, 0x15222e);
+      this.batchUnitMesh(v.barTrail, 0xe5ad66);
       this.batchUnitMesh(v.bar, v.unit.side === 0 ? 0x26cfe8 : 0xff5959);
       if (v.shield.visible) {
         v.shield.updateMatrixWorld(true);
@@ -501,24 +527,26 @@ export class World {
     this.sprites.emit(e);
     this.accents.emit(e);
     const color = e.type === 'heal' ? 0x83ffc2 : e.side === 0 ? 0xb4ffde : 0xffb4a0;
-    if (e.type === 'hit' || e.type === 'core') return;
+    if (e.type === 'hit' || e.type === 'core' || e.type === 'finish') return;
     const kind =
       e.type === 'projectile' ? 'bolt' : e.type === 'pulse' ? 'pulse' : e.type === 'death' ? 'death' : 'ring';
-    const mesh =
-      kind === 'bolt'
-        ? part(this.scene, 'orb', color, e.x, 1.25, LANES[e.lane], 0.13, 0.13, 0.13, 1)
-        : part(
-            this.scene,
-            'ring',
-            e.heroId ? HERO_MAP[e.heroId].accent : color,
-            e.x,
-            0.3,
-            LANES[e.lane],
-            0.5,
-            0.5,
-            0.5,
-            0.8,
-          );
+    if (this.effects.length >= 64) {
+      const oldest = this.effects.shift()!;
+      this.scene.remove(oldest.mesh);
+      oldest.mesh.material.dispose();
+    }
+    const mesh = new THREE.Mesh(
+      geo(kind === 'bolt' ? 'orb' : 'ring'),
+      new THREE.MeshBasicMaterial({
+        color: e.heroId ? HERO_MAP[e.heroId].accent : color,
+        transparent: true,
+        opacity: kind === 'pulse' ? 0.4 : 0.7,
+        depthWrite: false,
+      }),
+    );
+    mesh.position.set(e.x, kind === 'bolt' ? 1.25 : 0.3, LANES[e.lane]);
+    mesh.scale.setScalar(kind === 'bolt' ? 0.13 : 0.5);
+    this.scene.add(mesh);
     if (kind !== 'bolt') mesh.rotation.x = -Math.PI / 2;
     this.effects.push({
       mesh,
@@ -546,6 +574,9 @@ export class World {
         this.disposeUnit(v, true);
         this.units.delete(id);
       }
+    this.contactShadows.begin();
+    const barRight = new THREE.Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
+    const barForward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.camera.quaternion);
     for (const u of battle.units) {
       const v = this.units.get(u.id) || this.addUnit(u);
       v.unit = u;
@@ -555,22 +586,46 @@ export class World {
       v.group.position.z = z;
       const born = Math.min(1, (battle.time - u.born) * 3 + 0.15);
       v.group.scale.setScalar(born);
+      this.contactShadows.add(
+        v.group.position,
+        Math.min(2, (this.content?.models[u.heroId]?.height ?? 2.4) * 0.65),
+        born,
+      );
+      const change = v.feedback.update(u, animationDt);
+      if (change) {
+        const point = v.group.position.clone();
+        point.y = Math.max(2.8, (this.content?.models[u.heroId]?.height ?? 2.4) + 0.35);
+        this.numbers.emit(change.damage, point);
+        this.numbers.emit(change.healing, point, true);
+      }
       if (v.imported) v.imported.update(u, battle.time, battle.phase, animationDt);
       else animateUnit(v.group, u, battle.time, this.clock, battle.phase);
-      v.bar.position.set(v.group.position.x, 2.6, z);
+      v.imported?.setHitFlash(v.feedback.flash);
+      v.bar.position.set(
+        v.group.position.x,
+        Math.max(2.6, (this.content?.models[u.heroId]?.height ?? 2.4) + 0.2),
+        z,
+      );
       v.bar.quaternion.copy(this.camera.quaternion);
       v.bar.scale.x = 0.94 * Math.max(0.001, u.hp / u.maxHp);
-      v.shield.position.copy(v.bar.position).add(new THREE.Vector3(0, 0.13, 0));
+      v.barBack.position.copy(v.bar.position).addScaledVector(barForward, -0.018);
+      v.barBack.quaternion.copy(this.camera.quaternion);
+      v.barBack.scale.set(1, 0.13, 1);
+      v.barTrail.position.copy(v.bar.position).addScaledVector(barForward, -0.009);
+      v.barTrail.quaternion.copy(this.camera.quaternion);
+      v.barTrail.scale.set(0.94 * Math.max(0.001, v.feedback.trailHp / u.maxHp), 0.085, 1);
+      v.barTrail.position.addScaledVector(barRight, (v.barTrail.scale.x - 0.94) / 2);
+      v.bar.position.addScaledVector(barRight, (v.bar.scale.x - 0.94) / 2);
+      v.shield.position.set(v.group.position.x, v.bar.position.y + 0.13, z);
       v.shield.quaternion.copy(this.camera.quaternion);
       v.shield.scale.x = 0.94 * Math.min(1, u.shield / 200);
+      v.shield.position.addScaledVector(barRight, (v.shield.scale.x - 0.94) / 2);
       v.shield.visible = u.shield > 0;
     }
     this.spellEffects.update(battle.spellZones, battle.tactical ? battle.units : [], battle.time, this.clock);
-    for (const t of battle.towers) {
-      const mesh = this.towerMeshes.get(t.id)!;
-      mesh.scale.y = t.hp <= 0 ? 0.22 : 1;
-      mesh.rotation.z = t.hp <= 0 ? 0.12 : 0;
-    }
+    this.contactShadows.end();
+    this.numbers.update(animationDt, this.camera);
+    this.structures.update(battle.towers, this.towerMeshes, animationDt);
     this.coreCrystals.forEach((c, i) => {
       c.rotation.y = this.clock * 0.35 * (i === 0 ? 1 : -1);
       c.position.y = 2.25 + Math.sin(this.clock * 1.7 + i) * 0.1;
@@ -586,14 +641,16 @@ export class World {
         p = (this.clock - e.start) / e.duration;
       if (p >= 1) {
         this.scene.remove(e.mesh);
+        e.mesh.material.dispose();
         this.effects.splice(i, 1);
         continue;
       }
+      e.mesh.material.opacity = Math.pow(1 - p, 1.4) * (e.kind === 'pulse' ? 0.4 : 0.7);
       if (e.kind === 'bolt') {
         e.mesh.position.x = THREE.MathUtils.lerp(e.x, e.toX, p);
         e.mesh.position.y = 1.2 + Math.sin(p * Math.PI) * 0.5;
       } else {
-        e.mesh.scale.setScalar(e.kind === 'pulse' ? 1 + p * 9 : 0.2 + p * 2.4);
+        e.mesh.scale.setScalar(e.kind === 'pulse' ? 1 + p * 3 : 0.2 + p * 1.8);
         e.mesh.position.y = 0.2 + p * 0.45;
       }
     }

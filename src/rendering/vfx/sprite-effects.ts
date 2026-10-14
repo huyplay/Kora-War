@@ -152,8 +152,15 @@ export class SpriteEffects {
         : 0.65;
     particle.sprite.material.map = particle.frames[0];
     particle.size =
-      (event.type === 'pulse' ? 6 : event.type === 'hit' ? 0.85 : event.type === 'projectile' ? 0.9 : 2.3) *
-      (this.profile?.intensity || 1);
+      (event.type === 'pulse'
+        ? 4.5
+        : event.type === 'hit'
+          ? 0.85
+          : event.type === 'projectile'
+            ? 0.9
+            : ['spawn', 'heal', 'death'].includes(event.type)
+              ? 1.6
+              : 2.3) * (this.profile?.intensity || 1);
     particle.fromX = event.x;
     particle.toX = event.type === 'projectile' ? event.toX : undefined;
     particle.rotate = !binding;

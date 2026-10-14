@@ -32,6 +32,17 @@
 - QA Edge: viewport ngang 844×390, zoom gần, tự đấu đông quân, pause/resume (hai ảnh pause liên tiếp giống hệt), tốc độ 2×, kết quả/chơi lại, triển khai Mira bằng bàn phím trên lane giữa. Console cuối không có error/warn. Đây là viewport giả lập trên desktop, không phải benchmark điện thoại.
 - Ảnh local: `.data/qa/animation-texture-mobile.jpg`, `.data/qa/mira-animation.jpg`.
 
-## Giới hạn chung
+## Hoàn thiện phản hồi giao chiến — 14/10/2026
+
+- Bóng tiếp đất radial DataTexture 64×64, mipmap và instancing tối đa 100 quân, một draw call; dùng cả high và low.
+- Thanh máu có nền tối và vệt tụt màu vàng, neo trái; thanh shield neo độc lập, độ cao theo model để không cắt vào đầu tướng cao.
+- Hit flash/recoil nhẹ qua shader và pivot riêng từng model; không sửa material dùng chung hoặc tọa độ simulation. Material chỉ được clone một lần khi tướng nhận hit đầu tiên.
+- Số mất/hồi máu dùng atlas chữ số 1024×128, một InstancedMesh, tối đa 32 nhãn/160 glyph. Đọc delta HP giữa snapshot, bỏ qua sát thương bị shield hấp thụ; gom tick liên tiếp 0,18 giây và gộp hồi nhỏ ít nhất 3 HP. Nhãn hết hạn sau 0,75 giây.
+- Trụ sụp dần trong 0,65 giây với tối đa 72 mảnh vỡ; reset phục hồi scale/rotation và xóa pool. Hiệu ứng không làm trụ sống lâu hơn trong simulation.
+- `npm run check`: **123/123** test, architecture, TypeScript server/client và Vite build thành công. Sáu test mới kiểm tra delta HP/shield, gộp hồi nhỏ, pause/expiry/cleanup và giới hạn pool, vị trí bóng, reset trụ, cô lập material trúng đòn. Fixture baseline không thay đổi.
+- Browser QA Edge: bản build desktop và viewport ngang 844×390, tự đấu, zoom gần và đọc số hồi/mất máu; hai ảnh pause liên tiếp giống hệt nhau. Đã chơi lại, trụ trở lại scale/rotation ban đầu và không còn số nổi từ trận trước. Console không có error/warn. Ảnh local `.data/qa/combat-feedback-mobile.jpg`; viewport desktop không đại diện hiệu năng điện thoại thật.
+- Vòng Cộng Hưởng Lõi thu nhỏ, opacity giảm theo tuổi hiệu ứng; atlas spawn/heal/death giảm kích thước để giữ tướng dễ nhìn. Hiệu ứng hình học giới hạn 64 phần tử và giải phóng material khi hết hạn/reset. Đã dùng Cộng Hưởng lane giữa trên bản build cuối; ảnh `.data/qa/pulse-polish-mobile.jpg`. Đã reset viewport override sau QA.
+
+## Giới hạn còn lại
 
 Đây là QA trên trình duyệt desktop và viewport mô phỏng, không phải benchmark điện thoại thật. Atlas GegX có frame 128×128; texture map 1K lặp theo tọa độ thế giới. Zoom có giới hạn để tránh phóng quá mức khả năng asset. Không cam kết độ nét vô hạn hoặc chất lượng/hiệu năng ngang TFT. Three.js vẫn có cảnh báo chunk hơn 500 kB. Không có thay đổi simulation, deck/mana, lore hoặc quy tắc cộng dồn slow trong đợt đồ họa này.

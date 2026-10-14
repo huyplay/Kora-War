@@ -7,6 +7,7 @@ test-results/
 .npm-cache/
 playwright-report/
 .data/
+.release/
 .env
 .env.*
 !.env.example

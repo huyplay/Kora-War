@@ -1,5 +1,11 @@
 # Các quyết định đang áp dụng
 
+## 14/10/2026 — Đội hình hiển thị, chat nhanh và hai agent
+
+Người dùng chọn giãn đội hình ở renderer, giữ luật combat; bổ sung emoji/câu soạn sẵn giữa hai người chơi. `presentation`/`communication` lưu module database; chat transient nằm trong phòng PvP, không đổi mô phỏng/replay. Xem [triển khai và QA](BATTLE-PRESENTATION.md).
+
+Người dùng giao Codex làm lead/backend/gameplay/tích hợp và Gemini design, cùng account GitHub huyplay. Issue/nhánh/worktree phân biệt agent và phạm vi; Codex tích hợp PR sau CI. Triển khai trên GitHub: Pages phục vụ demo AI tĩnh; gói runtime được build trên Actions, backend/PvP/database vẫn cần Node hosting. Xem [quy trình hai agent](TEAM-WORKFLOW.md).
+
 ## 14/10/2026 — Module gameplay/rule và phiên bản database
 
 Người dùng yêu cầu module hóa cơ chế/rule để nâng cấp và điều chỉnh sau này. Tách dữ liệu profile thành các module trách nhiệm; registry chứa ID/schema/migration. SQLite `rule_modules` là nguồn đọc gameplay, `rule_module_revisions` lưu history; giữ content snapshot để replay/tool cũ hoạt động. Tách pipeline system khỏi Battle, giữ nguyên thứ tự tick và gameplay. Admin hiển thị schema/version nháp/live; sửa module riêng vẫn validate cả bộ luật, phát hành theo revision thống nhất và transaction. Không chạy code tùy ý từ database. Xem [cấu trúc và vận hành](RULE-MODULES.md).

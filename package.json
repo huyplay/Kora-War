@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit",
     "check:architecture": "node tools/check-architecture.mjs",
     "check": "npm run check:architecture && npm run typecheck:server && npm test && npm run build",
+    "smoke": "tsx tools/runtime-smoke.ts",
+    "package": "node tools/package-release.mjs",
     "server": "tsx server/index.ts",
     "start": "npm run build && npm run server",
     "typecheck:server": "tsc --noEmit -p tsconfig.server.json",

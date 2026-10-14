@@ -47,3 +47,10 @@ Xem [kiến trúc](docs/ARCHITECTURE.md) và [quyết định](docs/DECISIONS.md
 - Tên sản phẩm: Kora War. Giữ lore Elyndra/lõi Aether; tên cũ trong tài liệu lịch sử không phải tên sản phẩm hiện tại.
 - Mobile-first, chỉ chơi ở màn hình ngang; thao tác chạm/kéo thả, ít chữ.
 - Commit từng task đã kiểm thử và push lên origin hiện có theo yêu cầu người dùng.
+
+## Codex lead và Gemini design
+
+- Codex quản lý backend/gameplay/kiến trúc/tích hợp/QA; Gemini nhận task hình ảnh có phạm vi riêng. Cùng tài khoản `huyplay`, phân biệt bằng issue label, nhánh và PR body.
+- Mỗi task có GitHub issue và worktree riêng: `codex/<issue>-<task>` hoặc `gemini/<issue>-<task>`. Không cùng sửa một working tree/file; xem `docs/TEAM-WORKFLOW.md` và scope issue.
+- Gemini không sửa core/data/server/app/CI hoặc World.ts trong task art. Bàn giao manifest/provenance/budget/preview; Codex tích hợp qua PR sau CI/QA.
+- Sau khi branch protection được bật, thay đổi vào main qua PR và required checks; không force push/tắt check. Chỉ Codex thực hiện tích hợp, cập nhật issue và triển khai.

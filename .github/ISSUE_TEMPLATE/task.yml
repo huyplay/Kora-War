@@ -1,0 +1,31 @@
+name: Project task
+description: Scoped task for Codex or Gemini
+title: '[Task] '
+labels: ['status:ready']
+body:
+  - type: dropdown
+    id: owner
+    attributes:
+      label: Agent owner
+      options: [Codex, Gemini]
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Result and acceptance criteria
+      description: Concrete behavior or assets, screenshots, validation, and limits.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Files owned by this task
+      description: Exclusive paths, branch/worktree, shared files needing Codex integration.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and handoff
+      description: Related issues, asset manifest/API contract, next owner.

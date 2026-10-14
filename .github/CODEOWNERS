@@ -1,0 +1,9 @@
+# Both agents use huyplay. Agent identity is recorded in labels, branch and PR body.
+# Codex is the integration owner; same-account self approval is not required.
+* @huyplay
+/server/ @huyplay
+/src/core/ @huyplay
+/src/data/ @huyplay
+/.github/ @huyplay
+/assets/design/ @huyplay
+/public/design/ @huyplay

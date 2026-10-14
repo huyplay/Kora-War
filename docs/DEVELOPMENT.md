@@ -8,7 +8,7 @@ npm run dev
 npm run check
 ```
 
-`check` chạy kiểm tra ranh giới dependency, 42 test và build production. `npm run preview` phục vụ `dist` để kiểm tra bundle thực tế. Nếu đổi source sau khi build, phải build lại trước khi preview.
+`check` chạy kiểm tra ranh giới dependency, TypeScript, toàn bộ test và build production. `npm run smoke` kiểm entrypoint/static bundles/API trên database tạm; `npm run package` tạo gói runtime theo allowlist. CI chạy Ubuntu/Windows và build ASP.NET; xem [quy trình hai agent](TEAM-WORKFLOW.md). `npm run preview` phục vụ `dist` để kiểm tra bundle thực tế. Nếu đổi source sau khi build, phải build lại trước khi preview.
 
 ## Chỉnh dữ liệu
 

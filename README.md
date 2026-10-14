@@ -1,6 +1,6 @@
 # Kora War
 
-[Issues](https://github.com/huyplay/Kora-War/issues) · [CI/CD và Codex/Gemini](docs/TEAM-WORKFLOW.md). GitHub Pages đã cấu hình tại https://huyplay.github.io/Kora-War/; lần triển khai đầu đang chờ GitHub mở khóa Actions do Billing, chưa có bản demo được phát hành.
+[Issues](https://github.com/huyplay/Kora-War/issues) · [QA thủ công và Codex/Gemini](docs/TEAM-WORKFLOW.md). Theo quyết định mới nhất, Codex tự QA và merge main; CI/CD tự động đã tắt. GitHub Pages đã cấu hình nhưng chưa có bản demo được phát hành.
 
 Game chiến thuật thẻ 3D với luyện tập AI và phòng PvP 1v1 trong trình duyệt, triển khai theo yêu cầu gameplay mới ngày 14/10/2026. Bố cục ba lane lấy cảm hứng từ Castle Crush; đây là **ruleset và thế giới riêng**, không phải bản tái tạo chính xác Castle Crush, Liên Quân hoặc TFT.
 

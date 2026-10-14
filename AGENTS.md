@@ -52,5 +52,6 @@ Xem [kiến trúc](docs/ARCHITECTURE.md) và [quyết định](docs/DECISIONS.md
 
 - Codex quản lý backend/gameplay/kiến trúc/tích hợp/QA; Gemini nhận task hình ảnh có phạm vi riêng. Cùng tài khoản `huyplay`, phân biệt bằng issue label, nhánh và PR body.
 - Mỗi task có GitHub issue và worktree riêng: `codex/<issue>-<task>` hoặc `gemini/<issue>-<task>`. Không cùng sửa một working tree/file; xem `docs/TEAM-WORKFLOW.md` và scope issue.
-- Gemini không sửa core/data/server/app/CI hoặc World.ts trong task art. Bàn giao manifest/provenance/budget/preview; Codex tích hợp qua PR sau CI/QA.
-- Sau khi branch protection được bật, thay đổi vào main qua PR và required checks; không force push/tắt check. Chỉ Codex thực hiện tích hợp, cập nhật issue và triển khai.
+- Gemini không sửa core/data/server/app/workflow hoặc World.ts trong task art. Bàn giao manifest/provenance/budget/preview; Codex tích hợp qua PR sau QA local.
+- Quyết định mới nhất ngày 14/10/2026: người dùng không cần CI/CD; Codex tự QA và merge main. Workflow GitHub Actions đã tắt, không có required status checks. Quyết định này thay thế yêu cầu CI/CD/checks trước đó.
+- Giữ PR, lịch sử tuyến tính, giải quyết hội thoại và cấm force push/xóa main. Chỉ Codex thực hiện tích hợp sau các kiểm tra phù hợp, ghi bằng chứng vào PR/issue.

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Kora War — Quick Chat Reactions Preview</title>
+  <style>
+    :root {
+      --bg-battle: #0D141C;
+      --bubble-own: #002B49;
+      --bubble-own-border: #00E5FF;
+      --bubble-opp: #421010;
+      --bubble-opp-border: #FF5252;
+      --gold-accent: #FFD54F;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body {
+      background: #06090D;
+      color: #ECEFF1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    header h1 {
+      font-size: 20px;
+      color: #00E5FF;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    header p {
+      font-size: 12px;
+      color: #78909C;
+      margin-top: 4px;
+    }
+    
+    .viewports {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      width: 100%;
+      max-width: 1400px;
+    }
+    
+    .arena-container {
+      background: radial-gradient(circle at 50% 50%, #152232 0%, #080D14 100%);
+      border: 2px solid #1E3347;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+    }
+    
+    /* 844x390 landscape mobile */
+    .viewport-mobile {
+      width: 844px;
+      height: 390px;
+    }
+    
+    .arena-badge {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid #00E5FF;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      color: #00E5FF;
+      font-weight: bold;
+      z-index: 10;
+    }
+
+    /* Lanes simulation */
+    .lane-guide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    .lane-line { height: 1px; background: #00E5FF; width: 100%; }
+
+    /* Reactions in-battle bubbles */
+    .bubble {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes pop {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .bubble.own {
+      bottom: 70px;
+      left: 60px;
+      background: var(--bubble-own);
+      border: 2px solid var(--bubble-own-border);
+      color: #80D8FF;
+    }
+    .bubble.opponent {
+      top: 50px;
+      right: 60px;
+      background: var(--bubble-opp);
+      border: 2px solid var(--bubble-opp-border);
+      color: #FF8A80;
+    }
+    
+    .bubble img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+    .bubble small {
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      opacity: 0.8;
+      text-transform: uppercase;
+      display: block;
+    }
+
+    /* Quick Chat Panel */
+    .quick-chat-panel {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(13, 23, 33, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid #00B0FF;
+      border-radius: 12px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.7);
+      z-index: 20;
+    }
+    .panel-header {
+      font-size: 10px;
+      color: #FFD54F;
+      font-weight: bold;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .emojis-row {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+    }
+    .emoji-btn {
+      width: 44px;
+      height: 44px;
+      background: #101B26;
+      border: 1px solid #1E3347;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      padding: 3px;
+    }
+    .emoji-btn:hover {
+      background: #1A2F44;
+      border-color: #00E5FF;
+      transform: translateY(-2px);
+    }
+    .emoji-btn img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+
+    /* Hand cards placeholder to prove no overlap */
+    .cards-hand {
+      position: absolute;
+      bottom: 8px;
+      left: 12px;
+      display: flex;
+      gap: 6px;
+      opacity: 0.7;
+    }
+    .card-slot {
+      width: 44px;
+      height: 56px;
+      background: #0A141E;
+      border: 1px solid #1E2D3D;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: #546E7A;
+    }
+
+    /* Light Theme Comparison Block */
+    .light-comparison {
+      width: 100%;
+      max-width: 844px;
+      margin-top: 20px;
+      background: #FFFFFF;
+      color: #212121;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .light-comparison h3 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: #0091EA;
+    }
+    .light-bubbles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .light-bubble {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 16px;
+      background: #F0F4F8;
+      border: 1.5px solid #0091EA;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .light-bubble img {
+      width: 40px;
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Kora War — Quick Chat Reactions Preview</h1>
+    <p>Xác thực hiển thị trên màn hình ngang Mobile 844x390 • Tương thích Dark/Light Bubble • Đọc rõ ở 40px & 64px</p>
+  </header>
+
+  <div class="viewports">
+    <div class="arena-container viewport-mobile">
+      <div class="arena-badge">MOBILE LANDSCAPE 844×390</div>
+      
+      <div class="lane-guide">
+        <div class="lane-line"></div>
+        <div class="lane-line"></div>
+        <div class="lane-line"></div>
+      </div>
+
+      <!-- Opponent Bubble (Light/Red Theme) -->
+      <div class="bubble opponent">
+        <div>
+          <small>ĐỐI THỦ</small>
+          <span>Tán thưởng!</span>
+        </div>
+        <img src="respect.png" alt="respect">
+      </div>
+
+      <!-- Own Bubble (Aether Dark/Blue Theme) -->
+      <div class="bubble own">
+        <img src="cheer.png" alt="cheer">
+        <div>
+          <small>BẠN</small>
+          <span>Cổ vũ!</span>
+        </div>
+      </div>
+
+      <!-- 6 Hand Cards Demo -->
+      <div class="cards-hand">
+        <div class="card-slot">#1</div>
+        <div class="card-slot">#2</div>
+        <div class="card-slot">#3</div>
+        <div class="card-slot">#4</div>
+        <div class="card-slot">#5</div>
+        <div class="card-slot">#6</div>
+      </div>
+
+      <!-- Quick Chat Selector Panel -->
+      <div class="quick-chat-panel">
+        <div class="panel-header">
+          <span>PHẢN HỒI NHANH</span>
+          <span>EMOJI</span>
+        </div>
+        <div class="emojis-row">
+          
+            <div class="emoji-btn" title="Vui vẻ">
+              <img src="happy.png" alt="Vui vẻ">
+            </div>
+          
+            <div class="emoji-btn" title="Cổ vũ">
+              <img src="cheer.png" alt="Cổ vũ">
+            </div>
+          
+            <div class="emoji-btn" title="Bất ngờ">
+              <img src="wow.png" alt="Bất ngờ">
+            </div>
+          
+            <div class="emoji-btn" title="Buồn quá">
+              <img src="cry.png" alt="Buồn quá">
+            </div>
+          
+            <div class="emoji-btn" title="Cười">
+              <img src="laugh.png" alt="Cười">
+            </div>
+          
+            <div class="emoji-btn" title="Tán thưởng">
+              <img src="respect.png" alt="Tán thưởng">
+            </div>
+          
+            <div class="emoji-btn" title="Bùng cháy">
+              <img src="fire.png" alt="Bùng cháy">
+            </div>
+          
+            <div class="emoji-btn" title="Yêu thích">
+              <img src="heart.png" alt="Yêu thích">
+            </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Light Bubble Contrast Proof -->
+  <div class="light-comparison">
+    <h3>Kiểm tra độ tương phản trên bong bóng nền sáng (Light Bubbles - 40px)</h3>
+    <div class="light-bubbles">
+      
+        <div class="light-bubble">
+          <img src="happy.png" alt="Vui vẻ">
+          <span>happy (Vui vẻ)</span>
+        </div>
+      
+        <div class="light-bubble">
+          <img src="cheer.png" alt="Cổ vũ">
+          <span>cheer (Cổ vũ)</span>
+        </div>
+      
+        <div class="light-bubble">
+          <img src="wow.png" alt="Bất ngờ">
+          <span>wow (Bất ngờ)</span>
+        </div>
+      
+        <div class="light-bubble">
+          <img src="cry.png" alt="Buồn quá">
+          <span>cry (Buồn quá)</span>
+        </div>
+      
+        <div class="light-bubble">
+          <img src="laugh.png" alt="Cười">
+          <span>laugh (Cười)</span>
+        </div>
+      
+        <div class="light-bubble">
+          <img src="respect.png" alt="Tán thưởng">
+          <span>respect (Tán thưởng)</span>
+        </div>
+      
+        <div class="light-bubble">
+          <img src="fire.png" alt="Bùng cháy">
+          <span>fire (Bùng cháy)</span>
+        </div>
+      
+        <div class="light-bubble">
+          <img src="heart.png" alt="Yêu thích">
+          <span>heart (Yêu thích)</span>
+        </div>
+      
+    </div>
+  </div>
+</body>
+</html>

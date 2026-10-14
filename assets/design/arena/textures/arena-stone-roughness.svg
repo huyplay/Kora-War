@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+      <!-- High roughness values (light gray 190-230) for non-reflective diffuse terrain -->
+      <rect width="512" height="512" fill="#DCDCDC"/>
+      <g fill="#CCCCCC" stroke="#EBEBEB" stroke-width="4">
+        <rect x="8" y="8" width="118" height="74" rx="8"/>
+        <rect x="134" y="8" width="140" height="74" rx="8" fill="#BDBDBD"/>
+        <rect x="282" y="8" width="108" height="74" rx="8"/>
+        <rect x="398" y="8" width="106" height="74" rx="8" fill="#B8B8B8"/>
+        <rect x="8" y="90" width="154" height="74" rx="8"/>
+        <rect x="170" y="90" width="110" height="74" rx="8" fill="#C4C4C4"/>
+        <rect x="288" y="90" width="138" height="74" rx="8"/>
+        <rect x="434" y="90" width="70" height="74" rx="8" fill="#BCBCBC"/>
+        <rect x="8" y="172" width="128" height="74" rx="8" fill="#C2C2C2"/>
+        <rect x="144" y="172" width="128" height="74" rx="8"/>
+        <rect x="280" y="172" width="144" height="74" rx="8" fill="#B5B5B5"/>
+        <rect x="432" y="172" width="72" height="74" rx="8"/>
+        <rect x="8" y="254" width="140" height="74" rx="8" fill="#BEBEBE"/>
+        <rect x="156" y="254" width="124" height="74" rx="8"/>
+        <rect x="288" y="254" width="114" height="74" rx="8" fill="#C5C5C5"/>
+        <rect x="410" y="254" width="94" height="74" rx="8"/>
+        <rect x="8" y="336" width="114" height="74" rx="8"/>
+        <rect x="130" y="336" width="148" height="74" rx="8" fill="#B0B0B0"/>
+        <rect x="286" y="336" width="126" height="74" rx="8"/>
+        <rect x="420" y="336" width="84" height="74" rx="8" fill="#C8C8C8"/>
+        <rect x="8" y="418" width="150" height="86" rx="8" fill="#BCBCBC"/>
+        <rect x="166" y="418" width="118" height="86" rx="8"/>
+        <rect x="292" y="418" width="132" height="86" rx="8" fill="#B4B4B4"/>
+        <rect x="432" y="418" width="72" height="86" rx="8"/>
+      </g>
+    </svg>

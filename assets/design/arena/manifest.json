@@ -1,0 +1,137 @@
+{
+  "version": "1.0.0",
+  "title": "Kora War Arena Art Direction & PBR Proposal",
+  "author": "Gemini Design Agent",
+  "license": "Proprietary - Kora War Project / CC0 Assets Reference",
+  "sourceCommit": "3226e55adbdfeea8b3d5caae358be31dd64a3c1b",
+  "budgetSummary": {
+    "maxAssetSizeBytes": 4194304,
+    "totalTexturesSizeBytes": 166766,
+    "maxTrianglesBudget": 25000,
+    "proposedTriangles": 6000,
+    "staticDrawCalls": 4,
+    "supportedResolutions": [
+      "1536x720 Desktop",
+      "844x390 Mobile Landscape",
+      "667x375 Small Mobile"
+    ]
+  },
+  "materials": [
+    {
+      "id": "stone_diffuse",
+      "filename": "arena-stone-diffuse",
+      "description": "Đá lát sàn Aether Cobblestone (tone xám nâu ấm tương phản cao với HP bar và VFX)",
+      "webp": {
+        "file": "textures/arena-stone-diffuse.webp",
+        "publicUrl": "/design/arena/arena-stone-diffuse.webp",
+        "sizeBytes": 81200,
+        "sha256": "93e3cb798a1da24ce203a222bd40e85441dee0b6663544fba0e6de9d9f6e4719"
+      },
+      "png": {
+        "file": "textures/arena-stone-diffuse.png",
+        "publicUrl": "/design/arena/arena-stone-diffuse.png",
+        "sizeBytes": 102464,
+        "sha256": "2a652476fb8f1134df003f749d44ca173e249cfed7d833bd44c3c1704de32106"
+      }
+    },
+    {
+      "id": "stone_roughness",
+      "filename": "arena-stone-roughness",
+      "description": "Roughness map đá lát sàn (độ nhám cao 0.7 - 0.9 tránh chói phản quang mặt trời)",
+      "webp": {
+        "file": "textures/arena-stone-roughness.webp",
+        "publicUrl": "/design/arena/arena-stone-roughness.webp",
+        "sizeBytes": 2408,
+        "sha256": "fc809d3a8d9df0f54c5a670be98a4a78a97aa2ef6eb8a13c7d5899af7fc74404"
+      },
+      "png": {
+        "file": "textures/arena-stone-roughness.png",
+        "publicUrl": "/design/arena/arena-stone-roughness.png",
+        "sizeBytes": 8127,
+        "sha256": "3f3e1cb6f14070dbc0637e1d95e5ff819936eca4419c998e2ec117ed9643c411"
+      }
+    },
+    {
+      "id": "stone_normal",
+      "filename": "arena-stone-normal",
+      "description": "Normal map tạo độ gồ ghề vát cạnh của đá lát sàn",
+      "webp": {
+        "file": "textures/arena-stone-normal.webp",
+        "publicUrl": "/design/arena/arena-stone-normal.webp",
+        "sizeBytes": 1852,
+        "sha256": "1843eec73fed4a17b16a2531f3d764cb6f03a69f2c311acab6ad8fdf53aec1f9"
+      },
+      "png": {
+        "file": "textures/arena-stone-normal.png",
+        "publicUrl": "/design/arena/arena-stone-normal.png",
+        "sizeBytes": 6974,
+        "sha256": "f1cbf0055cde7183e821e27765b399fce1bd2b96c0f43d525a88a07a4586742b"
+      }
+    },
+    {
+      "id": "wall_diffuse",
+      "filename": "arena-wall-diffuse",
+      "description": "Đá tường thành lâu đài Elyndra (tone xám hoa cương tối, viền rãnh sắc sảo)",
+      "webp": {
+        "file": "textures/arena-wall-diffuse.webp",
+        "publicUrl": "/design/arena/arena-wall-diffuse.webp",
+        "sizeBytes": 10196,
+        "sha256": "d82afb7df5629cb919ea289a83a6b38e2a641ecc97b4fa068b16927dc9d37d11"
+      },
+      "png": {
+        "file": "textures/arena-wall-diffuse.png",
+        "publicUrl": "/design/arena/arena-wall-diffuse.png",
+        "sizeBytes": 13193,
+        "sha256": "6815a4380a711d544c177a9fd39fc8da6c3e2a04308242f98efe5cf99358d2fb"
+      }
+    },
+    {
+      "id": "banner_blue",
+      "filename": "arena-banner-blue",
+      "description": "Cờ hiệu phe Ta (Aether Falcon - Xanh lam ngọc & Vàng kim)",
+      "webp": {
+        "file": "textures/arena-banner-blue.webp",
+        "publicUrl": "/design/arena/arena-banner-blue.webp",
+        "sizeBytes": 45060,
+        "sha256": "67bd5b2f348391bcff4f2e638674aa0ce04561b144557907fa8fc49180d017ed"
+      },
+      "png": {
+        "file": "textures/arena-banner-blue.png",
+        "publicUrl": "/design/arena/arena-banner-blue.png",
+        "sizeBytes": 69315,
+        "sha256": "600fdc7ec79c89d2b3180156b04fce3c0c8d437a8feb1451582ce0e5b75b5e62"
+      }
+    },
+    {
+      "id": "banner_red",
+      "filename": "arena-banner-red",
+      "description": "Cờ hiệu phe Đối thủ (Crimson Drake - Đỏ thẫm & Đen hoàng gia)",
+      "webp": {
+        "file": "textures/arena-banner-red.webp",
+        "publicUrl": "/design/arena/arena-banner-red.webp",
+        "sizeBytes": 26050,
+        "sha256": "e6cc470e8fdf5990a54e9ae9eed74a95876c6fe122e3530a2ac0ded3701084ea"
+      },
+      "png": {
+        "file": "textures/arena-banner-red.png",
+        "publicUrl": "/design/arena/arena-banner-red.png",
+        "sizeBytes": 40725,
+        "sha256": "3b108a35728967ee3450a586e69b1948398cae2e0eacbc40136fb221bed53e53"
+      }
+    }
+  ],
+  "previews": [
+    {
+      "name": "preview-desktop-1536x720.png",
+      "width": 1536,
+      "height": 720,
+      "sha256": "26cb72ae0a36a954a16ae4ff825beec9ecd9272d5d7973fe8cfed5782aa43d11"
+    },
+    {
+      "name": "preview-mobile-844x390.png",
+      "width": 844,
+      "height": 390,
+      "sha256": "482d1ef337bd77b94ec3e073b4f3a8c150105690548dc9efe65f30168f505617"
+    }
+  ]
+}

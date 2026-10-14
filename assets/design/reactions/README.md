@@ -10,7 +10,7 @@ Tài sản thiết kế cho tính năng phản hồi nhanh (Quick Chat) trong Ko
 - **Quy chuẩn kỹ thuật**:
   - Kích thước chuẩn: **256x256 px**.
   - Định dạng: **WebP** (nén lossless cao cấp) và **PNG** (alpha transparency).
-  - Ngưỡng dung lượng tối đa cho mobile: **≤ 100 KB/hình** (Thực tế toàn bộ ảnh WebP đều **≤ 6 KB**, nhỏ hơn 16 lần so với giới hạn).
+  - Ngưỡng dung lượng tối đa cho mobile: **≤ 100 KB/hình**. WebP thực tế **20,5–55,3 KiB**; xem byte/checksum chính xác trong manifest và bảng bên dưới.
   - Không chứa văn bản/chữ trong hình (No in-image text).
   - Độ tương phản cao với viền bóng đổ, đọc rõ ràng ở cả **40px** và **64px** trên nền bong bóng tối (`#002B49`) và bong bóng sáng (`#ECEFF1`).
 

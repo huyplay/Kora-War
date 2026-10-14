@@ -20,6 +20,7 @@
     "format": "prettier --write \"src/**/*.{ts,css}\" \"server/**/*.ts\" \"tools/*.ts\" \"tests/*.ts\"",
     "assets:media:download": "python tools/download-media.py",
     "assets:media:import": "tsx tools/import-media-assets.ts",
+    "assets:reactions": "tsx tools/import-reaction-assets.ts",
     "assets:sync": "tsx tools/sync-asset-service.ts",
     "assets:verify": "tsx tools/verify-asset-service.ts",
     "backend:build": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/build-backend.ps1",

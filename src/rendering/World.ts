@@ -305,7 +305,7 @@ export class World {
     model.removeFromParent();
     return url;
   }
-  pick(clientX: number, clientY: number, spellTarget = false) {
+  pick(clientX: number, clientY: number, spellTarget = false, friendly = false) {
     const r = this.canvas.getBoundingClientRect();
     this.pointer.set(((clientX - r.left) / r.width) * 2 - 1, (-(clientY - r.top) / r.height) * 2 + 1);
     this.ray.setFromCamera(this.pointer, this.camera);
@@ -318,7 +318,7 @@ export class World {
         distance = Infinity;
       for (const visual of this.units.values()) {
         const unit = visual.unit;
-        if (unit.side !== 1 || unit.hp <= 0) continue;
+        if (unit.side !== (friendly ? 0 : 1) || unit.hp <= 0) continue;
         const position = visual.group.position;
         const height = (this.content?.models[unit.heroId]?.height ?? 2.65) * visual.group.scale.y;
         box.min.set(position.x - 0.7, position.y, position.z - 0.7);
@@ -341,7 +341,12 @@ export class World {
     return { ...point, spellValid: Math.abs(hit.x) <= 14 && Math.abs(hit.z - LANES[point.lane]) < 1.55 };
   }
   setHover(clientX: number, clientY: number, ability = false, spellId?: SpellId) {
-    const p = this.pick(clientX, clientY, !!spellId);
+    const p = this.pick(
+      clientX,
+      clientY,
+      !!spellId,
+      !!spellId && ['heal', 'shield', 'haste'].includes(spellId),
+    );
     const spell = spellId ? SPELLS[spellId] : undefined;
     this.hoverRing.visible = !!p && (ability || spell ? p.spellValid : p.valid);
     if (p) {

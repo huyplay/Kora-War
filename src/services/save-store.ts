@@ -1,7 +1,9 @@
 import type { Difficulty } from '../core/types';
 import { DEFAULT_DECK, HERO_MAP } from '../data/index';
 import { DEFAULT_SPELLS, isSpell, type SpellId } from '../data/spells';
+import { cardDeckError } from '../data/card-decks';
 export interface SaveData {
+  cards?: string[];
   deck: string[];
   spells: SpellId[];
   difficulty: Difficulty;
@@ -20,6 +22,7 @@ export function parseSave(raw: string | null): SaveData {
     /* Invalid or old saves fall back to the original starting deck. */
   }
   return {
+    ...(cardDeckError(value.cards) === null ? { cards: value.cards!.slice() } : {}),
     spells:
       Array.isArray(value.spells) &&
       value.spells.length === 2 &&

@@ -184,7 +184,7 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
         const id = player(),
           input = JSON.parse((await body(req)).toString());
         if (path === '/api/game/start')
-          return send(200, startMatch(store, id, input.deck, input.difficulty, input.spells));
+          return send(200, startMatch(store, id, input.deck, input.difficulty, input.spells, input.cards));
         if (path === '/api/game/finish')
           return send(200, finishMatch(store, id, input.id, input.commands, input.debug));
         if (typeof input.request !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(input.request))

@@ -6,9 +6,12 @@ import type { Difficulty } from '../src/core/types';
 import type { GameDatabase } from './database';
 import { tacticalBattle } from '../src/core/tactical';
 import { validateSpellDeck, type SpellId } from '../src/data/spells';
+import { cycleBattle } from '../src/core/cycle-battle';
 export interface Command {
   tick: number;
-  type: 'play' | 'pulse' | 'spell';
+  type: 'play' | 'pulse' | 'spell' | 'mulligan';
+  cardUid?: number;
+  cards?: number[];
   heroId?: string;
   lane: number;
   x?: number;
@@ -19,13 +22,16 @@ export function startMatch(
   deck: string[],
   difficulty: Difficulty,
   spells?: SpellId[],
+  cards?: string[],
 ) {
   if (!['story', 'normal', 'hard'].includes(difficulty)) throw new Error('Độ khó không hợp lệ.');
   const { published: content, revision } = store.config(),
     seed = randomInt(1, 0x7fffffff),
     id = randomUUID();
-  const levels = spells ? {} : Object.fromEntries(store.wallet(player).cards.map((c) => [c.hero, c.level]));
-  if (spells) {
+  const levels =
+    spells || cards ? {} : Object.fromEntries(store.wallet(player).cards.map((c) => [c.hero, c.level]));
+  if (cards !== undefined) cycleBattle(cards, content, seed);
+  else if (spells) {
     validateSpellDeck(spells);
     tacticalBattle(deck, spells, content, seed);
   } else new Battle(deck, difficulty, seed, ENEMY_DECK, content, levels);
@@ -35,7 +41,7 @@ export function startMatch(
       id,
       player,
       seed,
-      JSON.stringify(spells ? { heroes: deck, spells } : deck),
+      JSON.stringify(cards ? { ruleset: 'cycle-v1', cards } : spells ? { heroes: deck, spells } : deck),
       difficulty,
       JSON.stringify(content),
       JSON.stringify(levels),
@@ -72,39 +78,52 @@ export function finishMatch(
       !Number.isInteger(c.tick) ||
       c.tick < lastTick ||
       c.tick > 18000 ||
-      !['play', 'pulse', 'spell'].includes(c.type) ||
+      !['play', 'pulse', 'spell', 'mulligan'].includes(c.type) ||
       !Number.isInteger(c.lane) ||
       c.lane < 0 ||
       c.lane > 2 ||
-      (c.type !== 'pulse' && (!Number.isFinite(c.x) || typeof c.heroId !== 'string'))
+      (!['pulse', 'mulligan'].includes(c.type) && (!Number.isFinite(c.x) || typeof c.heroId !== 'string'))
     )
       throw new Error('Lệnh trận không hợp lệ.');
     lastTick = c.tick;
   }
   const content = JSON.parse(match.content) as ContentConfig;
   const savedDeck = JSON.parse(match.deck);
-  const battle = !Array.isArray(savedDeck)
-    ? tacticalBattle(
-        savedDeck.heroes,
-        savedDeck.spells,
-        content,
-        match.seed,
-        ENEMY_DECK,
-        undefined,
-        match.difficulty,
-      )
-    : new Battle(savedDeck, match.difficulty, match.seed, ENEMY_DECK, content, JSON.parse(match.levels));
-  battle.start();
+  const battle =
+    savedDeck.ruleset === 'cycle-v1'
+      ? cycleBattle(savedDeck.cards, content, match.seed, undefined, match.difficulty)
+      : !Array.isArray(savedDeck)
+        ? tacticalBattle(
+            savedDeck.heroes,
+            savedDeck.spells,
+            content,
+            match.seed,
+            ENEMY_DECK,
+            undefined,
+            match.difficulty,
+          )
+        : new Battle(savedDeck, match.difficulty, match.seed, ENEMY_DECK, content, JSON.parse(match.levels));
   let cursor = 0;
+  if (battle.cycling) {
+    battle.mulligan(1, []);
+    const opening = commands[cursor++];
+    if (!opening || opening.type !== 'mulligan' || opening.tick !== 0 || battle.mulligan(0, opening.cards!))
+      throw new Error('Đổi bài đầu trận không hợp lệ.');
+  }
+  battle.start();
   while (battle.phase === 'playing' && battle.tick < 18000) {
     while (commands[cursor]?.tick === battle.tick) {
       const c = commands[cursor++];
+      if (battle.cycling && ['play', 'spell'].includes(c.type) && !Number.isSafeInteger(c.cardUid))
+        throw new Error('Thiếu mã thẻ trên tay.');
       const error =
         c.type === 'spell'
-          ? battle.cast(0, c.heroId!, c.lane, c.x!)
+          ? battle.cast(0, c.heroId!, c.lane, c.x!, c.cardUid)
           : c.type === 'play'
-            ? battle.play(0, c.heroId!, c.lane, c.x)
-            : battle.pulse(0, c.lane);
+            ? battle.play(0, c.heroId!, c.lane, c.x, c.cardUid)
+            : c.type === 'pulse'
+              ? battle.pulse(0, c.lane)
+              : 'Đã chốt bài đầu trận.';
       if (error) throw new Error(`Lệnh bị từ chối: ${error}`);
     }
     battle.step();

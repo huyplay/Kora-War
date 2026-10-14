@@ -8,8 +8,9 @@ export interface PvpPacket {
   waiting: boolean;
   seed: number;
   content?: ContentConfig;
-  loadout: { deck: string[]; spells: SpellId[] };
-  opponent?: { deck: string[]; spells: SpellId[] };
+  loadout: { deck: string[]; spells: SpellId[]; cards?: string[] };
+  opponent?: { deck: string[]; spells: SpellId[]; cards?: string[] };
+  openingSeconds?: number;
   state?: OnlineState;
   error?: string | null;
 }
@@ -45,7 +46,7 @@ export class PvpSession {
     }
     this.onState(this.packet);
   }
-  async open(deck: string[], spells: SpellId[], code?: string) {
+  async open(deck: string[], spells: SpellId[], code?: string, cards?: string[]) {
     if (this.leaving) throw new Error('Đang rời phòng.');
     const generation = this.generation;
     const packet = await api<PvpPacket>(
@@ -55,6 +56,7 @@ export class PvpSession {
         deck,
         spells,
         code,
+        cards,
       },
       this.requests.signal,
     );
@@ -135,13 +137,23 @@ export class PvpSession {
       this.connected ? 100 : 1500,
     );
   }
-  async command(type: 'play' | 'spell' | 'pulse', card: string | undefined, lane: number, x: number) {
+  async command(
+    type: 'play' | 'spell' | 'pulse' | 'mulligan',
+    card: string | undefined,
+    lane: number,
+    x: number,
+    cardUid?: number,
+    cards?: number[],
+  ) {
     if (this.leaving) return 'Đang rời phòng.';
     if (!this.packet || this.sending || !this.connected) return 'Đang chờ kết nối máy chủ.';
     this.sending = true;
     const generation = this.generation;
     const signal = this.requests.signal;
-    const data = { code: this.packet.code, command: { id: crypto.randomUUID(), type, card, lane, x } };
+    const data = {
+      code: this.packet.code,
+      command: { id: crypto.randomUUID(), type, card, lane, x, cardUid, cards },
+    };
     try {
       let packet: PvpPacket;
       try {

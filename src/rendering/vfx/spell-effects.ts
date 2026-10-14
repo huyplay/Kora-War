@@ -17,6 +17,8 @@ interface StatusVisual {
   group: THREE.Group;
   frost: THREE.Group;
   fire: THREE.Group;
+  haste: THREE.Mesh;
+  weaken: THREE.Mesh;
 }
 
 /** Presentation only: all visibility and lifetimes come from the combat snapshot. */
@@ -86,6 +88,20 @@ export class SpellEffects {
     color: 0x89dbff,
     transparent: true,
     opacity: 0.18,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  private hasteMaterial = new THREE.MeshBasicMaterial({
+    color: 0x7fffe4,
+    transparent: true,
+    opacity: 0.65,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  private weakenMaterial = new THREE.MeshBasicMaterial({
+    color: 0xbf83f7,
+    transparent: true,
+    opacity: 0.65,
     side: THREE.DoubleSide,
     depthWrite: false,
   });
@@ -167,9 +183,20 @@ export class SpellEffects {
     }
     const fire = this.flames(5, 0.6, 0.6);
     fire.name = 'burn';
-    group.add(frost, fire);
+    const haste = new THREE.Mesh(this.ringGeometry, this.hasteMaterial),
+      weaken = new THREE.Mesh(this.ringGeometry, this.weakenMaterial);
+    haste.name = 'haste';
+    weaken.name = 'weaken';
+    for (const marker of [haste, weaken]) {
+      marker.rotation.x = -Math.PI / 2;
+      marker.position.y = 0.25;
+      marker.scale.setScalar(0.8);
+    }
+    weaken.position.y = 0.27;
+    weaken.scale.setScalar(1);
+    group.add(frost, fire, haste, weaken);
     this.root.add(group);
-    return { group, frost, fire };
+    return { group, frost, fire, haste, weaken };
   }
 
   update(zones: readonly SpellZone[], units: readonly Unit[], time: number, clock: number) {
@@ -195,7 +222,8 @@ export class SpellEffects {
     const activeIds = new Set<number>();
     for (const unit of units) {
       if (unit.hp <= 0) continue;
-      const chilled = unit.slowUntil > time + 1e-8 && unit.slowFactor < 1;
+      const chilled =
+        (unit.slowUntil > time + 1e-8 && unit.slowFactor < 1) || (unit.frozenUntil ?? 0) > time + 1e-8;
       const burning = zones.some(
         (zone) =>
           zone.spellId === 'fire' &&
@@ -205,13 +233,17 @@ export class SpellEffects {
           time < zone.ends &&
           Math.abs(unit.x - zone.x) <= SPELLS.fire.radius,
       );
-      if (!chilled && !burning) continue;
+      const hasted = (unit.hasteUntil ?? 0) > time,
+        weakened = (unit.weakenUntil ?? 0) > time;
+      if (!chilled && !burning && !hasted && !weakened) continue;
       activeIds.add(unit.id);
       const visual = this.statuses.get(unit.id) ?? this.createStatus(unit.id);
       this.statuses.set(unit.id, visual);
       visual.group.position.set(unit.x, 0.05, LANES[unit.lane] + ((unit.id % 3) - 1) * 0.32);
       visual.frost.visible = chilled;
       visual.fire.visible = burning;
+      visual.haste.visible = hasted;
+      visual.weaken.visible = weakened;
       this.animateFlames(visual.fire, clock);
       this.animateAtlas(visual.frost, time);
     }
@@ -262,7 +294,14 @@ export class SpellEffects {
       this.shellGeometry,
     ])
       geometry.dispose();
-    for (const material of [this.flameMaterial, this.iceMaterial, this.shellMaterial]) material.dispose();
+    for (const material of [
+      this.flameMaterial,
+      this.iceMaterial,
+      this.shellMaterial,
+      this.hasteMaterial,
+      this.weakenMaterial,
+    ])
+      material.dispose();
     this.atlases.forEach(({ frames }) => frames.forEach((frame) => frame.dispose()));
     this.atlases.clear();
   }

@@ -1,104 +1,89 @@
 import { ORIGINS, ROLES, traits } from '../../data/index';
+import { cardDeckError } from '../../data/card-decks';
+import { SPELLS, isSpell } from '../../data/spells';
 import { $, escapeHTML } from '../dom';
 import { icon } from '../icons';
 import { closeModal, modal } from '../modal';
+import { spellCard } from '../spell-card';
 import type { ScreenContext } from '../screen-context';
-import { SPELLS, type SpellId } from '../../data/spells';
-export function openRoster(ctx: ScreenContext, focusId = ctx.deck[0]) {
-  const HEROES = ctx.heroes,
-    HERO_MAP = ctx.heroMap;
+export function openRoster(ctx: ScreenContext, focusId = ctx.cards[0]) {
   if (ctx.mode === 'battle') {
-    ctx.toast('Đội hình được khóa trong trận. Bạn có thể đổi ở sảnh.');
+    ctx.toast('Bộ bài được khóa trong trận.');
     return;
   }
-  let draft = ctx.deck.slice();
-  let spells = ctx.spells.slice();
-  let inspected = HERO_MAP[focusId] ? focusId : ctx.deck[0];
+  let draft = ctx.cards.slice(),
+    inspected = focusId;
+  const tile = (id: string, i: number) =>
+    isSpell(id) ? spellCard(id, i, true) : ctx.card(ctx.heroMap[id], i, true);
+  const catalog = [...ctx.heroes.map((hero) => hero.id), ...Object.keys(SPELLS)];
   modal(
-    `<div class="modal-top"><div><span class="eyebrow">NHỮNG NGƯỜI BẢO HỘ ELYNDRA</span><h2>Chọn người đồng hành.</h2><p>Ghép 2 tướng cùng tộc hoặc hệ để kích hoạt synergy.</p></div><button class="icon-button" id="roster-close" aria-label="Đóng đội hình">${icon('close')}</button></div><div class="roster-layout"><div id="roster-grid">${HEROES.map((h, i) => ctx.card(h, i, true)).join('')}</div><aside id="hero-detail"></aside></div><div class="roster-footer"><div><strong id="draft-count"></strong><span id="draft-traits"></span></div><button class="primary" id="save-deck">Lưu đội hình ${icon('chevron')}</button></div>`,
+    `<div class="modal-top"><div><span class="eyebrow">BỘ BÀI ELYNDRA</span><h2>Xây bộ bài 14 thẻ</h2><p>Mỗi thẻ 1 bản · tay 6 thẻ · đổi tối đa 2 thẻ đầu trận</p></div><button class="icon-button" id="roster-close" aria-label="Đóng đội hình">${icon('close')}</button></div><div class="deck-builder"><div class="deck-builder-title"><strong id="draft-count"></strong><span id="draft-traits"></span></div><div id="deck-slots" class="deck-slots"></div><div class="collection-title"><strong>Bộ sưu tập</strong><span>10 tướng · 8 phép</span></div><div id="roster-grid" class="card-collection">${catalog.map(tile).join('')}</div><div id="hero-detail" class="deck-detail"></div><div class="roster-footer"><p id="deck-error" role="status"></p><button class="primary" id="save-deck">Lưu bộ bài</button></div></div>`,
     true,
   );
-  $('.roster-footer').insertAdjacentHTML(
-    'beforebegin',
-    `<div class="spell-roster" aria-label="Chọn hai phép">${Object.values(SPELLS)
-      .map(
-        (s) =>
-          `<button class="spell-choice" data-spell="${s.id}" title="${s.description}"><b>${s.icon} ${s.name}</b><small>${s.cost} ◆ · ${s.cooldown}s</small><span>${s.description}</span></button>`,
-      )
-      .join('')}</div>`,
-  );
   const refresh = () => {
-    document.querySelectorAll<HTMLElement>('[data-spell]').forEach((b) => {
-      b.classList.toggle('selected', spells.includes(b.dataset.spell as SpellId));
-      b.setAttribute('aria-pressed', String(spells.includes(b.dataset.spell as SpellId)));
-    });
-    const h = HERO_MAP[inspected];
-    document.querySelectorAll<HTMLElement>('#roster-grid .hero-card').forEach((b) => {
-      b.classList.toggle('in-deck', draft.includes(b.dataset.hero!));
-      b.classList.toggle('inspected', b.dataset.hero === inspected);
-    });
-    $('#draft-count').textContent = `${draft.length}/4 TƯỚNG · ${spells.length}/2 PHÉP`;
-    const active = Object.entries(traits(draft))
-      .filter(([, n]) => n >= 2)
-      .map(
-        ([id]) =>
-          (
-            ORIGINS as Record<
-              string,
-              {
-                name: string;
-              }
-            >
-          )[id]?.name ||
-          (
-            ROLES as Record<
-              string,
-              {
-                name: string;
-              }
-            >
-          )[id]?.name,
-      );
-    $('#draft-traits').textContent = active.length ? active.join(' + ') : 'Chưa có liên kết kích hoạt';
-    $('#save-deck').toggleAttribute('disabled', draft.length !== 4 || spells.length !== 2);
+    $('#deck-slots').innerHTML = Array.from({ length: 14 }, (_, i) =>
+      draft[i]
+        ? `<div class="deck-slot">${tile(draft[i], i)}<button class="remove-card" data-remove="${draft[i]}" aria-label="Bỏ ${isSpell(draft[i]) ? SPELLS[draft[i] as keyof typeof SPELLS].name : ctx.heroMap[draft[i]].name} khỏi deck">×</button></div>`
+        : `<div class="deck-slot empty-slot"><span>${i + 1}</span></div>`,
+    ).join('');
+    const heroes = draft.filter((id) => !isSpell(id)),
+      active = Object.entries(traits(heroes))
+        .filter(([, n]) => n >= 2)
+        .map(([id]) => (({ ...ORIGINS, ...ROLES }) as Record<string, { name: string }>)[id].name);
+    $('#draft-count').textContent =
+      `${draft.length} / 14 THẺ · ${heroes.length} tướng · ${draft.length - heroes.length} phép`;
+    $('#draft-traits').textContent = active.join(' · ');
+    const error = cardDeckError(draft);
+    $('#deck-error').textContent = error ?? 'Bộ bài sẵn sàng';
+    $('#save-deck').toggleAttribute('disabled', !!error);
+    const info = isSpell(inspected) ? SPELLS[inspected] : ctx.heroMap[inspected];
     $('#hero-detail').innerHTML =
-      `<span class="eyebrow" style="color:${ORIGINS[h.origin].color}">${ORIGINS[h.origin].icon} ${ORIGINS[h.origin].name} · ${ROLES[h.role].name}</span><h3>${h.name}</h3><p class="hero-title">${escapeHTML(h.title)}</p><div class="stat-grid"><span><b>${h.hp}</b>Máu</span><span><b>${h.attack}</b>Sát thương</span><span><b>${h.range}m</b>Tầm đánh</span><span><b>${h.cost}</b>Mana</span></div><h4>✦ ${escapeHTML(h.ability)}</h4><p>${escapeHTML(h.description)}</p><small>Tự dùng khi có mục tiêu phù hợp. Hồi ${h.skillCooldown} giây.</small><div class="detail-traits"><p>${ORIGINS[h.origin].icon} ${ORIGINS[h.origin].effect}</p><p>${ROLES[h.role].icon} ${ROLES[h.role].effect}</p></div><button class="secondary" id="toggle-hero">${draft.includes(h.id) ? '− Bỏ khỏi đội hình' : '+ Thêm vào đội hình'}</button>`;
+      `<div><strong>${escapeHTML(info.name)}</strong><span>${info.cost} ◆ · ${escapeHTML(info.description)}</span></div><button id="toggle-hero" class="secondary">${draft.includes(inspected) ? '− Bỏ thẻ' : '+ Thêm thẻ'}</button>`;
     $('#toggle-hero').onclick = () => {
-      if (draft.includes(h.id)) draft = draft.filter((id) => id !== h.id);
-      else if (draft.length < 4) draft.push(h.id);
+      if (draft.includes(inspected)) draft = draft.filter((id) => id !== inspected);
+      else if (draft.length < 14) draft.push(inspected);
       else {
-        ctx.toast('Đội hình đã đủ 4 tướng. Bỏ một tướng trước khi thêm.');
+        ctx.toast('Deck đã đủ 14 thẻ. Bỏ một thẻ trước khi thêm.');
         return;
       }
       refresh();
     };
+    document.querySelectorAll<HTMLElement>('#roster-grid .hero-card').forEach((button) => {
+      button.classList.toggle('in-deck', draft.includes(button.dataset.hero!));
+      button.setAttribute('aria-pressed', String(draft.includes(button.dataset.hero!)));
+    });
+    document.querySelectorAll<HTMLElement>('[data-remove]').forEach(
+      (button) =>
+        (button.onclick = () => {
+          draft = draft.filter((id) => id !== button.dataset.remove);
+          refresh();
+        }),
+    );
+    document.querySelectorAll<HTMLElement>('#deck-slots .hero-card').forEach(
+      (button) =>
+        (button.onclick = () => {
+          inspected = button.dataset.hero!;
+          refresh();
+        }),
+    );
   };
   document.querySelectorAll<HTMLElement>('#roster-grid .hero-card').forEach(
-    (b) =>
-      (b.onclick = () => {
-        inspected = b.dataset.hero!;
-        refresh();
-      }),
-  );
-  document.querySelectorAll<HTMLElement>('[data-spell]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        const id = b.dataset.spell as SpellId;
-        if (spells.includes(id)) spells = spells.filter((s) => s !== id);
-        else if (spells.length < 2) spells.push(id);
-        else ctx.toast('Bỏ một phép trước khi chọn phép khác.');
+    (button) =>
+      (button.onclick = () => {
+        inspected = button.dataset.hero!;
         refresh();
       }),
   );
   $('#save-deck').onclick = () => {
-    if (draft.length !== 4 || spells.length !== 2) return;
-    ctx.deck = draft;
-    ctx.spells = spells;
+    if (cardDeckError(draft)) return;
+    ctx.cards = draft.slice();
+    ctx.deck = draft.filter((id) => !isSpell(id));
+    ctx.spells = draft.filter(isSpell);
     ctx.persist();
-    ctx.renderDeck();
     ctx.preview();
+    ctx.renderDeck();
     closeModal();
-    ctx.toast('Đội hình đã sẵn sàng.');
+    ctx.toast('Đã lưu bộ bài 14 thẻ.');
   };
   $('#roster-close').onclick = closeModal;
   refresh();

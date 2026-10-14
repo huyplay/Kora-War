@@ -54,6 +54,10 @@ Các file export tương thích ở gốc `src` giữ đường import cũ hoạ
 
 ## Luồng dữ liệu
 
+App hiện hành tạo `cycleBattle()` (`cycle-v1`): `DrawDeck` quản lý hand/pile/discard bằng PRNG của Battle, luật 14/6 trong `data/card-decks.ts`. `play`/`cast` xác thực UID, mana/cooldown/vị trí rồi mới tiêu thẻ và rút vào cùng ô. Mulligan chỉ ở phase ready; cả hai phía chốt mới chạy tick. `tacticalBattle()` và constructor legacy giữ đường replay/fixture cũ.
+
+PvP chỉ trả tay của người xem, số thẻ đối thủ và thông tin chồng rút của mình; seed/pile/discard không truyền ra client. Client dùng `hands` nhận từ snapshot để kiểm tra chọn thẻ, không dùng DrawDeck dự phòng của renderer để quyết định lượt rút. Server sở hữu combat và rút bài. Replay luyện tập lưu `cycle-v1`, deck 14, chốt bài tick 0 và UID lệnh play/spell; save local có trường `cards`, vẫn đọc được key/schema cũ.
+
 ```mermaid
 flowchart LR
   Input[Input / UI] --> App[App session]
@@ -65,7 +69,7 @@ flowchart LR
   App --> Save[Lưu game]
 ```
 
-`Battle.step()` thực thi mana → AI → unit → trụ → loại quân chết → kết quả. Thứ tự này giữ nguyên từ prototype; thay đổi thứ tự có thể thay đổi kết quả trận. PRNG có seed nằm trong Battle. `FixedStepRunner` không truyền delta thời gian biến thiên vào combat; render 30, 60 hoặc 144 Hz cho cùng trạng thái sau cùng số giây mô phỏng. Khi khung hình bị treo, catch-up tối đa 12 tick/khung để tránh vòng lặp quá tải.
+`Battle.step()` thực thi mana → AI → unit → phép (tactical/cycle) → trụ → loại quân chết → kết quả. Đường legacy giữ thứ tự prototype; thay đổi thứ tự có thể thay đổi kết quả trận. PRNG có seed nằm trong Battle. `FixedStepRunner` không truyền delta thời gian biến thiên vào combat; render 30, 60 hoặc 144 Hz cho cùng trạng thái sau cùng số giây mô phỏng. Khi khung hình bị treo, catch-up tối đa 12 tick/khung để tránh vòng lặp quá tải.
 
 Kỹ năng là dữ liệu gồm điều kiện kích hoạt, truy vấn mục tiêu và các hiệu ứng damage/heal/shield/slow/stun. Thêm tướng dùng các hiệu ứng hiện có chỉ cần cấu hình; một loại hiệu ứng mới cần bổ sung handler và test. Renderer không chứa thông số sát thương.
 
@@ -101,6 +105,6 @@ Các geometry/material dùng chung thuộc World, không bị hủy khi một un
 
 ## Tactical MVP và PvP
 
-`core/tactical.ts` tạo luật mới với 4 mana, 4 tướng + 2 phép và chỉ số chuẩn hóa. `core/systems/spells.ts` validate/cast/update vùng phép; `data/spells.ts` giữ thông số. `Battle()` mặc định giữ compatibility với fixture/replay legacy.
+`core/cycle-battle.ts` tạo luật hiện hành với 4 mana, deck 14/tay 6 và chỉ số chuẩn hóa. `core/tactical.ts` giữ bản 4 tướng + 2 phép để replay cũ tiếp tục hoạt động. `core/systems/spells.ts` validate/cast/update vùng phép; `data/spells.ts` giữ thông số. `Battle()` mặc định giữ compatibility với fixture/replay legacy.
 
 `server/pvp.ts` sở hữu Battle và đồng hồ server, nhận command có ID, khóa loadout và xác thực thành viên theo cookie gateway. `core/online-state.ts` trả bản sao state theo góc nhìn phe; `services/pvp-session.ts` poll khoảng 10 Hz, loại packet cũ theo version, giữ mã phòng cho reconnect. App online không gọi `step()`. Renderer đọc spell zones để vẽ cảnh báo. Room không persist; SignalR/PostgreSQL match persistence vẫn là bước sau.

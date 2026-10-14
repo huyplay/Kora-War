@@ -9,14 +9,15 @@ export function updateUnits(battle: Battle) {
     if (u.hp <= 0) continue;
     if (battle.tactical) refreshSlowEffects(u, battle.time);
     u.previousX = u.x;
-    u.attackCd -= STEP;
+    const haste = (u.hasteUntil ?? 0) > battle.time ? 1.35 : 1;
+    u.attackCd -= STEP * haste;
     u.skillCd -= STEP;
     if (battle.has(u.side, 'grove')) {
       const amount = Math.min(u.maxHp - u.hp, 4 * STEP);
       u.hp += amount;
       battle.stats[u.side].healed += amount;
     }
-    if (u.stunUntil > battle.time) {
+    if (Math.max(u.stunUntil, u.frozenUntil ?? 0) > battle.time) {
       u.state = 'stunned';
       continue;
     }
@@ -46,7 +47,7 @@ export function updateUnits(battle: Battle) {
           battle.emit({ type: 'projectile', side: u.side, lane: u.lane, x: u.x, toX: x, heroId: h.id });
         if (target) battle.damage(target, u.attack, u.side, u);
         else if (tower) {
-          const value = Math.min(tower.hp, u.attack);
+          const value = Math.min(tower.hp, u.attack * ((u.weakenUntil ?? 0) > battle.time ? 0.7 : 1));
           tower.hp -= value;
           battle.stats[u.side].damage += value;
           battle.resonance[u.side] = Math.min(100, battle.resonance[u.side] + 2);
@@ -62,7 +63,10 @@ export function updateUnits(battle: Battle) {
           }
         } else {
           const victim = (1 - u.side) as Side;
-          const value = Math.min(battle.cores[victim], u.attack);
+          const value = Math.min(
+            battle.cores[victim],
+            u.attack * ((u.weakenUntil ?? 0) > battle.time ? 0.7 : 1),
+          );
           battle.cores[victim] -= value;
           battle.stats[u.side].damage += value;
           battle.emit({ type: 'core', side: victim, lane: u.lane, x: structureX, value: Math.round(value) });
@@ -70,7 +74,7 @@ export function updateUnits(battle: Battle) {
       }
     } else {
       u.state = 'move';
-      const speed = u.speed * (u.slowUntil > battle.time ? u.slowFactor : 1);
+      const speed = u.speed * haste * (u.slowUntil > battle.time ? u.slowFactor : 1);
       u.x = advanceAlongLane(u.x, dir, speed, STEP);
     }
   }

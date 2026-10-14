@@ -24,6 +24,14 @@ export function onlineState(b: Battle, viewer: Side) {
       ...(e.toX === undefined ? {} : { toX: x(e.toX) }),
     })),
     spellZones: b.spellZones.map((z) => ({ ...z, side: side(z.side), x: x(z.x) })),
+    ...(b.cycling
+      ? {
+          hands: [b.hands[viewer], []],
+          cardDrawInfo: [b.cardDrawInfo[viewer], { remaining: 0, discarded: 0, cycle: 0 }],
+          mulliganDone: sides(b.mulliganDone),
+          opponentHandCount: b.hands[1 - viewer].length,
+        }
+      : {}),
   });
 }
 export type OnlineState = ReturnType<typeof onlineState>;

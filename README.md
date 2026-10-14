@@ -1,6 +1,6 @@
 # Kora War
 
-Game chiến thuật thẻ 3D với luyện tập AI và phòng PvP 1v1 trong trình duyệt, triển khai theo yêu cầu gameplay mới ngày 13/10/2026. Bố cục ba lane lấy cảm hứng từ Castle Crush; đây là **ruleset và thế giới riêng**, không phải bản tái tạo chính xác Castle Crush, Liên Quân hoặc TFT.
+Game chiến thuật thẻ 3D với luyện tập AI và phòng PvP 1v1 trong trình duyệt, triển khai theo yêu cầu gameplay mới ngày 14/10/2026. Bố cục ba lane lấy cảm hứng từ Castle Crush; đây là **ruleset và thế giới riêng**, không phải bản tái tạo chính xác Castle Crush, Liên Quân hoặc TFT.
 
 ## Chạy thử
 
@@ -34,8 +34,9 @@ npm run preview
 ## Đã triển khai
 
 - Sân đá PBR ba đường, camera nghiêng và zoom 1–1,85×; cờ vải chuyển động, đuốc/tàn lửa, ba trụ mỗi bên và hai lõi 1.500 HP.
-- 10 tướng gốc, 5 tộc, 5 hệ; chọn đúng 4 tướng + 2 phép và lưu bộ bài trên thiết bị.
-- Bốn phép Gió/Lửa/Sét/Băng: mana chung, hồi chiêu riêng, vùng cảnh báo và hiệu ứng theo fixed tick. Mana bắt đầu 4/10.
+- 10 tướng gốc, 5 tộc, 5 hệ; xây deck **14 thẻ khác nhau** từ catalog 18 thẻ và lưu trên thiết bị.
+- Tay **6 thẻ**, mở đầu ít nhất 4 tướng + 1 phép, được đổi tối đa 2 thẻ. Dùng thẻ rút thẻ kế tiếp vào cùng ô; hết chồng rút chỉ xáo các thẻ đã dùng, giữ các thẻ đang cầm.
+- Tám phép: Gió/Lửa/Sét/Băng và Hồi Sinh Lực/Khiên Aether/Suy Yếu/Gia Tốc. Băng đóng băng di chuyển/đánh/kỹ năng 2 giây; Nyx ưu tiên áp sát hậu tuyến đánh xa. Mana chung, hồi chiêu riêng, vùng cảnh báo và hiệu ứng theo fixed tick; bắt đầu 4/10.
 - Phòng PvP có mã mời, chỉ số chuẩn hóa, server quyết định trận; reconnect cùng profile trong 30 giây, đầu hàng và kết quả.
 - Gọi quân bằng kéo thả, chọn thẻ rồi chạm sân, hoặc nút/phím chiến tuyến; mana có chi phí và hồi phục.
 - Tự tiến quân, tìm mục tiêu, đánh cận/xa, kỹ năng riêng, lá chắn, hồi máu, làm chậm, choáng, sát thương vùng.
@@ -60,13 +61,13 @@ npm run preview
 - Preview phép khớp bán kính/màu của thẻ; phản hồi lệnh chậm giữ lựa chọn thẻ mới của người chơi.
 - Chặn lệnh mới khi đang rời phòng; nút lane và thông báo reconnect không che sân trên màn hình nhỏ.
 
-`npm run check` đã đạt **123/123 test**, kiểm tra kiến trúc, TypeScript server/client và production build Vite. Bundle Three.js còn cảnh báo vượt 500 kB; chưa có benchmark điện thoại thật hoặc kiểm thử WAN. Chi tiết tại [phân tích project](docs/PROJECT-REVIEW.md), [QA đồ họa](docs/VISUAL-QA.md) và [quyết định gameplay](docs/DECISIONS.md).
+`npm run check` kiểm tra kiến trúc, TypeScript server/client, regression và production build Vite. Kết quả đợt deck 14 thẻ được ghi tại [QA deck và combat](docs/CARD-DECK-QA.md). Bundle Three.js còn cảnh báo vượt 500 kB; chưa có benchmark điện thoại thật hoặc kiểm thử WAN. Chi tiết tại [phân tích project](docs/PROJECT-REVIEW.md), [QA đồ họa](docs/VISUAL-QA.md) và [quyết định gameplay](docs/DECISIONS.md).
 
 ## Điều khiển
 
 | Thao tác | Chuột/cảm ứng | Phím |
 |---|---|---|
-| Chọn tướng / phép | Chạm thẻ | 1–4 / 5–6 |
+| Chọn tướng / phép | Chạm thẻ đang cầm | 1–6 theo ô trên tay |
 | Dùng phép | Kéo/chạm vị trí trên lane bất kỳ | W/E/R: tâm lane |
 | Gọi quân | Kéo thẻ vào vùng bên trái, hoặc chọn thẻ rồi chạm | W/E/R: trên/giữa/dưới |
 | Cộng hưởng | Nhấn nút khi đạt 100%, rồi chọn đường | Q rồi W/E/R |
@@ -85,7 +86,7 @@ npm run preview
 - `src/engine/`: lifetime, asset registry, object pool và nhận diện gesture; không quyết định luật chiến đấu.
 - `server/`: HTTP API, SQLite, auth admin, asset ingestion và giao dịch economy.
 - `src/admin/`: Content Studio và preview 3D.
-- `tests/`: 95 bài test, gồm 20 trận AI-v-AI, đối chiếu bốn seed với bản gốc trước refactor, biên tick phép/slow, preview và phục hồi/vòng đời phòng PvP.
+- `tests/`: mô phỏng AI, đối chiếu bốn seed với bản gốc trước refactor, biên tick phép/slow/freeze, invariants deck/rút/đổi bài, replay thưởng, preview và phục hồi/vòng đời phòng PvP.
 - [Audio/texture/prop](assets/media/README.md): nguồn, giấy phép, tải và nhập thư viện. Studio điều chỉnh mixer, âm thanh theo tướng, texture và map props.
 - [ASP.NET Core / PostgreSQL](docs/BACKEND-MIGRATION.md): service asset, đồng bộ có retry, storage local/R2 và lộ trình chuyển dữ liệu. Ví/trận vẫn ghi SQLite; chưa bật R2/CDN.
 - [Module engine](docs/ENGINE.md), [quy ước asset](assets/README.md), [mobile UX](docs/MOBILE-UX.md), [kết quả QA](docs/06-implementation/qa.md).
@@ -97,6 +98,6 @@ PvP MVP dùng phòng riêng trong bộ nhớ một Node process; restart server 
 
 ## Chơi PvP
 
-Chạy `npm run start`, mở game ở hai trình duyệt/profile khác nhau để có hai cookie người chơi. Chọn bộ bài trước trận; người thứ nhất bấm **PvP · Đấu bạn bè → Tạo phòng**, người thứ hai nhập mã và bấm **Vào phòng**. Cả hai luôn thấy đội mình bên trái. Trận không tạm dừng khi ẩn tab. Server mặc định chỉ nghe loopback; chơi qua Internet cần triển khai cùng origin/HTTPS riêng.
+Chạy `npm run start`, mở game ở hai trình duyệt/profile khác nhau để có hai cookie người chơi. Chọn bộ bài trước trận; người thứ nhất bấm **PvP · Đấu bạn bè → Tạo phòng**, người thứ hai nhập mã và bấm **Vào phòng**. Chọn tối đa 2 thẻ đổi rồi chốt bài; sau 15 giây server tự giữ bài nếu chưa chốt. Cả hai luôn thấy đội mình bên trái, chỉ thấy lưng bài đối thủ. Trận không tạm dừng khi ẩn tab. Server mặc định chỉ nghe loopback; chơi qua Internet cần triển khai cùng origin/HTTPS riêng.
 
 Cấp thẻ trong kho là cấp sưu tập; trận tactical dùng chỉ số chuẩn hóa. [Phân tích toàn project và đối chiếu thiết kế](docs/PROJECT-REVIEW.md), [quyết định MVP](docs/DECISIONS.md), [thiết kế nguồn](Game_desgin.md).

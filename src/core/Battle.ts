@@ -12,6 +12,7 @@ import { updateVictory } from './systems/victory';
 import type { Difficulty, GameEvent, Phase, Side, Stats, Tower, Unit } from './types';
 import { validateSpellDeck, type SpellId } from '../data/spells';
 import { castSpell, validateSpell, updateSpells, type SpellZone } from './systems/spells';
+import { DrawDeck, type HandCard, type DrawInfo } from './draw-deck';
 const freshStats = (): Stats => ({
   deployed: 0,
   kills: 0,
@@ -21,7 +22,7 @@ const freshStats = (): Stats => ({
   towers: 0,
   spent: 0,
 });
-/** Original single-player ruleset Aetherfall v0.1. Renderer never owns combat. */
+/** Deterministic combat for legacy, tactical-v1 and cycle-v1. Renderer never owns combat. */
 export class Battle {
   phase: Phase = 'ready';
   time = 0;
@@ -51,6 +52,11 @@ export class Battle {
   readonly heroes: Record<string, Hero>;
   readonly levels: Record<string, number>;
   readonly tactical: boolean;
+  readonly cycling: boolean;
+  drawDecks?: DrawDeck[];
+  hands: HandCard[][] = [[], []];
+  cardDrawInfo: DrawInfo[] = [];
+  mulliganDone = [false, false];
   spellDecks: SpellId[][] = [[], []];
   spellZones: SpellZone[] = [];
   constructor(
@@ -60,7 +66,7 @@ export class Battle {
     enemyDeck = ENEMY_DECK,
     content = defaultContent(),
     levels: Record<string, number> = {},
-    options?: { spells: [SpellId[], SpellId[]] },
+    options?: { spells: [SpellId[], SpellId[]]; cardDecks?: [string[], string[]] },
   ) {
     validateContent(content);
     this.content = structuredClone(content);
@@ -69,8 +75,9 @@ export class Battle {
       if (!this.heroes[id] || !Number.isInteger(level) || level < 1 || level > 10)
         throw new Error('Cấp tướng không hợp lệ.');
     this.tactical = !!options;
+    this.cycling = !!options?.cardDecks;
     if (options) {
-      options.spells.forEach(validateSpellDeck);
+      if (!this.cycling) options.spells.forEach(validateSpellDeck);
       this.spellDecks = options.spells.map((d) => d.slice());
       this.content.rules = { ...this.content.rules, startingMana: 4 };
     }
@@ -81,13 +88,22 @@ export class Battle {
     this.maxCore = content.rules.coreHp;
     this.maxUnits = content.rules.maxUnits;
     for (const d of [deck, enemyDeck])
-      if (d.length !== 4 || new Set(d).size !== 4 || d.some((id) => !Object.hasOwn(HERO_MAP, id)))
+      if (
+        (!this.cycling && d.length !== 4) ||
+        new Set(d).size !== d.length ||
+        d.some((id) => !Object.hasOwn(HERO_MAP, id))
+      )
         throw new Error('Deck cần đúng 4 tướng khác nhau.');
     this.decks = [deck.slice(), enemyDeck.slice()];
     this.synergies = this.decks.map(traits);
     this.difficulty = difficulty;
     this.seed = seed >>> 0;
     this.rng = this.seed || 1;
+    if (options?.cardDecks) {
+      this.drawDecks = options.cardDecks.map((cards) => new DrawDeck(cards, () => this.random()));
+      this.hands = this.drawDecks.map((deck) => deck.hand);
+      this.refreshDrawInfo();
+    }
     for (const side of [0, 1] as const)
       for (let lane = 0; lane < LANES.length; lane++)
         this.towers.push({
@@ -109,7 +125,33 @@ export class Battle {
     return this.rng / 4294967296;
   }
   start() {
+    if (this.cycling && this.mulliganDone.some((done) => !done)) return;
     if (this.phase === 'ready') this.phase = 'playing';
+  }
+  mulligan(side: Side, cards: number[]) {
+    if (!this.cycling || this.phase !== 'ready' || (side !== 0 && side !== 1))
+      return 'Không thể đổi bài lúc này.';
+    const error = this.drawDecks![side].mulligan(cards);
+    if (!error) {
+      this.mulliganDone[side] = true;
+      this.refreshDrawInfo();
+    }
+    return error;
+  }
+  refreshDrawInfo() {
+    this.cardDrawInfo = this.drawDecks?.map((deck) => deck.info()) ?? [];
+  }
+  held(side: Side, id: string, uid?: number) {
+    return (
+      !this.cycling ||
+      !!this.hands[side]?.some((card) => card.id === id && (uid === undefined || card.uid === uid))
+    );
+  }
+  consumeCard(side: Side, id: string, uid?: number) {
+    if (this.cycling) {
+      this.drawDecks![side].use(id, uid);
+      this.refreshDrawInfo();
+    }
   }
   emit(event: Omit<GameEvent, 'id' | 'time'>) {
     this.events.push({ ...event, id: this.eventId++, time: this.time });
@@ -119,14 +161,20 @@ export class Battle {
   has(side: Side, trait: string) {
     return (this.synergies[side][trait] || 0) >= 2;
   }
-  canPlay(side: Side, heroId: string, lane: number, x = side === 0 ? -12 : 12): string | null {
-    return validateDeployment(this, side, heroId, lane, x);
+  canPlay(side: Side, heroId: string, lane: number, x = side === 0 ? -12 : 12, uid?: number): string | null {
+    return validateDeployment(this, side, heroId, lane, x, uid);
   }
-  play(side: Side, heroId: string, lane: number, x = side === 0 ? -12 : 12): string | null {
-    return deployUnit(this, side, heroId, lane, x);
+  play(side: Side, heroId: string, lane: number, x = side === 0 ? -12 : 12, uid?: number): string | null {
+    return deployUnit(this, side, heroId, lane, x, uid);
   }
   damage(target: Unit, amount: number, side: Side, source?: Unit) {
-    return applyDamage(this, target, amount, side, source);
+    return applyDamage(
+      this,
+      target,
+      amount * (source && (source.weakenUntil ?? 0) > this.time ? 0.7 : 1),
+      side,
+      source,
+    );
   }
   heal(u: Unit, amount: number) {
     return applyHealing(this, u, amount);
@@ -137,11 +185,11 @@ export class Battle {
   pulse(side: Side, lane: number): string | null {
     return castPulse(this, side, lane);
   }
-  canCast(side: Side, id: string, lane: number, x: number) {
-    return validateSpell(this, side, id, lane, x);
+  canCast(side: Side, id: string, lane: number, x: number, uid?: number) {
+    return validateSpell(this, side, id, lane, x, uid);
   }
-  cast(side: Side, id: string, lane: number, x: number) {
-    return castSpell(this, side, id, lane, x);
+  cast(side: Side, id: string, lane: number, x: number, uid?: number) {
+    return castSpell(this, side, id, lane, x, uid);
   }
   ai(side: Side = 1) {
     return runAI(this, side);
@@ -177,11 +225,20 @@ export class Battle {
       stats: this.stats.map((stats) => ({ ...stats })),
       ...(this.tactical
         ? {
-            ruleset: 'tactical-v1',
+            ruleset: this.cycling ? 'cycle-v1' : 'tactical-v1',
             spellDecks: structuredClone(this.spellDecks),
             spellZones: structuredClone(this.spellZones),
             cooldowns: structuredClone(this.cooldowns),
             resonance: [...this.resonance],
+          }
+        : {}),
+      ...(this.cycling
+        ? {
+            hands: structuredClone(this.hands),
+            piles: this.drawDecks!.map((deck) => deck.pile.slice()),
+            discards: this.drawDecks!.map((deck) => deck.discard.slice()),
+            cardDrawInfo: structuredClone(this.cardDrawInfo),
+            mulliganDone: [...this.mulliganDone],
           }
         : {}),
     };

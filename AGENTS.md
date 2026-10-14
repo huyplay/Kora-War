@@ -1,6 +1,18 @@
 # Quy tắc triển khai Kora War
 
+## Các quyết định mới đã chốt ngày 14/10/2026
+
+- Gameplay hiện hành dùng `cycle-v1`: deck 14 thẻ khác nhau, mỗi thẻ 1 bản; tay 6 thẻ. Quyết định này thay thế deck cố định 4 tướng + 2 phép trong app mới.
+- Xáo theo seed trước trận; bài mở đầu có ít nhất 4 tướng và 1 phép. Người chơi được giữ bài hoặc đổi tối đa 2 thẻ một lần trước combat, vẫn giữ bảo đảm thành phần mở đầu.
+- Dùng thẻ thì rút thẻ kế tiếp vào đúng ô vừa dùng. Hết chồng rút chỉ xáo các thẻ đã dùng, giữ nguyên 6 thẻ trên tay; không xáo toàn deck mỗi lượt rút.
+- Giữ 10 tướng Aetherfall; catalog có 8 phép: Gió, Lửa, Sét, Băng, Hồi Sinh Lực, Khiên Aether, Suy Yếu, Gia Tốc. Người dùng đã chọn thêm 4 phép hỗ trợ để có lựa chọn xây deck.
+- Băng trong `cycle-v1` đóng băng, dừng di chuyển/đánh/kỹ năng trong 2 giây. Làm chậm khác vẫn giữ hiệu ứng mạnh nhất còn hiệu lực. Nyx ưu tiên áp sát hậu tuyến đánh xa, đặc biệt Du Hiệp, trong 5m.
+- Giữ ba lane, mana đầu 4/10, hồi 1,05/giây, trụ/lõi, quá tải 180 giây, lore và chỉ số chuẩn hóa. Không áp dụng luật của game tham khảo ngoài các thay đổi được xác nhận.
+- `new Battle()` và `tacticalBattle()` phục vụ fixture/replay cũ; không đổi hash golden. App mới gọi `cycleBattle()`; replay lưu ruleset và mã thẻ trên tay.
+
 ## Các quyết định đã chốt ngày 13/10/2026
+
+Các mục deck cố định bên dưới là lịch sử, đã được quyết định ngày 14/10 thay thế trong app mới.
 
 - Tiếp tục từ bản Three.js + TypeScript + Vite đã chơi được. Không chuyển sang PlayCanvas.
 - Giữ cốt truyện Aetherfall: Elyndra, Đại Phân Ly, lõi Aether, Người Kết Nối, nhiệm vụ Thung lũng Khởi Nguyên.

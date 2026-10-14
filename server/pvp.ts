@@ -1,20 +1,24 @@
 import { randomBytes, randomInt } from 'node:crypto';
 import type { ContentConfig } from '../src/data/content';
-import { validateSpellDeck, type SpellId } from '../src/data/spells';
+import { validateSpellDeck, isSpell, type SpellId } from '../src/data/spells';
 import { tacticalBattle } from '../src/core/tactical';
 import { onlineState } from '../src/core/online-state';
 import type { Battle } from '../src/core/Battle';
 import type { Side } from '../src/core/types';
+import { cycleBattle } from '../src/core/cycle-battle';
 const RECONNECT_GRACE = 30000;
 const WAITING_TTL = 600000;
 const FINISHED_TTL = 300000;
 export interface Loadout {
   deck: string[];
   spells: SpellId[];
+  cards?: string[];
 }
 export interface PvpCommand {
   id: string;
-  type: 'play' | 'spell' | 'pulse';
+  type: 'play' | 'spell' | 'pulse' | 'mulligan';
+  cardUid?: number;
+  cards?: number[];
   card?: string;
   lane: number;
   x: number;
@@ -28,6 +32,7 @@ interface Room {
   battle?: Battle;
   created: number;
   started: number;
+  openingEnds?: number;
   seen: number[];
   finished?: number;
   replies: Map<string, string | null>[];
@@ -40,12 +45,27 @@ export class PvpRooms {
   constructor(private now = () => performance.now()) {}
   private validate(input: Loadout, content: ContentConfig) {
     if (!input || !Array.isArray(input.deck)) throw new Error('Đội hình không hợp lệ.');
+    if (input.cards !== undefined) {
+      cycleBattle(input.cards, content, 1);
+      return {
+        cards: input.cards.slice(),
+        deck: input.cards.filter((id) => !isSpell(id)),
+        spells: input.cards.filter(isSpell),
+      };
+    }
     validateSpellDeck(input.spells);
     tacticalBattle(input.deck, input.spells, content, 1);
+    return { deck: input.deck.slice(), spells: input.spells.slice() };
   }
   private advance(r: Room, at = this.now()) {
     const b = r.battle;
-    if (!b || b.phase !== 'playing') return;
+    if (!b) return;
+    if (b.cycling && b.phase === 'ready' && at >= r.openingEnds!) {
+      for (const side of [0, 1] as const) if (!b.mulliganDone[side]) b.mulligan(side, []);
+      b.start();
+      r.started = r.openingEnds!;
+    }
+    if (b.phase !== 'playing') return;
     const disconnected = r.seen[0] <= r.seen[1] ? 0 : 1;
     const deadline = r.seen[disconnected] + RECONNECT_GRACE;
     const timedOut = at > deadline;
@@ -77,7 +97,7 @@ export class PvpRooms {
   }
   create(player: string, input: Loadout, content: ContentConfig) {
     this.prune();
-    this.validate(input, content);
+    input = this.validate(input, content);
     const current = this.current(player);
     if (current) return current;
     if (this.rooms.size >= 200) throw new Error('Máy chủ đầy phòng. Thử lại sau.');
@@ -85,7 +105,7 @@ export class PvpRooms {
     this.rooms.set(code, {
       code,
       players: [player],
-      loadouts: [{ deck: input.deck.slice(), spells: input.spells.slice() }],
+      loadouts: [structuredClone(input)],
       content: structuredClone(content),
       seed: randomInt(1, 0x7fffffff),
       created: this.now(),
@@ -106,7 +126,7 @@ export class PvpRooms {
         this.rooms.delete(r.code);
         continue;
       }
-      if (!r.battle || r.battle.phase === 'playing') return this.state(player, r.code);
+      if (!r.battle || ['ready', 'playing'].includes(r.battle.phase)) return this.state(player, r.code);
     }
     return null;
   }
@@ -124,21 +144,19 @@ export class PvpRooms {
         this.rooms.delete(other.code);
         continue;
       }
-      if (!other.battle || other.battle.phase === 'playing') throw new Error('Bạn đang có phòng khác.');
+      if (!other.battle || ['ready', 'playing'].includes(other.battle.phase))
+        throw new Error('Bạn đang có phòng khác.');
     }
-    this.validate(input, r.content);
+    input = this.validate(input, r.content);
+    if (!!input.cards !== !!r.loadouts[0].cards) throw new Error('Hai người cần cùng phiên bản deck.');
     r.players.push(player);
-    r.loadouts.push({ deck: input.deck.slice(), spells: input.spells.slice() });
-    r.battle = tacticalBattle(
-      r.loadouts[0].deck,
-      r.loadouts[0].spells,
-      r.content,
-      r.seed,
-      input.deck,
-      input.spells,
-    );
+    r.loadouts.push(structuredClone(input));
+    r.battle = input.cards
+      ? cycleBattle(r.loadouts[0].cards!, r.content, r.seed, input.cards)
+      : tacticalBattle(r.loadouts[0].deck, r.loadouts[0].spells, r.content, r.seed, input.deck, input.spells);
     r.battle.aiEnabled = false;
     r.battle.start();
+    if (input.cards) r.openingEnds = at + 15000;
     r.started = at;
     r.seen = [at, at];
     return this.state(player, code);
@@ -163,11 +181,14 @@ export class PvpRooms {
       code,
       version: ++r.version,
       waiting: !r.battle,
-      seed: r.seed,
+      seed: r.loadouts[0].cards ? 0 : r.seed,
       ...(metadata ? { content: structuredClone(r.content) } : {}),
       loadout: structuredClone(r.loadouts[side]),
-      opponent: structuredClone(r.loadouts[1 - side]),
+      opponent: r.loadouts[1 - side]?.cards
+        ? { deck: [], spells: [] }
+        : structuredClone(r.loadouts[1 - side]),
       state: r.battle ? onlineState(r.battle, side) : undefined,
+      ...(r.battle?.cycling ? { openingSeconds: Math.max(0, Math.ceil((r.openingEnds! - at) / 1000)) } : {}),
     };
   }
   command(player: string, code: string, c: PvpCommand) {
@@ -179,7 +200,18 @@ export class PvpRooms {
     const replies = r.replies[side];
     if (replies.has(c.id)) return { error: replies.get(c.id), ...this.state(player, code) };
     if (replies.size >= 2048) throw new Error('Đã vượt giới hạn lệnh của trận.');
+    if (r.battle?.cycling && c.type === 'mulligan') {
+      const error = r.battle.mulligan(side, c.cards!);
+      if (!error && r.battle.mulliganDone.every(Boolean)) {
+        r.battle.start();
+        r.started = at;
+      }
+      replies.set(c.id, error);
+      return { error, ...this.state(player, code) };
+    }
     if (!r.battle || r.battle.phase !== 'playing') throw new Error('Trận chưa sẵn sàng hoặc đã kết thúc.');
+    if (r.battle.cycling && ['play', 'spell'].includes(c.type) && !Number.isSafeInteger(c.cardUid))
+      throw new Error('Thiếu mã thẻ trên tay.');
     if (
       !['play', 'spell', 'pulse'].includes(c.type) ||
       !Number.isInteger(c.lane) ||
@@ -192,9 +224,9 @@ export class PvpRooms {
     const x = side === 0 ? c.x : -c.x;
     const error =
       c.type === 'spell'
-        ? r.battle.cast(side, c.card!, c.lane, x)
+        ? r.battle.cast(side, c.card!, c.lane, x, c.cardUid)
         : c.type === 'play'
-          ? r.battle.play(side, c.card!, c.lane, x)
+          ? r.battle.play(side, c.card!, c.lane, x, c.cardUid)
           : r.battle.pulse(side, c.lane);
     replies.set(c.id, error);
     return { error, ...this.state(player, code) };
@@ -203,7 +235,7 @@ export class PvpRooms {
     const at = this.now();
     const { r, side } = this.member(player, code, at);
     if (!r.battle) this.rooms.delete(code);
-    else if (r.battle.phase === 'playing') {
+    else if (['ready', 'playing'].includes(r.battle.phase)) {
       r.battle.winner = (1 - side) as Side;
       r.battle.phase = 'ended';
       r.finished = at;

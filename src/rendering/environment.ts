@@ -55,6 +55,14 @@ export function buildEnvironment(world: ArenaScene) {
     part(stage, 'box', bronze, 0, 0.39, z, 34, 0.08, 0.78);
   }
   // Battlements and silhouettes frame the arena without obscuring combat.
+  for (const side of [-1, 1]) {
+    part(stage, 'box', ARENA_WALL[0], side * 17.3, 1, 0, 0.9, 2.6, 15.8);
+    part(stage, 'box', bronze, side * 17.3, 2.35, 0, 1, 0.12, 16);
+    for (const z of [-6.6, -3.3, 0, 3.3, 6.6]) {
+      part(stage, 'box', ARENA_WALL[2], side * 17.3, 2.7, z, 1.1, 0.7, 1.15);
+      part(stage, 'box', bronze, side * 17.3, 3.08, z, 1.18, 0.08, 1.22);
+    }
+  }
   part(stage, 'box', ARENA_WALL[0], 0, 0.6, -9.3, 35, 2, 1.3);
   part(stage, 'box', bronze, 0, 1.64, -9.3, 35, 0.09, 1.45);
   for (let i = 0; i < 15; i++) {

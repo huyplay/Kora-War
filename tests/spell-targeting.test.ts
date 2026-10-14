@@ -88,6 +88,18 @@ test('dead or friendly models do not capture spell targeting and empty lane grou
   assert.equal(ground.lane, 2);
   assert.ok(Math.abs(ground.x) < 1e-6);
 });
+test('support spells can target a friendly model body while offensive spells ignore it', () => {
+  const { enemy, world, group, screen } = scene();
+  enemy.side = 0;
+  const [x, y] = screen(enemy.x, 2.35, group.position.z);
+  assert.equal(world.pick(x, y, true)!.spellValid, false);
+  const point = world.pick(x, y, true, true)!;
+  assert.equal(point.spellValid, true);
+  assert.equal(point.lane, enemy.lane);
+  assert.equal(point.x, enemy.x);
+  enemy.hp = 0;
+  assert.equal(world.pick(x, y, true, true)!.spellValid, false);
+});
 
 test('a model-targeted Fire command damages the enemy through the full battle loop and absorbs shields first', () => {
   for (const shield of [0, 100]) {

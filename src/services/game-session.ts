@@ -18,7 +18,9 @@ export interface Wallet {
 }
 interface Command {
   tick: number;
-  type: 'play' | 'pulse' | 'spell';
+  type: 'play' | 'pulse' | 'spell' | 'mulligan';
+  cardUid?: number;
+  cards?: number[];
   heroId?: string;
   lane: number;
   x?: number;
@@ -53,11 +55,11 @@ export class GameSession {
       /* Static/offline demo stays playable without economy. */
     }
   }
-  async start(deck: string[], difficulty: Difficulty, spells: SpellId[]) {
+  async start(deck: string[], difficulty: Difficulty, spells: SpellId[], cards?: string[]) {
     this.commands = [];
     this.match = undefined;
     if (!this.wallet) return undefined;
-    const match = await api<RemoteMatch>('/api/game/start', 'POST', { deck, difficulty, spells });
+    const match = await api<RemoteMatch>('/api/game/start', 'POST', { deck, difficulty, spells, cards });
     if (match.revision !== this.revision) throw new Error('Nội dung game đã cập nhật. Hãy tải lại trang.');
     this.match = match;
     return match;

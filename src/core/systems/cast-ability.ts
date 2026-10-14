@@ -31,6 +31,36 @@ function selectTargets(query: TargetQuery, ctx: AbilityContext): Unit[] {
 }
 export function castAbility(battle: Battle, caster: Unit, hero: Hero, enemies: Unit[]): boolean {
   if (caster.hp <= 0) return false;
+  if (battle.cycling && hero.id === 'nyx') {
+    const backline = enemies
+      .filter(
+        (unit) =>
+          unit.hp > 0 && unit.lane === caster.lane && unit.range > 2 && Math.abs(unit.x - caster.x) <= 5,
+      )
+      .sort(
+        (a, b) =>
+          (battle.heroes[a.heroId].role === 'ranger' ? 0 : 1) -
+            (battle.heroes[b.heroId].role === 'ranger' ? 0 : 1) ||
+          a.hp - b.hp ||
+          a.id - b.id,
+      )[0];
+    if (backline) {
+      caster.x = Math.max(-14, Math.min(14, backline.x + (caster.side === 0 ? 0.65 : -0.65)));
+      battle.damage(backline, 120, caster.side, caster);
+      caster.skillAt = battle.time;
+      battle.stats[caster.side].skills++;
+      battle.emit({
+        type: 'skill',
+        side: caster.side,
+        lane: caster.lane,
+        x: caster.x,
+        toX: backline.x,
+        heroId: hero.id,
+        label: hero.ability,
+      });
+      return true;
+    }
+  }
   const definition = battle.content.abilities[hero.id];
   if (!definition) return false;
   const near = enemies

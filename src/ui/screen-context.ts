@@ -8,6 +8,7 @@ export interface ScreenContext {
   readonly heroes: Hero[];
   readonly heroMap: Record<string, Hero>;
   deck: string[];
+  cards: string[];
   spells: SpellId[];
   readonly online: boolean;
   difficulty: Difficulty;

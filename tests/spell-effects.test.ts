@@ -115,3 +115,27 @@ test('match reset removes all spell visuals and repeated battles release their z
   effects.dispose();
   assert.equal(disposals, 6);
 });
+test('freeze, haste and weaken visuals expire independently without mutating combat state', () => {
+  const effects = new SpellEffects(),
+    targets = units(),
+    target = targets[1];
+  target.frozenUntil = 2;
+  target.hasteUntil = 3;
+  target.weakenUntil = 4;
+  const before = structuredClone(targets);
+  effects.update([], targets, 1, 1);
+  const status = effects.root.getObjectByName(`spell-status-${target.id}`)!;
+  assert.equal(status.getObjectByName('frost')!.visible, true);
+  assert.equal(status.getObjectByName('haste')!.visible, true);
+  assert.equal(status.getObjectByName('weaken')!.visible, true);
+  effects.update([], targets, 2, 2);
+  assert.equal(status.getObjectByName('frost')!.visible, false);
+  assert.equal(status.getObjectByName('haste')!.visible, true);
+  effects.update([], targets, 3, 3);
+  assert.equal(status.getObjectByName('haste')!.visible, false);
+  assert.equal(status.getObjectByName('weaken')!.visible, true);
+  effects.update([], targets, 4, 4);
+  assert.equal(effects.root.children.length, 0);
+  assert.deepEqual(targets, before);
+  effects.dispose();
+});

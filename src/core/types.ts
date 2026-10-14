@@ -25,6 +25,9 @@ export interface Unit {
   /** Tactical only: each strength retains its own expiry. Legacy units omit this field. */
   slowEffects?: SlowEffect[];
   stunUntil: number;
+  frozenUntil?: number;
+  weakenUntil?: number;
+  hasteUntil?: number;
   born: number;
   attackAt: number;
   skillAt: number;

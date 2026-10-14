@@ -1,0 +1,435 @@
+.spell-art {
+  position: absolute;
+  inset: 8% 8% 16%;
+  width: 84%;
+  height: 76%;
+  filter: drop-shadow(0 0 10px currentColor);
+}
+.hand-and-draw {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.draw-pile {
+  display: none;
+  position: relative;
+  min-width: 50px;
+  text-align: center;
+  color: #c7e7f6;
+}
+.in-battle .draw-pile {
+  display: block;
+}
+.draw-back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 64px;
+  border: 3px double #c2d5df;
+  border-radius: 5px;
+  background: repeating-linear-gradient(45deg, #174b70 0 7px, #1c587c 7px 14px);
+  box-shadow:
+    3px 0 #142b43,
+    5px 0 #acbfca;
+  font-size: 30px;
+  color: #b7e5ff;
+}
+.draw-pile strong {
+  position: absolute;
+  right: 2px;
+  bottom: 13px;
+  font-size: 14px;
+  background: #0b263e;
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+.draw-pile small {
+  display: block;
+  font-size: 8px;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+.enemy-hand {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 42px;
+  gap: 3px;
+  z-index: 4;
+}
+.in-battle .enemy-hand {
+  display: flex;
+}
+.enemy-hand span {
+  width: 23px;
+  height: 33px;
+  background: linear-gradient(120deg, #7c1631, #c12640);
+  border: 2px solid #efae91;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 1px 2px 2px #0006;
+}
+.enemy-hand b {
+  align-self: center;
+  color: #f6d7bd;
+  font-size: 10px;
+}
+.in-battle .timer-wrap {
+  margin-top: 30px;
+}
+.deck-builder {
+  padding: 0 22px 16px;
+}
+.deck-builder-title,
+.collection-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: #e6d6ad;
+  font-size: 13px;
+  margin: 8px 0;
+}
+.deck-builder-title span {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: #9fbdc6;
+}
+.deck-slots {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #8d7952;
+  background: linear-gradient(#2b313b, #171d27);
+  border-radius: 10px;
+}
+.deck-slot {
+  height: 103px;
+  position: relative;
+  min-width: 0;
+}
+.deck-slot .hero-card {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+.deck-slot .hero-card kbd,
+.deck-slot .card-origin,
+.deck-slot .card-role {
+  display: none;
+}
+.remove-card {
+  position: absolute;
+  right: -3px;
+  top: -3px;
+  border: 1px solid #ddb277;
+  color: #fff;
+  background: #7b2634;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  font-size: 18px;
+  z-index: 3;
+}
+.empty-slot {
+  border: 1px dashed #6f7f91;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #82919e;
+  background: #131e2d55;
+}
+#roster-grid.card-collection {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding: 8px 2px 12px;
+  scroll-snap-type: x proximity;
+}
+#roster-grid.card-collection .hero-card {
+  flex: 0 0 86px;
+  height: 116px;
+  scroll-snap-align: start;
+}
+.card-collection .hero-card.in-deck {
+  border-color: #bce8cf;
+  box-shadow: 0 0 0 1px #bce8cf;
+}
+.card-collection .hero-card:not(.in-deck) .checkmark {
+  display: none;
+}
+.collection-title span {
+  color: #9eb8c5;
+  font-size: 11px;
+}
+#hero-detail.deck-detail {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0;
+  min-height: 54px;
+}
+#hero-detail.deck-detail div {
+  flex: 1;
+  min-width: 0;
+}
+#hero-detail.deck-detail strong,
+#hero-detail.deck-detail span {
+  display: block;
+}
+#hero-detail.deck-detail span {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #b7cfd2;
+  margin-top: 5px;
+}
+.deck-builder .roster-footer {
+  padding: 8px 0 0;
+}
+.deck-builder .roster-footer p {
+  font-size: 12px;
+  color: #b9d1c9;
+}
+.opening-header {
+  text-align: center;
+  padding: 20px 20px 6px;
+}
+.opening-header h2 {
+  margin: 8px;
+}
+.opening-header p {
+  font-size: 13px;
+  color: #b7cfd2;
+}
+.opening-hand {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px 20px;
+}
+.opening-hand > div {
+  position: relative;
+}
+.opening-hand .hero-card {
+  width: 92px;
+  height: 126px;
+}
+.opening-hand .hero-card kbd {
+  display: none;
+}
+.swap-label {
+  display: none;
+  position: absolute;
+  inset: 40% 0 auto;
+  text-align: center;
+  background: #9c233bd9;
+  color: #fff;
+  font-weight: 700;
+  padding: 6px;
+  pointer-events: none;
+}
+.will-swap .swap-label {
+  display: block;
+}
+.will-swap .hero-card {
+  transform: translateY(-8px);
+  border-color: #fb8b8b;
+  box-shadow: 0 0 16px #fb8b8b55;
+}
+#opening-status {
+  text-align: center;
+  color: #d6c392;
+  font-size: 13px;
+}
+#opening-countdown {
+  text-align: center;
+  color: #9fbdc6;
+  font-size: 11px;
+  margin-top: 6px;
+}
+.opening-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 20px 20px;
+}
+.opening-actions button {
+  min-height: 44px;
+}
+.hand .hero-card.drawn-card {
+  animation: draw-card-in 0.2s ease-out;
+}
+.in-battle .hero-card .card-cost {
+  background: linear-gradient(145deg, #8bd7ed, #26688c);
+  border: 2px solid #d0f1ff;
+  color: white;
+  text-shadow: 0 2px #193247;
+  border-radius: 6px 6px 9px 9px;
+}
+.in-battle .hero-card {
+  border-color: #b8bdc4;
+  box-shadow:
+    0 2px 4px #0008,
+    inset 0 0 0 1px #172330;
+}
+@keyframes draw-card-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0.3;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .deck-builder {
+    padding: 0 12px 8px;
+  }
+  .deck-slots {
+    gap: 6px;
+    padding: 6px;
+  }
+  .deck-slot {
+    height: 65px;
+  }
+  .deck-slot .card-cost {
+    font-size: 13px;
+    min-width: 21px;
+    height: 24px;
+    top: 2px;
+    left: 2px;
+  }
+  .deck-slot .card-name {
+    font-size: 9px;
+    bottom: 4px;
+  }
+  .deck-builder-title,
+  .collection-title {
+    font-size: 11px;
+    margin: 5px 0;
+  }
+  .deck-builder .roster-footer {
+    padding: 4px 0 0;
+  }
+  .deck-builder .roster-footer p {
+    font-size: 10px;
+  }
+  #roster-grid.card-collection .hero-card {
+    flex-basis: 57px;
+    height: 73px;
+  }
+  .remove-card {
+    width: 20px;
+    height: 20px;
+    font-size: 16px;
+  }
+  #hero-detail.deck-detail {
+    min-height: 38px;
+    padding: 4px 0;
+  }
+  #hero-detail.deck-detail span {
+    font-size: 10px;
+  }
+  #hero-detail.deck-detail button {
+    min-height: 34px;
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+  .opening-header {
+    padding: 10px 15px 0;
+  }
+  .opening-header h2 {
+    font-size: 23px;
+    margin: 5px;
+  }
+  .opening-header p {
+    font-size: 11px;
+  }
+  .opening-hand {
+    gap: 8px;
+    padding: 10px 16px;
+  }
+  .opening-hand .hero-card {
+    width: 68px;
+    height: 94px;
+  }
+  .opening-actions {
+    padding: 8px 14px 12px;
+  }
+  .draw-back {
+    width: 32px;
+    height: 48px;
+    font-size: 23px;
+  }
+  .draw-pile {
+    min-width: 35px;
+  }
+  .draw-pile small {
+    display: none;
+  }
+  .draw-pile strong {
+    bottom: -3px;
+    right: -4px;
+    font-size: 11px;
+  }
+  .hand-and-draw {
+    gap: 8px;
+  }
+  .enemy-hand {
+    left: 38%;
+    height: 25px;
+  }
+  .enemy-hand span {
+    width: 15px;
+    height: 24px;
+    border-width: 1px;
+  }
+  .enemy-hand b {
+    font-size: 8px;
+  }
+  .in-battle .timer-wrap {
+    margin-top: 0;
+  }
+}
+@media (max-width: 690px) {
+  .opening-hand {
+    gap: 6px;
+  }
+  .opening-hand .hero-card {
+    width: 58px;
+    height: 84px;
+  }
+  .deck-builder-title span {
+    display: none;
+  }
+  .deck-slot {
+    height: 58px;
+  }
+  .deck-slots {
+    gap: 5px;
+  }
+  .hand-and-draw {
+    gap: 5px;
+  }
+  .draw-back {
+    width: 25px;
+    height: 42px;
+  }
+  .draw-pile {
+    min-width: 28px;
+  }
+  .enemy-hand {
+    left: 36%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hand .hero-card {
+    animation: none;
+  }
+}

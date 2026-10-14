@@ -1,5 +1,20 @@
 # Các quyết định đang áp dụng
 
+## 14/10/2026 — Deck 14 thẻ, tay 6 và chiến thuật hậu tuyến
+
+Người dùng yêu cầu cơ chế rút bài theo Castle Crush và đã xác nhận: **mỗi thẻ 1 bản**, thêm **hồi máu/lá chắn/suy yếu/tăng tốc**, **Băng đóng băng 2 giây**, hết chồng rút **chỉ xáo thẻ đã dùng, giữ nguyên tay 6 thẻ**. Đây là luật hiện hành `cycle-v1`, thay thế deck cố định 4 tướng + 2 phép của MVP ngày 13/10.
+
+- Xây deck đúng 14 thẻ từ 10 tướng + 8 phép; không trùng. Mở đầu 6 thẻ có ít nhất 4 tướng và 1 phép. Xáo Fisher–Yates theo PRNG seed một lần, sau đó hoán đổi tối thiểu để đạt thành phần mở đầu.
+- Được giữ bài hoặc đổi 1–2 thẻ một lần. Thẻ thay lấy từ chồng chưa rút, vẫn giữ bảo đảm mở đầu; thẻ trả đặt cuối chồng. Luyện tập dừng tick/mana/AI tới khi chốt; PvP tự giữ bài sau 15 giây nếu chưa chốt.
+- Dùng thẻ hợp lệ thì thay đúng ô bằng thẻ kế tiếp; lệnh thiếu mana, sai vị trí, cooldown hoặc mã thẻ cũ không tiêu thẻ. Mỗi lần vào tay có UID mới để chống lệnh chậm/trùng. Khi chồng rút trống, chỉ xáo discard gồm các thẻ đã dùng. Tổng hand + pile + discard luôn 14, không trùng.
+- Băng gây 35 sát thương và đóng băng di chuyển/đánh/kỹ năng 2 giây sau cảnh báo; khống chế ngắn hơn không kết thúc đóng băng sớm. Tactical cũ vẫn làm chậm 40% trong 2 giây; quy tắc slow mạnh nhất tiếp tục áp dụng riêng.
+- Hồi Sinh Lực hồi 100 HP trong vùng; Khiên Aether thêm 100 khiên, tổng tối đa 200; Suy Yếu giảm sát thương từ quân 30% trong 4 giây; Gia Tốc tăng di chuyển và tốc độ đánh 35% trong 4 giây. Hồi máu/khiên/gia tốc tác động đồng minh; phép tấn công tác động địch. Tái áp dụng hiệu ứng thời hạn cập nhật tới thời điểm tác động mới, không cộng dồn hệ số.
+- Nyx ưu tiên mục tiêu đánh xa cùng lane trong 5m, Du Hiệp trước, rồi HP thấp/ID; áp sát phía sau và dùng sát thương Ám Kích 120. Khi không có hậu tuyến phù hợp, giữ kỹ năng cũ. Mage AoE và Gió đẩy lùi giữ luật hiện có.
+- PvP server giữ seed/thứ tự rút/tay đối thủ riêng; client chỉ nhận tay của mình và số thẻ đối thủ. Replay luyện tập lưu ruleset, lệnh chốt bài tick 0 và UID từng thẻ. Save cũ chuyển sang deck 14 hợp lệ; fixture gốc không sửa.
+- Giữ Three.js, lore, ba lane, mana 4/10, hồi 1,05/s, trụ 400 HP, lõi 1.500 HP, quá tải 180 giây, synergy theo deck và cấp chuẩn hóa. Deck nhiều tướng kích hoạt nhiều synergy hơn; cân bằng thực chiến vẫn cần playtest.
+
+Các quyết định deck cố định bên dưới là lịch sử của ruleset cũ. Xem [QA deck và combat](CARD-DECK-QA.md).
+
 ## 13/10/2026 — Ổn định MVP và quy tắc làm chậm
 
 Người dùng đã chốt: trong trận tactical, giữ hiệu ứng làm chậm mạnh nhất còn hiệu lực và thời hạn riêng của từng mức làm chậm. Quy tắc áp dụng cho Băng, synergy Băng Thệ và kỹ năng tướng; không cộng phần trăm làm chậm.

@@ -38,7 +38,7 @@ export function renderHome() {
     <aside class="home-column home-vault" aria-label="Kho Aether">
       <button class="home-wallet" id="vault-shop" aria-label="Cửa hàng"><span>◉</span><b id="wallet-gold">—</b><small>VÀNG</small><i>+</i></button>
       <button class="home-tile chest-tile" id="vault-chest" aria-label="Rương Aether"><span class="chest-art" aria-hidden="true"><i>◈</i></span><strong>Rương Aether</strong><span class="tile-note">Khám phá kho báu ${icon('chevron')}</span></button>
-      <button class="home-tile deck-tile" id="home-roster"><span class="deck-art" aria-hidden="true">${icon('shield')}</span><strong>Tướng & đội hình</strong><span class="tile-note">4 tướng · 2 phép ${icon('chevron')}</span></button>
+      <button class="home-tile deck-tile" id="home-roster"><span class="deck-art" aria-hidden="true">${icon('shield')}</span><strong>Bộ bài & tướng</strong><span class="tile-note">14 thẻ · tay 6 thẻ ${icon('chevron')}</span></button>
       <button class="home-forge" id="vault-forge" aria-label="Nâng cấp tướng">⚒ <span>Lò rèn · Nâng cấp</span>${icon('chevron')}</button>
     </aside>
     <div class="home-footer"><span>✦ THUNG LŨNG KHỞI NGUYÊN</span><span>BA CHIẾN TUYẾN · MỘT LÕI AETHER</span></div>

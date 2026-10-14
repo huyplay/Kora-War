@@ -121,7 +121,26 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
         }
         if (path === '/api/admin/player' && req.method === 'GET')
           return send(200, store.wallet(url.searchParams.get('id') || ''));
+        if (path === '/api/admin/rule-modules' && req.method === 'GET')
+          return send(200, {
+            version: store.config().version,
+            modules: store.ruleModules.status(),
+            draft: store.ruleModules.read('draft'),
+            published: store.ruleModules.read('published'),
+          });
         const input = JSON.parse((await body(req)).toString());
+        if (path.startsWith('/api/admin/rule-modules/') && req.method === 'PUT')
+          return send(
+            200,
+            store.saveRuleModule(
+              {
+                id: path.slice('/api/admin/rule-modules/'.length),
+                schemaVersion: input.schemaVersion,
+                data: input.data,
+              },
+              input.version,
+            ),
+          );
         if (path === '/api/admin/assets/archive' && req.method === 'POST') {
           if (typeof input.archived !== 'boolean') throw new Error('Trạng thái ẩn không hợp lệ.');
           store.archiveAsset(input.id, input.archived);
@@ -133,9 +152,7 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
         if (path === '/api/admin/publish' && req.method === 'POST')
           return send(200, store.publish(input.version));
         if (path === '/api/admin/restore' && req.method === 'POST') {
-          const row = store.db.prepare('SELECT content FROM revisions WHERE id=?').get(input.revision);
-          if (!row) throw new Error('Không tìm thấy phiên bản.');
-          return send(200, store.saveDraft(JSON.parse(row.content as string), input.version));
+          return send(200, store.restoreRevision(input.revision, input.version));
         }
         if (path === '/api/admin/wallet' && req.method === 'POST') {
           if (

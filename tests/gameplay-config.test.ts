@@ -207,6 +207,8 @@ test('database migration preserves historical revisions/matches and persists ful
   const player = db.player(),
     match = startMatch(db, player, [], 'normal', [], defaultContent().gameplay!.deck.defaultCards);
   db.db.prepare('UPDATE matches SET content=? WHERE id=?').run(oldJson, match.id);
+  // This fixture emulates storage before both gameplay profile and module tables existed.
+  db.db.exec('DELETE FROM rule_modules; DELETE FROM rule_module_revisions;');
   db.close();
   db = new GameDatabase(dir, 'test-password');
   assert.ok(db.config().published.gameplay);

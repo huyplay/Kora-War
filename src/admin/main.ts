@@ -173,15 +173,32 @@ async function save() {
     }
   }
   validateContent(state.draft);
-  const updated = await api<Pick<State, 'version' | 'draft' | 'revision'>>('/api/admin/draft', 'PUT', {
-    content: state.draft,
-    version: state.version,
-  });
+  const updated = await api<Pick<State, 'version' | 'draft' | 'revision' | 'ruleModules'>>(
+    '/api/admin/draft',
+    'PUT',
+    {
+      content: state.draft,
+      version: state.version,
+    },
+  );
   Object.assign(state, updated);
   document.querySelectorAll<HTMLTextAreaElement>('[data-json]').forEach((el) => {
     delete el.dataset.edited;
   });
   dirty = false;
+  if (section === 'gameplay') {
+    const manifest = document.querySelector('#config-modules');
+    if (manifest) {
+      const open = manifest.hasAttribute('open');
+      const holder = document.createElement('div');
+      holder.innerHTML = renderStudioPage(state, section, hero, selectedAsset);
+      const next = holder.querySelector('#config-modules');
+      if (next) {
+        next.toggleAttribute('open', open);
+        manifest.replaceWith(next);
+      }
+    }
+  }
   $('#dirty').textContent = '✓ Đã lưu';
   notice('Đã lưu bản nháp.');
 }

@@ -912,6 +912,24 @@ th {
 .config-card[open] summary {
   margin-bottom: 14px;
 }
+.module-table-scroll {
+  overflow-x: auto;
+}
+.module-table-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.module-table-scroll th,
+.module-table-scroll td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #30454e;
+}
+.module-table-scroll small {
+  display: block;
+  margin-top: 5px;
+  color: #9cadb4;
+}
 .gameplay-intro p {
   max-width: 850px;
   line-height: 1.7;

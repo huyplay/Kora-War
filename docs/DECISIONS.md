@@ -1,5 +1,9 @@
 # Các quyết định đang áp dụng
 
+## 14/10/2026 — Module gameplay/rule và phiên bản database
+
+Người dùng yêu cầu module hóa cơ chế/rule để nâng cấp và điều chỉnh sau này. Tách dữ liệu profile thành các module trách nhiệm; registry chứa ID/schema/migration. SQLite `rule_modules` là nguồn đọc gameplay, `rule_module_revisions` lưu history; giữ content snapshot để replay/tool cũ hoạt động. Tách pipeline system khỏi Battle, giữ nguyên thứ tự tick và gameplay. Admin hiển thị schema/version nháp/live; sửa module riêng vẫn validate cả bộ luật, phát hành theo revision thống nhất và transaction. Không chạy code tùy ý từ database. Xem [cấu trúc và vận hành](RULE-MODULES.md).
+
 ## 14/10/2026 — Gameplay cấu hình từ database
 
 Người dùng yêu cầu admin điều chỉnh các cơ chế gameplay và lưu cấu hình trên database, sau đó chọn **“Giữ gameplay đã chốt, ưu tiên config đầy đủ”**. Không tự thêm tăng trần mana, bỏ bài hoặc thay luật mặc định.

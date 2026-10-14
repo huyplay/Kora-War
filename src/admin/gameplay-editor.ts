@@ -2,6 +2,7 @@ import type { ContentConfig } from '../data/content';
 import { gameplayOf } from '../data/gameplay';
 import { ORIGINS, ROLES } from '../data/traits';
 import { esc, input } from './html';
+import type { RuleModuleStatus } from '../data/rule-modules';
 
 const labels: Record<string, string> = {
   startingMana: 'Mana đầu trận',
@@ -99,8 +100,11 @@ const buffKinds = {
   regeneration: 'Hồi HP/giây (+)',
   slowOnHit: 'Hệ số đi khi trúng đòn',
 };
-export function gameplayEditor(c: ContentConfig) {
+export function gameplayEditor(c: ContentConfig, modules: RuleModuleStatus[] = []) {
   const g = gameplayOf(c);
+  const manifest = modules.length
+    ? `<details class="panel config-card" id="config-modules"><summary>${modules.length} module rule · phiên bản và trạng thái</summary><p class="muted">Mỗi module có schema và phiên bản dữ liệu riêng trong database. Chỉ module thay đổi mới tăng phiên bản. Phát hành khóa toàn bộ bộ luật thành một revision để giữ tính nhất quán.</p><div class="module-table-scroll"><table><thead><tr><th>Module</th><th>Schema</th><th>Nháp</th><th>Live</th><th>Trạng thái</th></tr></thead><tbody>${modules.map((m) => `<tr><td><code>${esc(m.id)}</code><small>${esc(m.name)}</small></td><td>${m.schemaVersion}</td><td>${m.draftVersion}</td><td>${m.publishedVersion}</td><td>${m.changed ? 'Có thay đổi' : 'Đồng bộ'}</td></tr>`).join('')}</tbody></table></div></details>`
+    : '';
   const numeric = (prefix: string, obj: object) =>
     `<div class="form-grid rules-grid">${Object.entries(obj)
       .filter(([k, v]) => typeof v === 'number' && k !== 'levelGrowth')
@@ -120,7 +124,7 @@ export function gameplayEditor(c: ContentConfig) {
         '',
       )}<button data-config-add="${prefix}" data-effect-type="${spell ? 'spell' : 'buff'}">+ Hiệu ứng</button>`;
   return `<article class="panel gameplay-intro"><span class="eyebrow">DATABASE · CONTENT REVISION</span><h2>Cấu hình gameplay</h2><p>Luật hiện hành lấy từ bản phát hành trong database. Lưu nháp để chuẩn bị; phát hành áp dụng cho trận mới. Trận đang chạy và replay giữ cấu hình đã chụp đầu trận.</p><p class="muted">Ba lane, tick 20 Hz và giới hạn GPU 100 quân là ranh giới engine. Mana đầu trận dùng trường ở đây; startingMana trong rules cũ chỉ phục vụ replay legacy.</p><nav class="gameplay-nav"><a href="#config-deck">Deck</a><a href="#config-spells">Phép</a><a href="#config-synergies">Hệ/tộc</a><a href="#config-ai">AI</a><a href="#config-match">PvP</a></nav></article>
-  <article class="panel" id="config-deck"><h3>Deck, tay bài & đổi bài</h3>${numeric('gameplay.deck', g.deck)}${check('gameplay.deck.shuffle', 'Xáo trước trận theo seed', g.deck.shuffle)}${check('gameplay.deck.recycle', 'Xáo các thẻ đã dùng khi hết chồng rút', g.deck.recycle)}<div class="columns">${(['defaultCards', 'aiCards'] as const).map((k) => `<label>${k === 'defaultCards' ? 'Deck mặc định người chơi' : 'Deck AI'}<textarea data-card-list="gameplay.deck.${k}" rows="4">${esc(g.deck[k].join(', '))}</textarea><small class="muted">ID thẻ, cách nhau bằng dấu phẩy. Theo đúng số thẻ và giới hạn bản sao.</small></label>`).join('')}</div></article>
+  ${manifest}<article class="panel" id="config-deck"><h3>Deck, tay bài & đổi bài</h3>${numeric('gameplay.deck', g.deck)}${check('gameplay.deck.shuffle', 'Xáo trước trận theo seed', g.deck.shuffle)}${check('gameplay.deck.recycle', 'Xáo các thẻ đã dùng khi hết chồng rút', g.deck.recycle)}<div class="columns">${(['defaultCards', 'aiCards'] as const).map((k) => `<label>${k === 'defaultCards' ? 'Deck mặc định người chơi' : 'Deck AI'}<textarea data-card-list="gameplay.deck.${k}" rows="4">${esc(g.deck[k].join(', '))}</textarea><small class="muted">ID thẻ, cách nhau bằng dấu phẩy. Theo đúng số thẻ và giới hạn bản sao.</small></label>`).join('')}</div></article>
   <article class="panel"><h3>Mana, trụ, lõi & quá tải</h3>${input('gameplay.startingMana', labels.startingMana, g.startingMana)}${numeric('rules', Object.fromEntries(Object.entries(c.rules).filter(([k]) => !['tickRate', 'startingMana'].includes(k))))}</article>
   <article class="panel" id="config-spells"><h3>Phép thuật · mục tiêu và chuỗi hiệu ứng</h3><p class="muted">Vùng có thời lượng &gt; 0: damage/heal/shield/push tính theo giây. Slow/weaken là hệ số 0–1; haste là hệ số tốc độ. Khiên không đặt cap sẽ không có giới hạn.</p>${Object.entries(
     g.spells,

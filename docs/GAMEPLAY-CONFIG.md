@@ -4,7 +4,7 @@ Phạm vi được người dùng chọn: giữ gameplay đã chốt, đưa các
 
 ## Nguồn dữ liệu và phát hành
 
-Backend Node lưu toàn bộ `ContentConfig`, gồm `gameplay`, trong JSON của bảng SQLite `config` (draft/published) và `revisions`. Trận luyện tập lưu content snapshot trong `matches`; phòng PvP khóa content trong Battle của phòng. Không có file JSON ngoài database ghi đè cân bằng sau khi nạp API. ASP.NET/PostgreSQL vẫn phục vụ metadata asset/snapshot theo giai đoạn migration hiện tại.
+Backend Node lưu từng [module rule](RULE-MODULES.md) trong SQLite `rule_modules` (draft/published) và `rule_module_revisions`. `config`/`revisions` giữ content snapshot tương thích; runtime ghép các module thành `ContentConfig`. Trận luyện tập lưu content snapshot trong `matches`; phòng PvP khóa content trong Battle của phòng. Không có file JSON ngoài database ghi đè cân bằng sau khi nạp API. ASP.NET/PostgreSQL vẫn phục vụ metadata asset/snapshot theo giai đoạn migration hiện tại.
 
 Mở `/admin` → **Gameplay** → chỉnh trường → **Lưu bản nháp** → **Phát hành**. Lưu chưa làm thay đổi published. Publish validate cấu hình/asset, kiểm tra version và tạo revision/audit. Nạp lại game để nhận revision mới; trận đang chạy và replay dùng bản sao cũ. **Phiên bản → Đưa về bản nháp** rồi phát hành để rollback. Không cần restart backend khi chỉnh cấu hình.
 

@@ -1,10 +1,12 @@
 import type { ContentConfig } from '../data/content';
 import type { ManagedAsset } from '../services/api';
+import type { RuleModuleStatus } from '../data/rule-modules';
 export interface State {
   assetService?: { configured: boolean; available: boolean; database: string; storage: string };
   assetSyncPending?: number;
   version: number;
   revision: number;
+  ruleModules?: RuleModuleStatus[];
   draft: ContentConfig;
   published: ContentConfig;
   assets: ManagedAsset[];

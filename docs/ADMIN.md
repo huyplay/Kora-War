@@ -28,6 +28,7 @@ Backend kiểm thử draft/publish/version conflict, auth/origin/cookie, ví/led
 
 - Nhân vật: chỉ số, tên/mô tả kỹ năng, điều kiện kích hoạt, truy vấn hậu tuyến/áp sát và danh sách hiệu ứng; model, chiều cao, hướng xoay, clip theo từng trạng thái. JSON nâng cao dùng cùng schema với các form.
 - Gameplay: deck/tay bài/đổi bài, mana/trụ/lõi/quá tải, tám phép và chuỗi hiệu ứng, hệ/tộc, cộng hưởng, AI, vùng triển khai, thời hạn PvP và bộ sưu tập. Form đọc từ database; không cần sửa TypeScript để cân bằng các giá trị này. Xem [schema, giới hạn và QA](GAMEPLAY-CONFIG.md).
+- Module rule: trong Gameplay mở bảng schema/version nháp/live và trạng thái của 15 module. Dữ liệu lưu riêng từng module, lịch sử theo revision; API admin hỗ trợ sửa một module. Xem [module và migration](RULE-MODULES.md).
 - Asset: upload GLB/ảnh, xem 3D và từng clip, ghi provenance. Ẩn/khôi phục là thao tác có thể đảo ngược; không được ẩn asset đang được draft hoặc published sử dụng.
 - Màn chơi: chọn prefab trụ/lõi, đặt prop theo tọa độ, màu sương/exposure. Luật trụ/mana/quá tải cũng có trong Gameplay. Một màn ba lane hiện được hỗ trợ, chưa có campaign nhiều chương hoặc chỉnh địa hình bằng kéo đỉnh mesh.
 - Hiệu ứng: palette hai phe/hồi máu, kích thước, sprite/atlas và số cột/hàng.

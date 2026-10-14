@@ -10,9 +10,13 @@ import {
   type ContentConfig,
 } from '../src/data/content';
 import { gameplayOf } from '../src/data/gameplay';
+import type { RuleModuleRecord } from '../src/data/rule-modules';
+import { composeRuleModules } from '../src/data/rule-modules';
+import { RuleModuleStore } from './rule-module-store';
 
 export class GameDatabase {
   readonly db: DatabaseSync;
+  readonly ruleModules: RuleModuleStore;
   constructor(
     readonly directory: string,
     password?: string,
@@ -78,6 +82,14 @@ export class GameDatabase {
           { mode: 0o600 },
         );
     }
+    const moduleSeed = this.config();
+    this.ruleModules = new RuleModuleStore(this.db);
+    try {
+      this.ruleModules.initialize(moduleSeed);
+    } catch (e) {
+      this.db.close();
+      throw e;
+    }
   }
   transaction<T>(fn: () => T): T {
     this.db.exec('BEGIN IMMEDIATE');
@@ -125,19 +137,38 @@ export class GameDatabase {
     return {
       version: row.version,
       revision: row.revision,
-      draft: JSON.parse(row.draft) as ContentConfig,
-      published: JSON.parse(row.published) as ContentConfig,
+      draft: this.ruleModules
+        ? this.ruleModules.compose('draft', JSON.parse(row.draft))
+        : (JSON.parse(row.draft) as ContentConfig),
+      published: this.ruleModules
+        ? this.ruleModules.compose('published', JSON.parse(row.published))
+        : (JSON.parse(row.published) as ContentConfig),
+      ruleModules: this.ruleModules?.status() ?? [],
     };
   }
   saveDraft(content: unknown, version: number) {
     validateContent(content);
-    content = upgradeContent(content);
-    const result = this.db
-      .prepare('UPDATE config SET draft=?,version=version+1 WHERE id=1 AND version=?')
-      .run(JSON.stringify(content), version);
-    if (!result.changes) throw new Error('CONFLICT: Bản nháp đã thay đổi. Hãy tải lại trước khi lưu.');
-    this.audit('draft.save', { version: version + 1 });
-    return this.config();
+    const normalized = upgradeContent(content);
+    validateContent(normalized);
+    return this.transaction(() => {
+      const result = this.db
+        .prepare('UPDATE config SET draft=?,version=version+1 WHERE id=1 AND version=?')
+        .run(JSON.stringify(normalized), version);
+      if (!result.changes) throw new Error('CONFLICT: Bản nháp đã thay đổi. Hãy tải lại trước khi lưu.');
+      const modules = this.ruleModules.write('draft', normalized);
+      this.audit('draft.save', { version: version + 1, modules });
+      return this.config();
+    });
+  }
+  saveRuleModule(record: RuleModuleRecord, version: number) {
+    return this.saveDraft(this.ruleModules.replace(this.config().draft, record), version);
+  }
+  restoreRevision(revision: number, version: number) {
+    const row = this.db.prepare('SELECT content FROM revisions WHERE id=?').get(revision);
+    if (!row) throw new Error('Không tìm thấy phiên bản.');
+    const modules = this.ruleModules.revision(revision);
+    const content = JSON.parse(row.content as string) as ContentConfig;
+    return this.saveDraft(modules.length ? composeRuleModules(content, modules) : content, version);
   }
   publish(version: number) {
     return this.transaction(() => {
@@ -199,7 +230,9 @@ export class GameDatabase {
       this.db
         .prepare('UPDATE config SET published=?,revision=?,version=version+1 WHERE id=1')
         .run(json, revision);
-      this.audit('config.publish', { revision });
+      const modules = this.ruleModules.write('published', current.draft);
+      this.ruleModules.snapshot(revision);
+      this.audit('config.publish', { revision, modules });
       return this.config();
     });
   }

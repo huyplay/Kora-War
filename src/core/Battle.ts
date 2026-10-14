@@ -4,14 +4,11 @@ import { runAI } from './ai/heuristic';
 import { castAbility } from './systems/cast-ability';
 import { applyDamage, applyHealing } from './systems/damage';
 import { deployUnit, validateDeployment } from './systems/deployment';
-import { updateMana } from './systems/mana';
 import { castPulse } from './systems/pulse';
-import { updateTowers } from './systems/towers';
-import { updateUnits } from './systems/units';
-import { updateVictory } from './systems/victory';
+import { updateSimulation } from './modules/pipeline';
 import type { Difficulty, GameEvent, Phase, Side, Stats, Tower, Unit } from './types';
 import { validateSpellDeck, type SpellId } from '../data/spells';
-import { castSpell, validateSpell, updateSpells, type SpellZone } from './systems/spells';
+import { castSpell, validateSpell, type SpellZone } from './systems/spells';
 import { DrawDeck, type HandCard, type DrawInfo } from './draw-deck';
 import {
   LEGACY_GAMEPLAY,
@@ -247,17 +244,7 @@ export class Battle {
     if (this.phase !== 'playing') return;
     this.tick++;
     this.time = this.tick * STEP;
-    updateMana(this);
-    if (this.aiEnabled && this.time >= this.aiAt) {
-      this.ai(1);
-      this.aiAt =
-        this.time + this.gameplay.ai[`${this.difficulty}Interval`] + this.random() * this.gameplay.ai.jitter;
-    }
-    updateUnits(this);
-    if (this.tactical) updateSpells(this);
-    updateTowers(this);
-    this.units = this.units.filter((u) => u.hp > 0);
-    updateVictory(this);
+    updateSimulation(this);
   }
   snapshot() {
     return {

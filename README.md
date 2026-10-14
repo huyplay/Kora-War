@@ -50,6 +50,7 @@ npm run preview
 - 10 model rigged từ Khada, trụ/lõi nhập ngoài, clip animation có ánh xạ, map prop và sprite CommunityDragon; bản mobile bỏ dữ liệu animation không dùng.
 - Content Studio: upload/preview/ẩn/khôi phục asset, sửa chỉ số và chuỗi kỹ năng, map/VFX/economy, ví người chơi, lưu nháp/phát hành/khôi phục revision.
 - [Gameplay từ database](docs/GAMEPLAY-CONFIG.md): admin cấu hình deck/tay bài/phép/synergy/AI/mana/combat/PvP/bộ sưu tập; trận khóa content revision, giữ nguyên các mặc định đã chốt.
+- [15 module rule](docs/RULE-MODULES.md) có schema/data version, dữ liệu draft/published và history riêng trong database; API admin sửa module, pipeline combat tách theo system.
 - Ví vàng, mảnh thẻ, rương, cửa hàng và nâng cấp lưu SQLite; server mô phỏng lại command log để xác minh thưởng trận.
 - F3: FPS/frame p95/simulation time/draw calls/triangles/units; debug mana, auto-play, 2×/4×, thử kết quả và xuất JSON trạng thái. Debug không cộng chiến thắng.
 

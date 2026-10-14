@@ -7,7 +7,7 @@ import { eventVfxEditor } from './vfx-editor';
 import { gameplayEditor } from './gameplay-editor';
 export function renderStudioPage(state: State, section: string, hero: string, selectedAsset: string): string {
   if (section === 'audio') return audioEditor(state);
-  if (section === 'gameplay') return gameplayEditor(state.draft);
+  if (section === 'gameplay') return gameplayEditor(state.draft, state.ruleModules);
   const labels: Record<string, string> = {
     hp: 'Máu',
     attack: 'Sát thương',

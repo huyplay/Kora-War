@@ -54,6 +54,7 @@ npm run preview
 - [Gameplay từ database](docs/GAMEPLAY-CONFIG.md): admin cấu hình deck/tay bài/phép/synergy/AI/mana/combat/PvP/bộ sưu tập; trận khóa content revision, giữ nguyên các mặc định đã chốt.
 - [17 module rule](docs/RULE-MODULES.md) có schema/data version, dữ liệu draft/published và history riêng trong database; API admin sửa module, pipeline combat tách theo system.
 - [Đội hình hiển thị và chat nhanh](docs/BATTLE-PRESENTATION.md): 17 module gồm presentation/communication, packing model, câu/emoji/mute, art reaction qua asset service.
+- [8 reaction art của Gemini](docs/REACTION-ART-QA.md): ảnh trong suốt, manifest/checksum và tool nhập/gán database; Codex QA/tích hợp, admin tiếp tục điều chỉnh ảnh.
 - Ví vàng, mảnh thẻ, rương, cửa hàng và nâng cấp lưu SQLite; server mô phỏng lại command log để xác minh thưởng trận.
 - F3: FPS/frame p95/simulation time/draw calls/triangles/units; debug mana, auto-play, 2×/4×, thử kết quả và xuất JSON trạng thái. Debug không cộng chiến thắng.
 

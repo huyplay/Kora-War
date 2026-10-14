@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="c-bg" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#FFF176"/>
+      <stop offset="60%" stop-color="#FFB300"/>
+      <stop offset="100%" stop-color="#F57C00"/>
+    </radialGradient>
+    <linearGradient id="c-crown" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDE7"/>
+      <stop offset="40%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#FF8F00"/>
+    </linearGradient>
+    <linearGradient id="c-gem" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#84FFFF"/>
+      <stop offset="100%" stop-color="#0091EA"/>
+    </linearGradient>
+    <filter id="c-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#001830" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <g filter="url(#c-shadow)">
+    <circle cx="128" cy="144" r="86" fill="url(#c-bg)" stroke="#3E2723" stroke-width="8"/>
+    <path d="M60 94 L82 52 L108 76 L128 32 L148 76 L174 52 L196 94 Q128 108 60 94 Z" fill="url(#c-crown)" stroke="#3E2723" stroke-width="7" stroke-linejoin="round"/>
+    <polygon points="128,48 136,60 128,72 120,60" fill="url(#c-gem)" stroke="#004D40" stroke-width="2"/>
+    <circle cx="84" cy="68" r="5" fill="url(#c-gem)" stroke="#004D40" stroke-width="2"/>
+    <circle cx="172" cy="68" r="5" fill="url(#c-gem)" stroke="#004D40" stroke-width="2"/>
+    <ellipse cx="90" cy="136" rx="16" ry="20" fill="#FFFFFF" stroke="#3E2723" stroke-width="4"/>
+    <ellipse cx="166" cy="136" rx="16" ry="20" fill="#FFFFFF" stroke="#3E2723" stroke-width="4"/>
+    <circle cx="90" cy="136" r="10" fill="#00B0FF"/>
+    <circle cx="166" cy="136" r="10" fill="#00B0FF"/>
+    <polygon points="90,130 92,134 96,136 92,138 90,142 88,138 84,136 88,134" fill="#FFFFFF"/>
+    <polygon points="166,130 168,134 172,136 168,138 166,142 164,138 160,136 164,134" fill="#FFFFFF"/>
+    <path d="M84 162 Q128 226 172 162 Q128 174 84 162 Z" fill="#C62828" stroke="#3E2723" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M102 186 Q128 168 154 186 Q128 218 102 186 Z" fill="#FF80AB"/>
+    <path d="M96 164 Q128 172 160 164 Q128 178 96 164 Z" fill="#FFFFFF"/>
+    <polygon points="40,46 44,56 54,60 44,64 40,74 36,64 26,60 36,56" fill="#00E5FF"/>
+    <polygon points="216,42 220,50 228,54 220,58 216,66 212,58 204,54 212,50" fill="#FFD700"/>
+    <rect x="28" y="112" width="10" height="10" rx="2" transform="rotate(25 28 112)" fill="#FF4081"/>
+    <rect x="220" y="116" width="10" height="10" rx="2" transform="rotate(-30 220 116)" fill="#00E676"/>
+    <rect x="48" y="176" width="12" height="8" rx="2" transform="rotate(45 48 176)" fill="#FFEB3B"/>
+    <rect x="202" y="180" width="12" height="8" rx="2" transform="rotate(-15 202 180)" fill="#7C4DFF"/>
+  </g>
+</svg>

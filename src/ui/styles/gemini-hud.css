@@ -1,0 +1,343 @@
+/**
+ * Gemini Design HUD & Quick Chat Polish
+ * Scope: Strictly scoped to .quick-chat and .in-battle
+ * Accessibility: Touch targets >= 40px, keyboard focus, prefers-reduced-motion
+ * Compatibility: Mobile landscape 667x375, 844x390 and Desktop 1536x720
+ */
+
+/* ==========================================================================
+   1. TOUCH TARGET ENHANCEMENTS (All interactive targets >= 40px)
+   ========================================================================== */
+
+/* Quick Chat Toggle Button */
+.quick-chat .quick-chat-toggle {
+  min-width: 52px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #D4E1E8 100%);
+  border: 2px solid #EAD8AD;
+  color: #0E1A24;
+  font-size: 24px;
+  font-weight: 900;
+  box-shadow: 0 4px 0 #09131C, 0 8px 20px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.quick-chat .quick-chat-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #09131C, 0 10px 24px rgba(0, 229, 255, 0.25);
+  background: linear-gradient(180deg, #FFFFFF 0%, #E0F7FA 100%);
+}
+
+.quick-chat .quick-chat-toggle:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #09131C, 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Quick Chat Close Button (Expanded from 34px to 42px) */
+.quick-chat .quick-chat-close {
+  min-width: 42px;
+  min-height: 42px;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #1B293A;
+  border: 1.5px solid #455A64;
+  color: #ECEFF1;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-chat .quick-chat-close:hover {
+  background: #C62828;
+  border-color: #FF5252;
+  color: #FFFFFF;
+  transform: scale(1.05);
+}
+
+/* Quick Phrases Buttons (Elevated from 39px to 44px min-height) */
+.quick-chat .quick-phrases button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #CFD8DC 100%);
+  border: 1.5px solid #90A4AE;
+  color: #102027;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  box-shadow: 0 3px 0 #0A141E, 0 4px 12px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.quick-chat .quick-phrases button:hover {
+  transform: translateY(-2px);
+  border-color: #00E5FF;
+  box-shadow: 0 5px 0 #0A141E, 0 6px 16px rgba(0, 229, 255, 0.3);
+}
+
+.quick-chat .quick-phrases button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #0A141E;
+}
+
+/* Quick Emojis Buttons (Strictly >= 44x44px touch area) */
+.quick-chat .quick-emojis button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 4px;
+  border-radius: 10px;
+  background: #142230;
+  border: 1.5px solid #263B4E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #0A141E;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.quick-chat .quick-emojis button:hover {
+  transform: translateY(-2px);
+  background: #1C334A;
+  border-color: #00E5FF;
+  box-shadow: 0 5px 0 #0A141E, 0 6px 16px rgba(0, 229, 255, 0.3);
+}
+
+.quick-chat .quick-emojis button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #0A141E;
+}
+
+.quick-chat .quick-emojis button img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.quick-chat .quick-emojis button span {
+  font-size: 26px;
+  line-height: 1;
+}
+
+/* Mute Checkbox Target Area (Enlarged hit target >= 40px) */
+.quick-chat .quick-chat-mute {
+  min-height: 40px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.quick-chat .quick-chat-mute:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.quick-chat .quick-chat-mute input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+/* ==========================================================================
+   2. POPUP PANEL POLISH & HAND CARDS NON-INTERFERENCE
+   ========================================================================== */
+
+.quick-chat .quick-chat-panel {
+  border-radius: 16px;
+  border: 2px solid #00B0FF;
+  background: linear-gradient(150deg, rgba(20, 32, 46, 0.96) 0%, rgba(10, 18, 26, 0.98) 100%);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), 0 0 24px rgba(0, 229, 255, 0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Title bar */
+.quick-chat .quick-chat-title {
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #FFD54F;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+}
+
+/* Bottom status note */
+.quick-chat .quick-chat-panel small {
+  display: block;
+  margin-top: 10px;
+  color: #78909C;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* ==========================================================================
+   3. REACTION SPEECH BUBBLES POLISH
+   ========================================================================== */
+
+.quick-chat .reaction-bubble {
+  border-radius: 24px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+}
+
+.quick-chat .reaction-bubble img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+.quick-chat .reaction-bubble small {
+  font-size: 9px;
+  letter-spacing: 1px;
+  font-weight: 900;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Player Bubble (Aether Blue) */
+.quick-chat .reaction-bubble.own {
+  background: linear-gradient(135deg, #002B49 0%, #001A2C 100%);
+  border: 2px solid #00E5FF;
+  color: #E0F7FA;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 16px rgba(0, 229, 255, 0.3);
+}
+
+.quick-chat .reaction-bubble.own small {
+  color: #80D8FF;
+}
+
+/* Opponent Bubble (Crimson Red) */
+.quick-chat .reaction-bubble.opponent {
+  background: linear-gradient(135deg, #4A0E0E 0%, #2A0505 100%);
+  border: 2px solid #FF5252;
+  color: #FFEBEE;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 16px rgba(255, 82, 82, 0.3);
+}
+
+.quick-chat .reaction-bubble.opponent small {
+  color: #FF8A80;
+}
+
+/* ==========================================================================
+   4. IN-BATTLE HUD CARD HAND CLEARANCE & TOUCH PRESERVATION
+   ========================================================================== */
+
+.in-battle {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ensure closed quick chat does not block card drag or lane interaction */
+.quick-chat[hidden],
+.quick-chat-panel[hidden] {
+  pointer-events: none !important;
+}
+
+/* ==========================================================================
+   5. KEYBOARD ACCESSIBILITY (:focus-visible)
+   ========================================================================== */
+
+.quick-chat button:focus-visible,
+.quick-chat input:focus-visible {
+  outline: 2px solid #00E5FF !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.7) !important;
+}
+
+/* ==========================================================================
+   6. RESPONSIVE BREAKPOINTS (Mobile Landscape 667x375 & 844x390)
+   ========================================================================== */
+
+@media (max-width: 844px) and (orientation: landscape),
+       (max-height: 420px) and (orientation: landscape) {
+  .quick-chat .quick-chat-panel {
+    bottom: 64px;
+    left: max(12px, env(safe-area-inset-left));
+    width: min(440px, calc(100vw - 24px));
+    max-height: calc(100dvh - 80px);
+    padding: 12px;
+  }
+
+  .quick-chat .quick-chat-content {
+    gap: 10px;
+  }
+
+  .quick-chat .quick-phrases button {
+    min-height: 40px;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .quick-chat .quick-emojis button {
+    min-height: 40px;
+    min-width: 40px;
+  }
+
+  .quick-chat .quick-emojis button img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .quick-chat .reaction-bubble {
+    padding: 6px 12px;
+  }
+
+  .quick-chat .reaction-bubble img {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Smallest mobile landscape (e.g. iPhone SE 667x375) */
+@media (max-width: 680px) and (orientation: landscape) {
+  .quick-chat .quick-chat-panel {
+    width: min(390px, calc(100vw - 20px));
+    padding: 10px;
+  }
+  
+  .quick-chat .quick-phrases button {
+    min-height: 40px;
+    font-size: 11px;
+  }
+}
+
+/* ==========================================================================
+   7. PREFERS-REDUCED-MOTION
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-chat *,
+  .quick-chat .quick-chat-toggle,
+  .quick-chat .quick-phrases button,
+  .quick-chat .quick-emojis button,
+  .quick-chat .reaction-bubble {
+    animation: none !important;
+    transition: opacity 0.1s linear !important;
+    transform: none !important;
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "title": "Kora War Mobile HUD & Quick Chat Polish",
+  "agent": "Gemini Design Agent",
+  "targetFile": "src/ui/styles/gemini-hud.css",
+  "sha256": "30280b28879bb53adc59271885cdc3d39c89393d6ead4614c8b6b1f75db42f79",
+  "touchTargetCompliance": {
+    "phrasesButtonMinHeight": "44px (pass >= 40px)",
+    "emojisButtonSize": "44x44px (pass >= 40px)",
+    "closeButtonSize": "42x42px (pass >= 40px)",
+    "toggleButtonSize": "52x48px (pass >= 40px)",
+    "muteCheckboxHitArea": "min-height 40px (pass >= 40px)"
+  },
+  "accessibility": {
+    "keyboardFocus": ":focus-visible with 2px cyan outline and glow",
+    "motion": "@media (prefers-reduced-motion: reduce) disables transform jumps",
+    "scoping": "Strictly scoped to .quick-chat and .in-battle"
+  },
+  "previews": [
+    {
+      "name": "preview-mobile-844x390.png",
+      "width": 920,
+      "height": 680,
+      "sha256": "8ba247ff5f5b42e25515545376543829d1077ba2bcad39d752bc2b28bd116024"
+    },
+    {
+      "name": "preview-desktop-1536x720.png",
+      "width": 1536,
+      "height": 800,
+      "sha256": "8f727fb45f220771fa42953ffad7ca0adf6a4c2c649fe666dcd1cb74fc0dce28"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 import type { ContentConfig } from './content';
 import { gameplayOf } from './gameplay/defaults';
+import { communicationOf } from './communication';
+import { presentationOf } from './presentation';
 
 /** Schema upgrades are pure data transforms; module code never comes from the database. */
 export interface RuleModuleDefinition {
@@ -26,6 +28,8 @@ export const RULE_MODULES = Object.freeze([
   define('abilities', 'Kỹ năng và truy vấn mục tiêu'),
   define('economy', 'Giá và phần thưởng'),
   define('items', 'Vật phẩm cửa hàng'),
+  define('communication', 'Emoji và chat nhanh'),
+  define('presentation', 'Đội hình hiển thị'),
 ]);
 export type RuleModuleId =
   | 'rules'
@@ -42,8 +46,18 @@ export type RuleModuleId =
   | 'heroes'
   | 'abilities'
   | 'economy'
-  | 'items';
-const CONTENT_MODULES = ['rules', 'heroes', 'abilities', 'economy', 'items'] as const;
+  | 'items'
+  | 'communication'
+  | 'presentation';
+const CONTENT_MODULES = [
+  'rules',
+  'heroes',
+  'abilities',
+  'economy',
+  'items',
+  'communication',
+  'presentation',
+] as const;
 type ContentModuleId = (typeof CONTENT_MODULES)[number];
 export interface RuleModuleRecord {
   id: string;
@@ -80,7 +94,11 @@ export function extractRuleModules(content: ContentConfig): RuleModuleRecord[] {
     schemaVersion: d.schemaVersion,
     data: structuredClone(
       CONTENT_MODULES.includes(d.id as ContentModuleId)
-        ? content[d.id as ContentModuleId]
+        ? d.id === 'communication'
+          ? communicationOf(content)
+          : d.id === 'presentation'
+            ? presentationOf(content)
+            : content[d.id as ContentModuleId]
         : d.id === 'mana'
           ? { startingMana: g.startingMana }
           : g[d.id as Exclude<RuleModuleId, ContentModuleId | 'mana'>],

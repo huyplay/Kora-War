@@ -4,6 +4,8 @@ import { RULES } from './rules';
 import { isSpell, type SpellId } from './spells';
 import type { Hero } from './types';
 import { defaultGameplay, validateGameplay, type GameplayConfig } from './gameplay';
+import { defaultCommunication, validateCommunication, type CommunicationConfig } from './communication';
+import { defaultPresentation, validatePresentation, type PresentationConfig } from './presentation';
 import {
   defaultAudio,
   SOUND_CUES,
@@ -36,6 +38,8 @@ export interface ContentConfig {
   abilities: Record<string, AbilityDefinition>;
   rules: BattleRules;
   gameplay?: GameplayConfig;
+  communication?: CommunicationConfig;
+  presentation?: PresentationConfig;
   models: Record<string, ModelBinding>;
   audio?: AudioProfile;
   map: {
@@ -86,6 +90,8 @@ export function defaultContent(): ContentConfig {
     abilities: { ...ABILITIES, nyx: { ...ABILITIES.nyx, engage: DEFAULT_ENGAGE } },
     rules: RULES,
     gameplay: defaultGameplay(),
+    communication: defaultCommunication(),
+    presentation: defaultPresentation(),
     models: {},
     audio: defaultAudio(),
     map: { id: 'genesis', name: 'Thung lũng Khởi Nguyên', background: '#142c31', exposure: 1.25, props: [] },
@@ -111,6 +117,8 @@ export function upgradeContent(input: ContentConfig): ContentConfig {
       nyx.description = 'Ám Kích ưu tiên hậu tuyến theo cấu hình áp sát của kỹ năng.';
   }
   c.gameplay.board.quickSpawnX ??= defaultGameplay().board.quickSpawnX;
+  c.communication ??= defaultCommunication();
+  c.presentation ??= defaultPresentation();
   return c;
 }
 export function validateContent(input: unknown): asserts input is ContentConfig {
@@ -215,6 +223,8 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
   )
     fail('Giữ tick 20 Hz, mana tối đa 30, tối đa 100 quân.');
   if (c.gameplay !== undefined) validateGameplay(c.gameplay, c.rules.maxMana);
+  if (c.communication !== undefined) validateCommunication(c.communication);
+  if (c.presentation !== undefined) validatePresentation(c.presentation);
   if (!c.models || Object.keys(c.models).some((id) => !HEROES.some((h) => h.id === id)))
     fail('Model gán vào tướng không tồn tại.');
   for (const m of Object.values(c.models)) {
@@ -357,6 +367,7 @@ export function assetReferences(c: ContentConfig): string[] {
       ]),
       ...c.map.props.map((p) => p.assetId),
       ...c.items.flatMap((i) => (i.iconAssetId ? [i.iconAssetId] : [])),
+      ...(c.communication?.reactions ?? []).flatMap((r) => (r.imageAssetId ? [r.imageAssetId] : [])),
       ...(c.vfx.spriteAssetId ? [c.vfx.spriteAssetId] : []),
       ...Object.values(c.vfx.eventSprites || {}).map((binding) => binding.assetId),
       ...Object.values(c.vfx.spellSprites || {}).map((binding) => binding.assetId),

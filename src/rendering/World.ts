@@ -27,6 +27,8 @@ import { ContactShadows } from './vfx/contact-shadows';
 import { FloatingNumbers } from './vfx/floating-numbers';
 import { StructureAnimator } from './animation/structure-animator';
 import { UnitFeedback } from './animation/unit-feedback';
+import { FormationLayout } from './formation-layout';
+import { presentationOf } from '../data/presentation';
 interface Visual {
   group: THREE.Group;
   bar: THREE.Mesh;
@@ -46,6 +48,7 @@ interface Effect {
   toX: number;
   z: number;
   side: number;
+  toZ?: number;
 }
 export class World {
   private models = new ModelLibrary();
@@ -68,6 +71,7 @@ export class World {
   private contactShadows = new ContactShadows();
   private numbers = new FloatingNumbers();
   private structures = new StructureAnimator();
+  private formation = new FormationLayout();
   scene = new THREE.Scene();
   camera: THREE.OrthographicCamera;
   private arenaCamera: ArenaCamera;
@@ -384,6 +388,7 @@ export class World {
     this.renderer.shadowMap.needsUpdate = true;
   }
   reset() {
+    this.formation.reset();
     this.renderer.shadowMap.needsUpdate = true;
     this.arenaCamera.reset();
     this.spellEffects.reset();
@@ -546,8 +551,20 @@ export class World {
     }
   }
   effect(e: GameEvent) {
-    this.sprites.emit(e);
-    this.accents.emit(e);
+    const closest = (x: number, side: number, heroId?: string) =>
+      Array.from(this.units.values())
+        .filter(
+          (v) => v.unit.lane === e.lane && v.unit.side === side && (!heroId || v.unit.heroId === heroId),
+        )
+        .sort((a, b) => Math.abs(a.unit.x - x) - Math.abs(b.unit.x - x))[0]?.group.position;
+    const point = e.targetId
+      ? this.units.get(e.targetId)?.group.position
+      : e.heroId
+        ? closest(e.x, e.side, e.heroId)
+        : undefined;
+    const target = e.type === 'projectile' ? closest(e.toX ?? e.x, 1 - e.side) : undefined;
+    this.sprites.emit(e, point, target);
+    this.accents.emit(e, point);
     const color = e.type === 'heal' ? 0x83ffc2 : e.side === 0 ? 0xb4ffde : 0xffb4a0;
     if (e.type === 'hit' || e.type === 'core' || e.type === 'finish') return;
     const kind =
@@ -566,7 +583,7 @@ export class World {
         depthWrite: false,
       }),
     );
-    mesh.position.set(e.x, kind === 'bolt' ? 1.25 : 0.3, LANES[e.lane]);
+    mesh.position.set(point?.x ?? e.x, kind === 'bolt' ? 1.25 : 0.3, point?.z ?? LANES[e.lane]);
     mesh.scale.setScalar(kind === 'bolt' ? 0.13 : 0.5);
     this.scene.add(mesh);
     if (kind !== 'bolt') mesh.rotation.x = -Math.PI / 2;
@@ -575,9 +592,10 @@ export class World {
       start: this.clock,
       duration: kind === 'bolt' ? 0.28 : kind === 'pulse' ? 1.2 : 0.75,
       kind,
-      x: e.x,
-      toX: e.toX ?? e.x,
-      z: LANES[e.lane],
+      x: point?.x ?? e.x,
+      toX: target?.x ?? e.toX ?? e.x,
+      z: point?.z ?? LANES[e.lane],
+      toZ: target?.z,
       side: e.side,
     });
   }
@@ -599,18 +617,24 @@ export class World {
     this.contactShadows.begin();
     const barRight = new THREE.Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
     const barForward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.camera.quaternion);
+    const positions = this.formation.update(
+      battle.units,
+      presentationOf(battle.content).formation,
+      battle.gameplay.board,
+      animationDt,
+    );
     for (const u of battle.units) {
       const v = this.units.get(u.id) || this.addUnit(u);
       v.unit = u;
-      const z = LANES[u.lane] + ((u.id % 3) - 1) * 0.32;
-      const targetX = u.x;
-      v.group.position.x = THREE.MathUtils.lerp(v.group.position.x || targetX, targetX, Math.min(1, dt * 18));
+      const point = positions.get(u.id)!;
+      const z = point.z;
+      v.group.position.x = point.x;
       v.group.position.z = z;
       const born = Math.min(1, (battle.time - u.born) * 3 + 0.15);
-      v.group.scale.setScalar(born);
+      v.group.scale.setScalar(born * point.scale);
       this.contactShadows.add(
         v.group.position,
-        Math.min(2, (this.content?.models[u.heroId]?.height ?? 2.4) * 0.65),
+        Math.min(2, (this.content?.models[u.heroId]?.height ?? 2.4) * 0.65) * point.scale,
         born,
       );
       const change = v.feedback.update(u, animationDt);
@@ -645,7 +669,13 @@ export class World {
       v.shield.visible = u.shield > 0;
     }
     this.spellEffects.setConfig(battle.gameplay);
-    this.spellEffects.update(battle.spellZones, battle.tactical ? battle.units : [], battle.time, this.clock);
+    this.spellEffects.update(
+      battle.spellZones,
+      battle.tactical ? battle.units : [],
+      battle.time,
+      this.clock,
+      (id) => this.units.get(id)?.group.position,
+    );
     for (const tower of battle.towers) this.towerMeshes.get(tower.id)?.position.setX(tower.x);
     this.contactShadows.end();
     this.numbers.update(animationDt, this.camera);
@@ -672,13 +702,14 @@ export class World {
       e.mesh.material.opacity = Math.pow(1 - p, 1.4) * (e.kind === 'pulse' ? 0.4 : 0.7);
       if (e.kind === 'bolt') {
         e.mesh.position.x = THREE.MathUtils.lerp(e.x, e.toX, p);
+        e.mesh.position.z = THREE.MathUtils.lerp(e.z, e.toZ ?? e.z, p);
         e.mesh.position.y = 1.2 + Math.sin(p * Math.PI) * 0.5;
       } else {
         e.mesh.scale.setScalar(e.kind === 'pulse' ? 1 + p * 3 : 0.2 + p * 1.8);
         e.mesh.position.y = 0.2 + p * 0.45;
       }
     }
-    this.accents.observe(battle.units, battle.time);
+    this.accents.observe(battle.units, battle.time, (id) => this.units.get(id)?.group.position);
     this.accents.update(animationDt, this.camera);
     this.sprites.update(animationDt);
     for (let i = this.corpses.length - 1; i >= 0; i--) {

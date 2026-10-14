@@ -13,6 +13,8 @@ interface Particle {
   frames: THREE.Texture[];
   fromX?: number;
   toX?: number;
+  fromZ?: number;
+  toZ?: number;
   rotate?: boolean;
 }
 /** Pooled event atlases with a procedural fallback and guarded asynchronous asset loading. */
@@ -127,7 +129,7 @@ export class SpriteEffects {
       (p) => p.sprite.material.dispose(),
     );
   }
-  emit(event: GameEvent): void {
+  emit(event: GameEvent, position?: { x: number; z: number }, target?: { x: number; z: number }): void {
     if (!(VFX_EVENTS as readonly string[]).includes(event.type)) return;
     if (event.type === 'hit') {
       const key = `${event.side}:${event.lane}`;
@@ -161,11 +163,13 @@ export class SpriteEffects {
             : ['spawn', 'heal', 'death'].includes(event.type)
               ? 1.6
               : 2.3) * (this.profile?.intensity || 1);
-    particle.fromX = event.x;
-    particle.toX = event.type === 'projectile' ? event.toX : undefined;
+    particle.fromX = position?.x ?? event.x;
+    particle.toX = event.type === 'projectile' ? (target?.x ?? event.toX) : undefined;
+    particle.fromZ = position?.z ?? LANES[event.lane];
+    particle.toZ = target?.z ?? particle.fromZ;
     particle.rotate = !binding;
     if (event.type === 'projectile') particle.duration = 0.22;
-    particle.sprite.position.set(event.x, 1, LANES[event.lane]);
+    particle.sprite.position.set(position?.x ?? event.x, 1, position?.z ?? LANES[event.lane]);
     particle.sprite.visible = true;
     particle.sprite.material.rotation = 0;
     particle.sprite.material.color.set(
@@ -195,6 +199,7 @@ export class SpriteEffects {
       p.sprite.scale.setScalar(p.size * (0.85 + Math.sin(progress * Math.PI) * 0.15));
       if (p.toX !== undefined) {
         p.sprite.position.x = THREE.MathUtils.lerp(p.fromX!, p.toX, progress);
+        p.sprite.position.z = THREE.MathUtils.lerp(p.fromZ!, p.toZ!, progress);
         p.sprite.position.y = 1.15 + Math.sin(progress * Math.PI) * 0.25;
       }
     }

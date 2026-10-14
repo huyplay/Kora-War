@@ -168,7 +168,12 @@ export class GameDatabase {
     if (!row) throw new Error('Không tìm thấy phiên bản.');
     const modules = this.ruleModules.revision(revision);
     const content = JSON.parse(row.content as string) as ContentConfig;
-    return this.saveDraft(modules.length ? composeRuleModules(content, modules) : content, version);
+    return this.saveDraft(
+      modules.length
+        ? composeRuleModules(content, this.ruleModules.historicalModules(content, modules))
+        : content,
+      version,
+    );
   }
   publish(version: number) {
     return this.transaction(() => {
@@ -191,6 +196,9 @@ export class GameDatabase {
         for (const name of Object.values(binding.clips))
           if (!clips.has(name)) throw new Error(`Animation không tồn tại: ${name}`);
       }
+      for (const reaction of current.draft.communication?.reactions ?? [])
+        if (reaction.imageAssetId && this.asset(reaction.imageAssetId)?.kind !== 'image')
+          throw new Error('Emoji phải gán image asset.');
       for (const p of current.draft.map.props)
         if (this.asset(p.assetId)?.kind !== 'model') throw new Error('Map prop phải là GLB.');
       for (const id of [current.draft.map.towerAssetId, current.draft.map.coreAssetId])

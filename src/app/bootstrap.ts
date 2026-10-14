@@ -35,6 +35,7 @@ import '../ui/styles/home.css';
 import '../ui/styles/cycle.css';
 import { FixedStepRunner } from './fixed-step-runner';
 import { ArenaGestures } from './arena-gestures';
+import { QuickChat } from '../ui/quick-chat';
 const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
 lifetime.defer(() => inputLifetime.abort());
@@ -112,6 +113,24 @@ function persist() {
 }
 $('#app').innerHTML = renderShell();
 $('#home-roster .tile-note').textContent = `${GAMEPLAY.deck.size} thẻ · tay ${GAMEPLAY.deck.handSize} thẻ`;
+if (!gameSession.wallet) {
+  const pvpButton = $<HTMLButtonElement>('#pvp-open');
+  pvpButton.disabled = true;
+  pvpButton.title = 'Bản demo hỗ trợ luyện tập AI';
+  $('.home-screen').insertAdjacentHTML('beforeend', '<span class="demo-note">BẢN DEMO · LUYỆN TẬP AI</span>');
+}
+const quickChat = lifetime.own(
+  new QuickChat({
+    send: (id) => pvp.reaction(id),
+    online: () => pvp.active,
+    notify: toast,
+    sound: () => {
+      sound.unlock();
+      sound.tone('click');
+    },
+  }),
+);
+quickChat.configure(gameSession.content);
 let world: World;
 try {
   world = new World($('#stage'));
@@ -438,6 +457,8 @@ function showOpening() {
   );
 }
 function lobby() {
+  quickChat.reset();
+  quickChat.configure(gameSession.content);
   if (pvp.active) {
     void pvp
       .leave()
@@ -483,6 +504,7 @@ function formatTime(t: number) {
     .padStart(2, '0')}`;
 }
 function updateHud() {
+  quickChat.setVisible(mode === 'battle' && ['ready', 'playing'].includes(battle.phase));
   $('#home-wins').textContent = String(wins);
   $('#wallet-gold').textContent = gameSession.wallet ? String(gameSession.wallet.gold) : '—';
   $('#best-record').textContent = `${wins} chiến thắng · Dữ liệu lưu trên thiết bị`;
@@ -947,6 +969,8 @@ pvp.onState = (packet: PvpPacket) => {
       return;
     }
     onlineStarted = true;
+    quickChat.reset();
+    quickChat.configure(packet.content);
     deck = packet.loadout.deck.slice();
     spells = packet.loadout.spells.slice();
     if (packet.loadout.cards) cardDeck = packet.loadout.cards.slice();
@@ -984,6 +1008,7 @@ pvp.onState = (packet: PvpPacket) => {
     toast('PvP bắt đầu · đội bạn luôn ở bên trái');
   }
   Object.assign(battle, packet.state);
+  quickChat.receive(packet.code, packet.reactions ?? []);
   showOpening();
   const countdown = document.querySelector<HTMLElement>('#opening-countdown');
   if (countdown) {

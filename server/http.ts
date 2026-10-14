@@ -194,6 +194,7 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
         if (path === '/api/pvp/create') return send(201, pvp.create(id, input, store.config().published));
         if (path === '/api/pvp/join') return send(200, pvp.join(id, input.code, input));
         if (path === '/api/pvp/command') return send(200, pvp.command(id, input.code, input.command));
+        if (path === '/api/pvp/reaction') return send(200, pvp.reaction(id, input.code, input.command));
         if (path === '/api/pvp/leave') return send(200, pvp.leave(id, input.code));
         return send(404, { error: 'Không có endpoint.' });
       }

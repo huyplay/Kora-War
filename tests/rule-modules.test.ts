@@ -17,7 +17,7 @@ import { cycleBattle } from '../src/core/cycle-battle';
 test('rule modules losslessly compose content and reject partial or unsupported schemas', () => {
   const c = defaultContent(),
     modules = extractRuleModules(c);
-  assert.equal(modules.length, 15);
+  assert.equal(modules.length, 17);
   assert.deepEqual(composeRuleModules(c, modules), c);
   modules.find((m) => m.id === 'mana')!.data = { startingMana: 7 };
   const composed = composeRuleModules(c, modules);
@@ -120,7 +120,7 @@ test('module draft updates are atomic, versioned only on change, and isolated un
   const locked = cycleBattle(before.draft.gameplay!.deck.defaultCards, before.draft, 4);
   db.publish(db.config().version);
   assert.equal(db.config().published.gameplay!.startingMana, 7);
-  assert.equal(db.ruleModules.revision(2).length, 15);
+  assert.equal(db.ruleModules.revision(2).length, 17);
   assert.equal(locked.mana[0], 7);
   db.restoreRevision(1, db.config().version);
   assert.equal(db.config().draft.gameplay!.startingMana, 4);
@@ -197,7 +197,7 @@ test('module endpoint enforces auth, schemas, cross-rule validation and stale-ve
   assert.equal((await update('mana', { startingMana: 7 }, version)).status, 200);
   assert.equal((await update('mana', { startingMana: 8 }, version)).status, 409);
   const state = await (await fetch(base + '/api/admin/rule-modules', { headers })).json();
-  assert.equal(state.modules.length, 15);
+  assert.equal(state.modules.length, 17);
   assert.equal(state.modules.find((m: { id: string }) => m.id === 'mana').changed, true);
   await fetch(base + '/api/admin/publish', {
     method: 'POST',

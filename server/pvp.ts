@@ -6,6 +6,7 @@ import { onlineState } from '../src/core/online-state';
 import type { Battle } from '../src/core/Battle';
 import type { Side } from '../src/core/types';
 import { cycleBattle } from '../src/core/cycle-battle';
+import { communicationOf, type ReactionPacket } from '../src/data/communication';
 const WAITING_TTL = 600000;
 const FINISHED_TTL = 300000;
 export interface Loadout {
@@ -36,6 +37,10 @@ interface Room {
   finished?: number;
   replies: Map<string, string | null>[];
   version: number;
+  reactions: { id: number; side: Side; reactionId: string; expires: number }[];
+  nextReaction: number;
+  reactionAt: number[];
+  reactionReplies: Map<string, string | null>[];
 }
 /** Single-process authoritative MVP. Rooms expire; no persistent ranked/rewards. */
 export class PvpRooms {
@@ -118,6 +123,10 @@ export class PvpRooms {
       seen: [this.now()],
       replies: [new Map(), new Map()],
       version: 0,
+      reactions: [],
+      nextReaction: 1,
+      reactionAt: [-Infinity, -Infinity],
+      reactionReplies: [new Map(), new Map()],
     });
     return this.state(player, code);
   }
@@ -193,6 +202,17 @@ export class PvpRooms {
         ? { deck: [], spells: [] }
         : structuredClone(r.loadouts[1 - side]),
       state: r.battle ? onlineState(r.battle, side) : undefined,
+      reactions: r.reactions
+        .filter((e) => e.expires > at)
+        .map(
+          (e) =>
+            ({
+              id: e.id,
+              side: (side === 0 ? e.side : 1 - e.side) as Side,
+              reactionId: e.reactionId,
+              remainingSeconds: (e.expires - at) / 1000,
+            }) satisfies ReactionPacket,
+        ),
       ...(r.battle?.cycling ? { openingSeconds: Math.max(0, Math.ceil((r.openingEnds! - at) / 1000)) } : {}),
     };
   }
@@ -235,6 +255,37 @@ export class PvpRooms {
           : r.battle.pulse(side, c.lane);
     replies.set(c.id, error);
     return { error, ...this.state(player, code) };
+  }
+  reaction(player: string, code: string, command: { id: string; reactionId: string }) {
+    const at = this.now(),
+      { r, side } = this.member(player, code, at),
+      config = communicationOf(r.content);
+    if (!command || typeof command.id !== 'string' || !/^[a-zA-Z0-9-]{8,64}$/.test(command.id))
+      throw new Error('Mã phản hồi không hợp lệ.');
+    const replies = r.reactionReplies[side];
+    if (replies.has(command.id)) return { error: replies.get(command.id), ...this.state(player, code) };
+    if (!config.enabled) throw new Error('Chat nhanh đã tắt.');
+    if (!r.battle || !['ready', 'playing'].includes(r.battle.phase))
+      throw new Error('Chat nhanh chỉ dùng trong trận.');
+    if (
+      typeof command.reactionId !== 'string' ||
+      !config.reactions.some((e) => e.id === command.reactionId && e.enabled)
+    )
+      throw new Error('Phản hồi không nằm trong danh sách.');
+    if (replies.size >= config.maxPerMatch) throw new Error('Đã đạt giới hạn phản hồi trong trận.');
+    if (at - r.reactionAt[side] < config.cooldownSeconds * 1000)
+      return { error: 'Chờ một nhịp trước khi gửi tiếp.', ...this.state(player, code) };
+    r.reactionAt[side] = at;
+    r.reactions = r.reactions.filter((e) => e.expires > at);
+    r.reactions.push({
+      id: r.nextReaction++,
+      side,
+      reactionId: command.reactionId,
+      expires: at + config.displaySeconds * 1000,
+    });
+    if (r.reactions.length > 32) r.reactions.splice(0, r.reactions.length - 32);
+    replies.set(command.id, null);
+    return { error: null, ...this.state(player, code) };
   }
   leave(player: string, code: string) {
     const at = this.now();

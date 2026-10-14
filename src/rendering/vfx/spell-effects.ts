@@ -212,7 +212,13 @@ export class SpellEffects {
     return { group, frost, fire, haste, weaken };
   }
 
-  update(zones: readonly SpellZone[], units: readonly Unit[], time: number, clock: number) {
+  update(
+    zones: readonly SpellZone[],
+    units: readonly Unit[],
+    time: number,
+    clock: number,
+    position?: (id: number) => { x: number; z: number } | undefined,
+  ) {
     const ids = new Set(zones.map((zone) => zone.id));
     for (const [id, visual] of this.zones)
       if (!ids.has(id)) {
@@ -256,7 +262,12 @@ export class SpellEffects {
       activeIds.add(unit.id);
       const visual = this.statuses.get(unit.id) ?? this.createStatus(unit.id);
       this.statuses.set(unit.id, visual);
-      visual.group.position.set(unit.x, 0.05, LANES[unit.lane] + ((unit.id % 3) - 1) * 0.32);
+      const point = position?.(unit.id);
+      visual.group.position.set(
+        point?.x ?? unit.x,
+        0.05,
+        point?.z ?? LANES[unit.lane] + ((unit.id % 3) - 1) * 0.32,
+      );
       visual.frost.visible = chilled;
       visual.fire.visible = burning;
       visual.haste.visible = hasted;

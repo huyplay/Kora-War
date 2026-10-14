@@ -51,6 +51,17 @@ export class RuleModuleStore {
           this.write(scope, config[scope]);
           migrated = true;
         } else {
+          // Explicit upgrade from the complete 15-module release. Partial stores still fail.
+          const additions = ['communication', 'presentation'];
+          const previous = RULE_MODULES.filter((m) => !additions.includes(m.id));
+          if (old.length === previous.length && previous.every((d) => old.some((m) => m.id === d.id))) {
+            old.push(
+              ...extractRuleModules(config[scope])
+                .filter((m) => additions.includes(m.id))
+                .map((m) => ({ ...m, dataVersion: 1 })),
+            );
+            schemaChanged = true;
+          }
           // Apply only explicit schema migrations; validate cross-module dependencies afterwards.
           const content = composeRuleModules(config[scope], old);
           validateContent(content);
@@ -144,6 +155,13 @@ export class RuleModuleStore {
         schemaVersion: Number(row.schema_version),
         data: JSON.parse(String(row.payload)),
       }));
+  }
+  historicalModules(content: ContentConfig, modules: RuleModuleRecord[]) {
+    const additions = ['communication', 'presentation'];
+    const previous = RULE_MODULES.filter((m) => !additions.includes(m.id));
+    if (modules.length === previous.length && previous.every((d) => modules.some((m) => m.id === d.id)))
+      return [...modules, ...extractRuleModules(content).filter((m) => additions.includes(m.id))];
+    return modules;
   }
   status(): RuleModuleStatus[] {
     const draft = this.read('draft'),

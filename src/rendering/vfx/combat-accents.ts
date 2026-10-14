@@ -49,18 +49,18 @@ export class CombatAccents {
       this.root.add(mesh);
     }
   }
-  emit(event: GameEvent) {
+  emit(event: GameEvent, position?: { x: number; z: number }) {
     if (event.type !== 'hit' || (event.value ?? 0) <= 0) return;
     for (let i = 0; i < 4 && this.particles.length < 128; i++)
       this.particles.push({
-        x: event.x,
-        z: LANES[event.lane],
+        x: position?.x ?? event.x,
+        z: position?.z ?? LANES[event.lane],
         age: 0,
         angle: event.id * 2.399 + i * 1.57,
         side: event.side,
       });
   }
-  observe(units: Unit[], time: number) {
+  observe(units: Unit[], time: number, position?: (id: number) => { x: number; z: number } | undefined) {
     const alive = new Set<number>();
     for (const unit of units) {
       alive.add(unit.id);
@@ -74,9 +74,9 @@ export class CombatAccents {
       arc.side = unit.side;
       arc.mesh.visible = true;
       arc.mesh.position.set(
-        unit.x + (unit.side ? -0.5 : 0.5),
+        (position?.(unit.id)?.x ?? unit.x) + (unit.side ? -0.5 : 0.5),
         1.1,
-        LANES[unit.lane] + ((unit.id % 3) - 1) * 0.32,
+        position?.(unit.id)?.z ?? LANES[unit.lane] + ((unit.id % 3) - 1) * 0.32,
       );
       arc.mesh.material.color.setHex(unit.side ? 0xffc6a3 : 0xbceeff);
     }

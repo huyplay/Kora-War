@@ -21,7 +21,7 @@ Gameplay đã chốt không thay đổi. Cấu trúc mới tách dữ liệu rul
 
 ## Database
 
-15 module hiện có: `rules`, `mana`, `deck`, `board`, `combat`, `resonance`, `spells`, `synergies`, `ai`, `match`, `collection`, `heroes`, `abilities`, `economy`, `items`.
+17 module hiện có: `rules`, `mana`, `deck`, `board`, `combat`, `resonance`, `spells`, `synergies`, `ai`, `match`, `collection`, `heroes`, `abilities`, `economy`, `items`, `communication`, `presentation`. Hai module cuối được migration có chủ đích từ release 15 module; giữ nguyên content lịch sử.
 
 `rule_modules` là nguồn dữ liệu live: mỗi dòng có `scope` (draft/published), `module_id`, `schema_version`, `data_version`, `payload` JSON. Khóa chính `(scope,module_id)`. `schema_version` mô tả cấu trúc; `data_version` tăng riêng trong từng scope khi payload/schema thay đổi. Hai bộ đếm draft/published không cần bằng nhau; trạng thái “Có thay đổi” so sánh payload. Thứ tự khóa JSON không được coi là thay đổi cân bằng.
 

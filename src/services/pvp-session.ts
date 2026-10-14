@@ -2,6 +2,7 @@ import { api, ApiError } from './api';
 import type { ContentConfig } from '../data/content';
 import type { SpellId } from '../data/spells';
 import type { OnlineState } from '../core/online-state';
+import type { ReactionPacket } from '../data/communication';
 export interface PvpPacket {
   code: string;
   version: number;
@@ -13,6 +14,7 @@ export interface PvpPacket {
   openingSeconds?: number;
   state?: OnlineState;
   error?: string | null;
+  reactions?: ReactionPacket[];
 }
 export class PvpSession {
   packet?: PvpPacket;
@@ -194,6 +196,26 @@ export class PvpSession {
       }
     });
     return this.leaving;
+  }
+  async reaction(reactionId: string) {
+    if (!this.packet || this.leaving || !this.connected) return 'Đang chờ kết nối máy chủ.';
+    const generation = this.generation,
+      signal = this.requests.signal,
+      data = { code: this.packet.code, command: { id: crypto.randomUUID(), reactionId } };
+    try {
+      let packet: PvpPacket;
+      try {
+        packet = await api<PvpPacket>('/api/pvp/reaction', 'POST', data, signal);
+      } catch (e) {
+        if (signal.aborted || generation !== this.generation || (e instanceof ApiError && e.status < 500))
+          throw e;
+        packet = await api<PvpPacket>('/api/pvp/reaction', 'POST', data, signal);
+      }
+      if (generation === this.generation) this.accept(packet);
+      return packet.error || null;
+    } catch (e) {
+      return e instanceof Error ? e.message : String(e);
+    }
   }
   private forget() {
     this.dispose();

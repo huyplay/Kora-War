@@ -1,0 +1,261 @@
+{
+  "version": "1.0.0",
+  "contract": "communication.reactions[].imageAssetId",
+  "lore": "Aetherfall / Elyndra Original Art",
+  "author": "Gemini Design Agent",
+  "license": "Proprietary - Kora War Project",
+  "sourceUrl": "assets/design/reactions/svg/",
+  "budgetLimits": {
+    "maxSizeBytes": 102400,
+    "resolution": "256x256",
+    "format": "WebP / PNG",
+    "transparentBackground": true,
+    "noText": true
+  },
+  "items": [
+    {
+      "id": "happy",
+      "label": "Vui vẻ",
+      "description": "Chiến binh Elyndra mỉm cười rạng rỡ với đôi mắt Aether phát sáng và vương trâm hoàng kim",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "assets": {
+        "webp": {
+          "file": "webp/happy.webp",
+          "publicUrl": "/design/reactions/happy.webp",
+          "sizeBytes": 23796,
+          "sha256": "0706379a6d0249931544441e1243dd961842e02eb07585c3a1f68d551f414e65"
+        },
+        "png": {
+          "file": "png/happy.png",
+          "publicUrl": "/design/reactions/happy.png",
+          "sizeBytes": 36182,
+          "sha256": "fdb09100946bc9819f57a4b8d47db8c42d037d92cef71d4123e761f951e7ee87"
+        },
+        "svgSource": {
+          "file": "svg/happy.svg",
+          "sizeBytes": 2821,
+          "sha256": "393cac64892acfdb5592c2d36c2b251e244f2493f8b0a6d6ccda0fba13cc3a41"
+        }
+      }
+    },
+    {
+      "id": "cheer",
+      "label": "Cổ vũ",
+      "description": "Vương miện Aether chiến thắng cùng pháo hoa tinh thể sao và nụ cười ăn mừng rực rỡ",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "assets": {
+        "webp": {
+          "file": "webp/cheer.webp",
+          "publicUrl": "/design/reactions/cheer.webp",
+          "sizeBytes": 26148,
+          "sha256": "e37be91e1b0f73852fb9477f96a94a0ad2b5eb06703b97ff407b37f4ee0d2217"
+        },
+        "png": {
+          "file": "png/cheer.png",
+          "publicUrl": "/design/reactions/cheer.png",
+          "sizeBytes": 35560,
+          "sha256": "7f393bdb847c8ca01d51a5f7053ede6249f9772119fdf7e09244b39a7fbf354d"
+        },
+        "svgSource": {
+          "file": "svg/cheer.svg",
+          "sizeBytes": 2891,
+          "sha256": "bf97b7dde1916d7a6017a9e7f8433b99cf98d71d45be1bb66d5358ad905d64e1"
+        }
+      }
+    },
+    {
+      "id": "wow",
+      "label": "Bất ngờ",
+      "description": "Mắt mở to kinh ngạc lấp lánh ánh sáng ma thuật và vòng phù văn rune Aether xoay quanh",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "assets": {
+        "webp": {
+          "file": "webp/wow.webp",
+          "publicUrl": "/design/reactions/wow.webp",
+          "sizeBytes": 56652,
+          "sha256": "e9731ae083d18d88d194b42900b2907e1115732405ffbabb66bb557e52e00dbc"
+        },
+        "png": {
+          "file": "png/wow.png",
+          "publicUrl": "/design/reactions/wow.png",
+          "sizeBytes": 74554,
+          "sha256": "e576d63f87f931176fd0ba07ae93e49be9a57ff4b440e727ed1a8ceaa3c94397"
+        },
+        "svgSource": {
+          "file": "svg/wow.svg",
+          "sizeBytes": 2667,
+          "sha256": "987c851452ed3ec50b8dcc06f4fa0d7a7c0932df34c0efba67401c9fc79074de"
+        }
+      }
+    },
+    {
+      "id": "cry",
+      "label": "Buồn quá",
+      "description": "Biểu cảm khóc dở khóc dở cười với thác nước mắt tinh thể ma thuật Aether tuôn trào",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "assets": {
+        "webp": {
+          "file": "webp/cry.webp",
+          "publicUrl": "/design/reactions/cry.webp",
+          "sizeBytes": 26646,
+          "sha256": "519389dee6bea04f9e023e00a62f6417a0fa5dc60899aa3c5379024123595fa9"
+        },
+        "png": {
+          "file": "png/cry.png",
+          "publicUrl": "/design/reactions/cry.png",
+          "sizeBytes": 37371,
+          "sha256": "e7bef62cd4e496148df422984df874aad8e2d05e6e1c20db5801bd2437e88f6b"
+        },
+        "svgSource": {
+          "file": "svg/cry.svg",
+          "sizeBytes": 2251,
+          "sha256": "1b4761fa06b4bda55d0af858ce983e0af96c6bb205dd8821a00bc90c179cca5c"
+        }
+      }
+    },
+    {
+      "id": "laugh",
+      "label": "Cười",
+      "description": "Nụ cười sảng khoái hả hê với đôi mắt cong vút và hai giọt nước mắt cười lấp lánh",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "assets": {
+        "webp": {
+          "file": "webp/laugh.webp",
+          "publicUrl": "/design/reactions/laugh.webp",
+          "sizeBytes": 20968,
+          "sha256": "a89786134090daf4c5dee43c028b5f61c5da0064d3e6f1abfc5ad73b59a897e1"
+        },
+        "png": {
+          "file": "png/laugh.png",
+          "publicUrl": "/design/reactions/laugh.png",
+          "sizeBytes": 31321,
+          "sha256": "fffed71e9665b704debbf776275edd9f33dc64864c5ac08608f0f3a81658fd3d"
+        },
+        "svgSource": {
+          "file": "svg/laugh.svg",
+          "sizeBytes": 1836,
+          "sha256": "5c620e44f9ff30db0697dd4802aa8c8535948c6c18c70c4aee4d1829cfc6c4ce"
+        }
+      }
+    },
+    {
+      "id": "respect",
+      "label": "Tán thưởng",
+      "description": "Đôi găng tay giáp hiệp sĩ Elyndra nạm ngọc Aether chạm nhau tán thưởng tinh thần thượng võ",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "assets": {
+        "webp": {
+          "file": "webp/respect.webp",
+          "publicUrl": "/design/reactions/respect.webp",
+          "sizeBytes": 26906,
+          "sha256": "5c3a18684f8e42cb009a5e6686c08705a99d1261fac5925da1387e1017091b0b"
+        },
+        "png": {
+          "file": "png/respect.png",
+          "publicUrl": "/design/reactions/respect.png",
+          "sizeBytes": 39836,
+          "sha256": "06f091ae0fd2a8fbc05f90a4076a2d0b5fb4dd42844719a1206c5f99f060f69e"
+        },
+        "svgSource": {
+          "file": "svg/respect.svg",
+          "sizeBytes": 3213,
+          "sha256": "fe723af7a3f5888e0adc1163560056f496edd3edaa1cd163b222fb44e69ab51f"
+        }
+      }
+    },
+    {
+      "id": "fire",
+      "label": "Bùng cháy",
+      "description": "Ngọn lửa ma thuật Elyndra 3 lớp với lõi Aether xanh lam và tinh thần chiến đấu rực lửa",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "assets": {
+        "webp": {
+          "file": "webp/fire.webp",
+          "publicUrl": "/design/reactions/fire.webp",
+          "sizeBytes": 22568,
+          "sha256": "56c0d88f718c8a16a11b33e9e88eac7aaf03a9ae56c4c326c961fb44431391eb"
+        },
+        "png": {
+          "file": "png/fire.png",
+          "publicUrl": "/design/reactions/fire.png",
+          "sizeBytes": 30567,
+          "sha256": "4ac215bf1e26f85353ddcd9a547b37d3edb8ad019f7b569baca3db5c27023e82"
+        },
+        "svgSource": {
+          "file": "svg/fire.svg",
+          "sizeBytes": 2557,
+          "sha256": "31bd0a104adc68cd285bdf21b86519bfae2374e5985ea7026209d5a39a01124a"
+        }
+      }
+    },
+    {
+      "id": "heart",
+      "label": "Yêu thích",
+      "description": "Trái tim tinh thể Aether lam ngọc giác cắt 3D lấp lánh hào quang ma thuật Elyndra",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "assets": {
+        "webp": {
+          "file": "webp/heart.webp",
+          "publicUrl": "/design/reactions/heart.webp",
+          "sizeBytes": 31750,
+          "sha256": "57476873396e123831a9c8f17a04914cda327b740f52f2ba93cdad47bd79f93b"
+        },
+        "png": {
+          "file": "png/heart.png",
+          "publicUrl": "/design/reactions/heart.png",
+          "sizeBytes": 46792,
+          "sha256": "cee73c908472763e92a36469584cf40ea07890672d49e6312ad4fe1ce738ea62"
+        },
+        "svgSource": {
+          "file": "svg/heart.svg",
+          "sizeBytes": 2590,
+          "sha256": "13e570b719b3e6fc1e9ab14a756e6bd32e0c96552c0b92eaa8a724808744a9c2"
+        }
+      }
+    }
+  ],
+  "previews": [
+    {
+      "name": "contact-sheet.png",
+      "width": 1200,
+      "height": 900,
+      "sha256": "94bbe5904854650e81a3cd136781c7899c17d330d2e0667f66f13db9ac6d8c8a"
+    },
+    {
+      "name": "preview-desktop.png",
+      "width": 1536,
+      "height": 720,
+      "sha256": "f58e083dc0887e8bded611a9754ea0050efa7972501cc9494e5672ae34f6e1d3"
+    },
+    {
+      "name": "preview-mobile-844x390.png",
+      "width": 844,
+      "height": 390,
+      "sha256": "85cd0c38fe3f11eb425bef807fd4ae127418bebf1ac116589058ce69d1772cac"
+    }
+  ]
+}

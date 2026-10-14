@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="cr-bg" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#FFF59D"/>
+      <stop offset="65%" stop-color="#FFCA28"/>
+      <stop offset="100%" stop-color="#FFA000"/>
+    </radialGradient>
+    <linearGradient id="cr-stream" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E0F7FA"/>
+      <stop offset="25%" stop-color="#40C4FF"/>
+      <stop offset="70%" stop-color="#0091EA"/>
+      <stop offset="100%" stop-color="#0069C0"/>
+    </linearGradient>
+    <filter id="cr-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="cr-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#001830" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <g filter="url(#cr-shadow)">
+    <circle cx="128" cy="126" r="90" fill="url(#cr-bg)" stroke="#3E2723" stroke-width="8"/>
+    <path d="M72 108 L94 122 L72 136" fill="none" stroke="#3E2723" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M184 108 L162 122 L184 136" fill="none" stroke="#3E2723" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M82 124 C60 134, 46 160, 48 200 C56 218, 92 216, 94 196 C96 168, 94 138, 86 124 Z" fill="url(#cr-stream)" stroke="#01579B" stroke-width="4" filter="url(#cr-glow)"/>
+    <path d="M174 124 C196 134, 210 160, 208 200 C200 218, 164 216, 162 196 C160 168, 162 138, 170 124 Z" fill="url(#cr-stream)" stroke="#01579B" stroke-width="4" filter="url(#cr-glow)"/>
+    <ellipse cx="64" cy="180" rx="6" ry="16" fill="#FFFFFF" opacity="0.6"/>
+    <ellipse cx="192" cy="180" rx="6" ry="16" fill="#FFFFFF" opacity="0.6"/>
+    <circle cx="34" cy="216" r="7" fill="#40C4FF" stroke="#01579B" stroke-width="2"/>
+    <circle cx="222" cy="216" r="7" fill="#40C4FF" stroke="#01579B" stroke-width="2"/>
+    <path d="M96 174 Q112 164 128 174 Q144 164 160 174 Q128 152 96 174 Z" fill="#D50000" stroke="#3E2723" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+</svg>

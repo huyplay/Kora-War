@@ -71,3 +71,7 @@ Người dùng chọn chuyển từng bước sang ASP.NET Core/PostgreSQL, ưu 
 ## Nâng cấp hình ảnh theo mẫu và zoom — 14/10/2026
 
 Người dùng yêu cầu map trước, sau đó hiệu ứng/animation/âm thanh và Home riêng theo ảnh tham chiếu; bổ sung zoom in/out. Giữ Three.js và lore Elyndra. Camera nghiêng, ba lane ngang, Home có huy hiệu Aether riêng; không thêm ranked, timer rương hoặc tiền tệ giả theo ảnh mẫu. Zoom giới hạn 1–1,85×, projection 3D, HUD giữ kích thước; pinch hủy chọn thẻ và chặn click phát sinh. Texture/model Poly Haven và atlas GegX được dùng qua asset service local. Đây là thay đổi trình bày, không đổi Băng thành stun hoặc sửa sát thương phép. Xem [QA đồ họa](VISUAL-QA.md).
+
+## Animation và vật liệu — tiếp tục ngày 14/10/2026
+
+Cờ vải dùng texture dệt và huy hiệu Aether tạo bằng canvas, mesh uốn với mép trên cố định; đuốc dùng texture gradient, tàn lửa theo pool. Tia trúng đòn và vệt chém cận chiến là lớp trình bày giới hạn 128 tia/16 vệt. PBR giữ sắc độ từng loại đá; texture model được áp anisotropy theo GPU. Clip đánh/cast/spawn/death được căn theo cửa sổ animation, idle fallback luôn lặp. Pause giữ pose và dừng cả VFX/cảnh vật; render-frame delta theo tốc độ chơi giữ chuyển động mượt giữa các tick mô phỏng. Mira được đóng gói lại từ nguồn đã kiểm SHA để bổ sung clip đi/đánh/cast gốc; không thay chỉ số hoặc luật trận.

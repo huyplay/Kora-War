@@ -11,7 +11,9 @@ export class ModelLibrary {
   private loader = new GLTFLoader();
   private ktx?: KTX2Loader;
   private disposed = false;
+  private anisotropy = 1;
   async supportTextures(renderer: THREE.WebGLRenderer) {
+    this.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     this.ktx = new KTX2Loader()
       .setTranscoderPath(`${import.meta.env.BASE_URL}decoders/basis/`)
       .detectSupport(renderer);
@@ -28,6 +30,12 @@ export class ModelLibrary {
       .then((gltf) => {
         gltf.animations.forEach((clip, i) => {
           if (!clip.name) clip.name = `clip-${i}`;
+        });
+        gltf.scene.traverse((object) => {
+          if (!(object instanceof THREE.Mesh)) return;
+          for (const material of Array.isArray(object.material) ? object.material : [object.material])
+            for (const value of Object.values(material))
+              if (value instanceof THREE.Texture) value.anisotropy = this.anisotropy;
         });
         if (this.disposed) {
           disposeModel(gltf.scene);
@@ -106,16 +114,22 @@ export class ModelInstance {
     this.state = state;
     if (!clip) return;
     const next = this.mixer.clipAction(clip);
+    // An idle fallback must keep looping, even if requested for spawn or attack.
+    const once =
+      ['attack', 'cast', 'death', 'spawn'].includes(state) && clip.name === mapped && mapped !== fallback;
+    const duration = ({ attack: 0.35, cast: 0.5, spawn: 0.3, death: 1.05 } as Record<string, number>)[state];
     if (this.action !== next) {
-      next.reset().fadeIn(0.12).play();
-      this.action?.fadeOut(0.12);
+      next.reset().setEffectiveWeight(1).fadeIn(0.08).play();
+      this.action?.fadeOut(0.08);
       this.action = next;
-    } else if (restart) next.reset().play();
-    const once = ['attack', 'cast', 'death', 'spawn'].includes(state);
+    } else if (restart && once) next.reset().play();
+    next.setEffectiveTimeScale(once && duration ? clip.duration / duration : 1);
     next.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, once ? 1 : Infinity);
     next.clampWhenFinished = once;
   }
   update(unit: Unit, time: number, phase: Phase, dt: number) {
+    // Pausing preserves the current pose and action; it must not crossfade to idle.
+    if (phase !== 'playing') return;
     const state = animationState(unit, time, phase);
     const restart =
       state === 'attack'

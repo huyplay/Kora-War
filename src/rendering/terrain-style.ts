@@ -28,6 +28,7 @@ export class TerrainStyle {
           metalness: metal ? 0.3 : 0.04,
         });
         converted.set(original, material);
+        material.userData.stoneShade = kind === 'stone' ? 0.88 + ARENA_STONE.indexOf(hex) * 0.08 : 1;
         if (kind) this.materials[kind].push(material);
       }
       object.material = material;
@@ -65,7 +66,7 @@ export class TerrainStyle {
             material.normalScale.setScalar(0.6);
           }
           if (roughness) material.roughnessMap = roughness;
-          material.color.set(binding.tint);
+          material.color.set(binding.tint).multiplyScalar(material.userData.stoneShade ?? 1);
           material.needsUpdate = true;
         }
       }),

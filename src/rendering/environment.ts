@@ -74,8 +74,6 @@ export function buildEnvironment(world: ArenaScene) {
       part(stage, 'box', ARENA_WALL[0], x, 1.1, z, 1.25, 2.7, 1.2);
       part(stage, 'box', bronze, x, 2.5, z, 1.4, 0.18, 1.35);
       part(stage, 'crystal', color, x, 3.1, z, 0.3, 0.7, 0.3, 0.8);
-      part(stage, 'box', side ? 0x782b37 : 0x1c4b88, x, 1.3, z + 0.7, 1.02, 1.9, 0.035);
-      part(stage, 'crystal', bronze, x, 1.5, z + 0.73, 0.24, 0.45, 0.03, 0.2);
     }
     const base = new THREE.Group();
     world.scene.add(base);
@@ -99,7 +97,6 @@ export function buildEnvironment(world: ArenaScene) {
     }
     for (const z of [-6.5, 6.5]) {
       part(stage, 'cylinder', bronze, sign * 12.7, 0.6, z, 0.2, 1.1, 0.2);
-      part(stage, 'orb', 0xffae5d, sign * 12.7, 1.32, z, 0.22, 0.48, 0.22, 1);
     }
   }
   for (const x of [-12.7, 12.7]) {

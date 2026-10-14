@@ -20,6 +20,8 @@ import { SpriteEffects } from './vfx/sprite-effects';
 import { SPELLS, type SpellId } from '../data/spells';
 import { SpellEffects } from './vfx/spell-effects';
 import { ArenaCamera } from './arena-camera';
+import { ArenaAtmosphere } from './arena-atmosphere';
+import { CombatAccents } from './vfx/combat-accents';
 interface Visual {
   group: THREE.Group;
   bar: THREE.Mesh;
@@ -53,6 +55,8 @@ export class World {
   private resizeObserver: ResizeObserver;
   private disposed = false;
   private spellEffects = new SpellEffects();
+  private atmosphere = new ArenaAtmosphere();
+  private accents = new CombatAccents();
   scene = new THREE.Scene();
   camera: THREE.OrthographicCamera;
   private arenaCamera: ArenaCamera;
@@ -124,6 +128,7 @@ export class World {
     this.terrain.apply(this.scene);
     this.scene.add(this.sprites.root);
     this.scene.add(this.spellEffects.root);
+    this.scene.add(this.atmosphere.root, this.accents.root);
     for (let lane = 0; lane < 3; lane++) {
       const zone = new THREE.Mesh(
         new THREE.PlaneGeometry(7.7, 2.9),
@@ -349,6 +354,7 @@ export class World {
     this.renderer.shadowMap.needsUpdate = true;
     this.arenaCamera.reset();
     this.spellEffects.reset();
+    this.accents.reset();
     this.corpses.forEach((c) => c.model.dispose());
     this.corpses = [];
     this.sprites.reset();
@@ -389,6 +395,8 @@ export class World {
     this.prefabs.dispose();
     this.reset();
     this.spellEffects.dispose();
+    this.accents.dispose();
+    this.atmosphere.dispose();
     this.mapInstances.forEach((m) => m.dispose());
     this.coreModels.forEach((m) => m.dispose());
     this.templates.forEach((m) => m.dispose());
@@ -491,6 +499,7 @@ export class World {
   }
   effect(e: GameEvent) {
     this.sprites.emit(e);
+    this.accents.emit(e);
     const color = e.type === 'heal' ? 0x83ffc2 : e.side === 0 ? 0xb4ffde : 0xffb4a0;
     if (e.type === 'hit' || e.type === 'core') return;
     const kind =
@@ -522,9 +531,12 @@ export class World {
       side: e.side,
     });
   }
-  render(battle: Battle, dt: number, selected: boolean, spellTarget = false) {
+  render(battle: Battle, dt: number, selected: boolean, spellTarget = false, animationRate = 1) {
     this.arenaCamera.update(dt);
-    this.clock += dt;
+    // Smooth render-frame motion, independent of the simulation's 20 Hz snapshots.
+    const animationDt = battle.phase === 'playing' ? dt * animationRate : 0;
+    this.clock += animationDt;
+    this.atmosphere.update(this.clock, this.camera, this.quality === 'low');
     this.deployZone.visible = selected && !spellTarget && battle.phase === 'playing';
     if (!selected) this.hoverRing.visible = false;
     const ids = new Set(battle.units.map((u) => u.id));
@@ -543,7 +555,7 @@ export class World {
       v.group.position.z = z;
       const born = Math.min(1, (battle.time - u.born) * 3 + 0.15);
       v.group.scale.setScalar(born);
-      if (v.imported) v.imported.update(u, battle.time, battle.phase, dt);
+      if (v.imported) v.imported.update(u, battle.time, battle.phase, animationDt);
       else animateUnit(v.group, u, battle.time, this.clock, battle.phase);
       v.bar.position.set(v.group.position.x, 2.6, z);
       v.bar.quaternion.copy(this.camera.quaternion);
@@ -585,12 +597,14 @@ export class World {
         e.mesh.position.y = 0.2 + p * 0.45;
       }
     }
-    this.sprites.update(dt);
+    this.accents.observe(battle.units, battle.time);
+    this.accents.update(animationDt, this.camera);
+    this.sprites.update(animationDt);
     for (let i = this.corpses.length - 1; i >= 0; i--) {
       const corpse = this.corpses[i];
       if (battle.phase === 'playing') {
-        corpse.age += dt;
-        corpse.model.tick(dt);
+        corpse.age += animationDt;
+        corpse.model.tick(animationDt);
       }
       if (corpse.age > 1.1) {
         corpse.model.dispose();
@@ -598,7 +612,7 @@ export class World {
       }
     }
     this.coreModels.forEach((model, side) => model.root.scale.setScalar(battle.cores[side] <= 0 ? 0.05 : 1));
-    this.mapInstances.forEach((model) => model.tick(dt));
+    this.mapInstances.forEach((model) => model.tick(animationDt));
     this.syncUnitBatches();
     this.renderer.render(this.scene, this.camera);
     const info = this.renderer.info;

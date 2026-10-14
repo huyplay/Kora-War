@@ -882,7 +882,13 @@ function loop(now: number) {
     if ((battle.phase as string) === 'ended') result();
   }
   if (!landscape.blocked && mode === 'battle')
-    world.render(battle, dt, !!selected || skillSelected, !!selected && isSpell(selected));
+    world.render(
+      battle,
+      dt,
+      !!selected || skillSelected,
+      !!selected && isSpell(selected),
+      pvp.active ? 1 : speed,
+    );
   if (now - lastUi > 160) {
     updateHud();
     lastUi = now;

@@ -142,14 +142,16 @@
     "hero": "mira",
     "champion": "nami",
     "url": "https://cdn.modelviewer.lol/lol/models/nami/267000/model.glb",
-    "sha256": "7a37bf538b68cd4846acfe43a1639cc5c3eab66001ddd24619ed8a3134018d82",
+    "sha256": "47c7e76abce9951dd471682934166502e9032e69eae36af95486e676dd1555da",
     "sourceSha256": "d1808012fcc642abb061e020d52f6ccf9b4ffef737500fdb9660d8bd417bc636",
     "sourceBytes": 3947136,
-    "bytes": 1067052,
+    "bytes": 1253464,
     "clips": [
+      "Nami_attack1.anm",
       "Idle1_Base",
       "Death",
-      "Spell3"
+      "Nami_spell1.anm",
+      "Nami_run.anm"
     ],
     "triangles": 8846,
     "nodes": 105,

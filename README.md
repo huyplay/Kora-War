@@ -33,7 +33,7 @@ npm run preview
 
 ## Đã triển khai
 
-- Sân 3D camera cố định, ba đường, rừng, sông/cầu, ba trụ mỗi bên và hai lõi 1.500 HP.
+- Sân đá PBR ba đường, camera nghiêng và zoom 1–1,85×; cờ vải chuyển động, đuốc/tàn lửa, ba trụ mỗi bên và hai lõi 1.500 HP.
 - 10 tướng gốc, 5 tộc, 5 hệ; chọn đúng 4 tướng + 2 phép và lưu bộ bài trên thiết bị.
 - Bốn phép Gió/Lửa/Sét/Băng: mana chung, hồi chiêu riêng, vùng cảnh báo và hiệu ứng theo fixed tick. Mana bắt đầu 4/10.
 - Phòng PvP có mã mời, chỉ số chuẩn hóa, server quyết định trận; reconnect cùng profile trong 30 giây, đầu hàng và kết quả.
@@ -59,7 +59,7 @@ npm run preview
 - Preview phép khớp bán kính/màu của thẻ; phản hồi lệnh chậm giữ lựa chọn thẻ mới của người chơi.
 - Chặn lệnh mới khi đang rời phòng; nút lane và thông báo reconnect không che sân trên màn hình nhỏ.
 
-`npm run check` đã đạt **113/113 test**, kiểm tra kiến trúc, TypeScript server/client và production build Vite. Bundle Three.js còn cảnh báo vượt 500 kB; chưa có benchmark điện thoại thật hoặc kiểm thử WAN. Chi tiết tại [phân tích project](docs/PROJECT-REVIEW.md), [QA đồ họa](docs/VISUAL-QA.md) và [quyết định gameplay](docs/DECISIONS.md).
+`npm run check` đã đạt **117/117 test**, kiểm tra kiến trúc, TypeScript server/client và production build Vite. Bundle Three.js còn cảnh báo vượt 500 kB; chưa có benchmark điện thoại thật hoặc kiểm thử WAN. Chi tiết tại [phân tích project](docs/PROJECT-REVIEW.md), [QA đồ họa](docs/VISUAL-QA.md) và [quyết định gameplay](docs/DECISIONS.md).
 
 ## Điều khiển
 

@@ -21,6 +21,17 @@
 - Màn hình dọc 390×844 hiện yêu cầu xoay ngang; đã reset viewport override sau QA. Console lần kiểm tra cuối không có error/warn.
 - Ảnh QA local trong `.data/qa/`: `home-upgrade.jpg`, `home-mobile.jpg`, `arena-upgrade-mobile.jpg`, `ice-body-hit.jpg`, `fire-body-hit.jpg`. Không đưa ảnh/cache vào Git.
 
-## Giới hạn
+## Đợt animation/texture tiếp theo — 14/10/2026
+
+- Cờ vải hai phe có sợi dệt, đường viền và huy hiệu Aether, uốn theo gió với mép trên cố định. Đuốc có texture lửa mềm, nhấp nháy và tối đa 24 tàn lửa (12 ở low).
+- Vệt chém cận chiến và tia va chạm dùng pool cố định tối đa 16 vệt/128 tia, hết hạn và reset giữa trận. Giữ atlas GegX hiện có.
+- Clip một lần được căn trong cửa sổ đánh/cast/spawn/death; idle fallback không bị clamp. Pause giữ nguyên action/pose, dừng sprite, đuốc, cờ và corpse. Animation dùng delta từng khung hình theo tốc độ debug thay vì bước nhảy 20 Hz.
+- Giữ các sắc độ đá sau khi áp PBR; texture GLB được lọc anisotropic tối đa 8×. Mira được khôi phục clip `Nami_run.anm`, `Nami_attack1.anm`, `Nami_spell1.anm` từ source GLB đã kiểm SHA, publish revision 11. Công cụ `tools/refresh-hero-animations.ts mira` có backup SQLite và giữ draft không liên quan.
+- `npm run check`: **117/117** test, architecture, TypeScript và build thành công. Bốn test mới kiểm tra kết thúc clip, pause/resume, idle fallback, slow/stun và giới hạn/cleanup pool.
+- `npm run assets:verify`: **51 asset / 90,46 MiB**, tất cả SHA-256 khớp qua PostgreSQL/local.
+- QA Edge: viewport ngang 844×390, zoom gần, tự đấu đông quân, pause/resume (hai ảnh pause liên tiếp giống hệt), tốc độ 2×, kết quả/chơi lại, triển khai Mira bằng bàn phím trên lane giữa. Console cuối không có error/warn. Đây là viewport giả lập trên desktop, không phải benchmark điện thoại.
+- Ảnh local: `.data/qa/animation-texture-mobile.jpg`, `.data/qa/mira-animation.jpg`.
+
+## Giới hạn chung
 
 Đây là QA trên trình duyệt desktop và viewport mô phỏng, không phải benchmark điện thoại thật. Atlas GegX có frame 128×128; texture map 1K lặp theo tọa độ thế giới. Zoom có giới hạn để tránh phóng quá mức khả năng asset. Không cam kết độ nét vô hạn hoặc chất lượng/hiệu năng ngang TFT. Three.js vẫn có cảnh báo chunk hơn 500 kB. Không có thay đổi simulation, deck/mana, lore hoặc quy tắc cộng dồn slow trong đợt đồ họa này.

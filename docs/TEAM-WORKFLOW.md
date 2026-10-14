@@ -18,6 +18,10 @@ PR vào `main`, có `Closes #N`, agent, file scope, trước/sau, validation và
 
 Cả hai dùng cùng account nên GitHub không cho tự approve PR như hai người khác nhau. Main yêu cầu PR và status checks, không đặt required approval=1 gây khóa quy trình. CODEOWNERS xác định tài khoản quản lý; review thực tế và người thực hiện ghi trong PR/issue. Đây là phối hợp công việc, không phải cách ly quyền bảo mật giữa hai agent cùng credential.
 
+Branch protection đã bật ngày 14/10/2026 và áp dụng cả admin: bắt buộc PR, nhánh cập nhật với main, các check `check (ubuntu-latest)`, `check (windows-latest)`, `asset-api` từ GitHub Actions; yêu cầu giải quyết hội thoại và lịch sử tuyến tính. Cấm force push/xóa main. Dùng squash hoặc rebase merge sau QA; không bypass khi Billing chặn CI.
+
+Task Gemini đang ở trạng thái `status:ready`. Phiên Codex hiện tại không có công cụ gọi Gemini trực tiếp; `GEMINI.md` và issue là điểm nhận việc cho phiên Gemini bên ngoài. Không ghi task đang chạy hoặc hoàn thành khi chưa có claim/PR từ agent đó.
+
 ## CI/CD
 
 `.github/workflows/ci.yml` chạy trên PR/push main/codex/gemini và thủ công: Node 24 + npm ci + check + runtime smoke trên Ubuntu/Windows; ASP.NET .NET 10 build riêng. Package chỉ chạy sau các gate đạt. Action pin bằng commit SHA; workflow đọc repo, chỉ job Pages có quyền deploy cần thiết. Source tham khảo: [setup-node](https://github.com/actions/setup-node), [Pages workflow](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
@@ -25,6 +29,8 @@ Cả hai dùng cùng account nên GitHub không cho tự approve PR như hai ng�
 Gói `kora-war-<commit>` chứa production frontend, source runtime và lockfile, không có database/secrets/upload/cache. Chạy `npm run package` để chuẩn bị local, `npm run smoke` để kiểm entrypoint trên database tạm. Package API hiện cần `npm ci --include=dev` vì runtime dùng tsx. Không dùng gói này để ghi đè `.data` của bản đang chạy.
 
 CD `main` lên [GitHub Pages](https://huyplay.github.io/Kora-War/) sau CI đạt. Pages là website tĩnh: bản demo AI dùng preset/procedural model; PvP/admin/database cần Node server hiện có hoặc hosting runtime bổ sung. Không upload model có quyền riêng hoặc `.data` lên Pages. Release artifact phục vụ triển khai backend sau này, không tuyên bố backend đã chạy trên Pages.
+
+Trạng thái thiết lập ngày 14/10/2026: Pages có `build_type=workflow`, chưa có deployment thành công. [Run 38579612120](https://github.com/huyplay/Kora-War/actions/runs/38579612120) bị từ chối trước khi chạy job vì account bị khóa Billing; package/deploy bị skip. Người dùng sẽ xử lý Billing. Sau khi mở khóa, chạy lại CI, xác minh artifact và trang demo rồi mới đóng issue #2. Local `npm run check` đạt 162/162, `npm run smoke`, `npm run package` và .NET Release build đạt; các kết quả local không thay thế required checks trên GitHub.
 
 ## Bàn giao và nghiệm thu
 

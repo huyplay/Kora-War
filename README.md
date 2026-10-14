@@ -1,6 +1,6 @@
 # Kora War
 
-Demo AI: https://huyplay.github.io/Kora-War/ · [Issues](https://github.com/huyplay/Kora-War/issues) · [CI/CD và Codex/Gemini](docs/TEAM-WORKFLOW.md).
+[Issues](https://github.com/huyplay/Kora-War/issues) · [CI/CD và Codex/Gemini](docs/TEAM-WORKFLOW.md). GitHub Pages đã cấu hình tại https://huyplay.github.io/Kora-War/; lần triển khai đầu đang chờ GitHub mở khóa Actions do Billing, chưa có bản demo được phát hành.
 
 Game chiến thuật thẻ 3D với luyện tập AI và phòng PvP 1v1 trong trình duyệt, triển khai theo yêu cầu gameplay mới ngày 14/10/2026. Bố cục ba lane lấy cảm hứng từ Castle Crush; đây là **ruleset và thế giới riêng**, không phải bản tái tạo chính xác Castle Crush, Liên Quân hoặc TFT.
 
@@ -52,7 +52,7 @@ npm run preview
 - 10 model rigged từ Khada, trụ/lõi nhập ngoài, clip animation có ánh xạ, map prop và sprite CommunityDragon; bản mobile bỏ dữ liệu animation không dùng.
 - Content Studio: upload/preview/ẩn/khôi phục asset, sửa chỉ số và chuỗi kỹ năng, map/VFX/economy, ví người chơi, lưu nháp/phát hành/khôi phục revision.
 - [Gameplay từ database](docs/GAMEPLAY-CONFIG.md): admin cấu hình deck/tay bài/phép/synergy/AI/mana/combat/PvP/bộ sưu tập; trận khóa content revision, giữ nguyên các mặc định đã chốt.
-- [15 module rule](docs/RULE-MODULES.md) có schema/data version, dữ liệu draft/published và history riêng trong database; API admin sửa module, pipeline combat tách theo system.
+- [17 module rule](docs/RULE-MODULES.md) có schema/data version, dữ liệu draft/published và history riêng trong database; API admin sửa module, pipeline combat tách theo system.
 - [Đội hình hiển thị và chat nhanh](docs/BATTLE-PRESENTATION.md): 17 module gồm presentation/communication, packing model, câu/emoji/mute, art reaction qua asset service.
 - Ví vàng, mảnh thẻ, rương, cửa hàng và nâng cấp lưu SQLite; server mô phỏng lại command log để xác minh thưởng trận.
 - F3: FPS/frame p95/simulation time/draw calls/triangles/units; debug mana, auto-play, 2×/4×, thử kết quả và xuất JSON trạng thái. Debug không cộng chiến thắng.

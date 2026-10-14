@@ -29,11 +29,11 @@ Gameplay đã chốt không thay đổi. Cấu trúc mới tách dữ liệu rul
 
 Lưu draft cập nhật content, module thay đổi và audit trong một transaction với optimistic version. Publish validate toàn bộ các phụ thuộc và asset, ghi published/module history/content revision/audit trong cùng transaction. Nếu một bước thất bại, tất cả được rollback. Publish toàn bộ revision giữ tính nhất quán, dù API có thể sửa riêng một module.
 
-Migration từ storage JSON hiện có tạo 30 dòng draft/published và 15 dòng history cho revision hiện hành, không tạo cân bằng mới hoặc sửa lịch sử cũ. Revision trước migration không cần backfill: restore dùng content snapshot cũ, nâng cấp bản nháp và ghi module hiện hành. Restart không seed lại module đã tồn tại. Thiếu/trùng module, schema mới hơn engine hoặc migration thiếu bị từ chối; không âm thầm dùng preset thay dữ liệu database bị hỏng.
+Migration ban đầu từ storage JSON tạo 30 dòng draft/published và 15 dòng history cho revision 12, không tạo cân bằng mới hoặc sửa lịch sử cũ. Nâng cấp từ bộ 15 module hoàn chỉnh thêm `communication` và `presentation`, thành 34 dòng draft/published và tạo revision 13 với 17 dòng history; history revision 12 giữ nguyên. Revision trước migration không cần backfill: restore dùng content snapshot cũ, nâng cấp bản nháp và ghi module hiện hành. Restart không seed lại module đã tồn tại. Thiếu/trùng module, schema mới hơn engine hoặc migration thiếu bị từ chối; không âm thầm dùng preset thay dữ liệu database bị hỏng.
 
 ## Admin và API
 
-Trong **Gameplay**, mở **15 module rule · phiên bản và trạng thái** để xem schema, version nháp/live và module đang thay đổi. Các form hiện có tiếp tục lưu vào đúng module thông qua service database. Sau khi lưu, trạng thái cập nhật ngay; phát hành và khôi phục vẫn dùng luồng revision hiện tại.
+Trong **Gameplay**, mở **17 module rule · phiên bản và trạng thái** để xem schema, version nháp/live và module đang thay đổi. Các form hiện có tiếp tục lưu vào đúng module thông qua service database; nhóm **Chat & đội hình** sửa hai module mới. Sau khi lưu, trạng thái cập nhật ngay; phát hành và khôi phục vẫn dùng luồng revision hiện tại.
 
 API chỉ dành cho admin đã đăng nhập, cùng chính sách cookie/origin/header:
 
@@ -53,6 +53,8 @@ Ba lane, tick 20 Hz, lore/catalog và luật chuẩn hóa giữ theo quyết đ�
 
 `tests/rule-modules.test.ts` kiểm round-trip, migration schema, migration storage/idempotency, nguồn module authoritative, phiên bản chỉ tăng khi thay đổi, stale write, validation, rollback publish, restore lịch sử và auth/API. Fixture gameplay cũ được mô phỏng trước khi module storage tồn tại; hash `three-baseline.json` không sửa. Bộ regression xác nhận pipeline mới giữ baseline và replay hiện hành.
 
-`npm run check`: 156/156 test đạt, kiểm tra kiến trúc, TypeScript server/client và production build. QA Edge trên database riêng: mana 4 → 7 → 8, chỉ module mana tăng version; bảng hiện nháp 3/live 2 và “Có thay đổi”; khôi phục revision 1 và phát hành trở lại 4. Không có lỗi console admin. Database QA không dùng cookie/host người chơi chính.
+Đợt migration ban đầu: `npm run check` đạt 156/156 test, kiểm tra kiến trúc, TypeScript server/client và production build. QA Edge trên database riêng: mana 4 → 7 → 8, chỉ module mana tăng version; bảng hiện nháp 3/live 2 và “Có thay đổi”; khôi phục revision 1 và phát hành trở lại 4. Không có lỗi console admin. Database QA không dùng cookie/host người chơi chính.
 
-Database chính đã được sao lưu bằng backup API trước migration. Đối chiếu players/cards/ledger/matches/assets/revisions/config với backup: toàn bộ dòng giữ nguyên, public content không đổi và vẫn revision 12. Bổ sung 15 module draft, 15 published, 15 history revision 12. Admin chính hiển thị schema 1/version 1 và đồng bộ; ảnh kiểm chứng `.data/rule-modules-admin.png`. Không commit database, backup hoặc ảnh QA.
+Database chính đã được sao lưu bằng backup API trước migration ban đầu. Đối chiếu players/cards/ledger/matches/assets/revisions/config với backup: toàn bộ dòng giữ nguyên, public content không đổi và vẫn revision 12. Bổ sung 15 module draft, 15 published, 15 history revision 12. Admin chính hiển thị schema 1/version 1 và đồng bộ; ảnh kiểm chứng `.data/rule-modules-admin.png`. Không commit database, backup hoặc ảnh QA.
+
+Đợt thêm chat/đội hình: `npm run check` đạt 162/162 test và runtime smoke đạt. Sao lưu riêng trước nâng cấp; đối chiếu players/cards/ledger/matches/assets và revision cũ giữ nguyên. Admin chính hiển thị revision 13, 17 module cùng các form phản hồi/packing; các luật combat cũ không thay đổi. Xem [QA chat và đội hình](BATTLE-PRESENTATION.md).

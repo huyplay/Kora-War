@@ -1,3 +1,4 @@
+import { defaultArenaPresentation } from './arena-presentation';
 import { competitionOf } from './competition';
 import type { ContentConfig } from './content';
 import { gameplayOf } from './gameplay/defaults';
@@ -13,7 +14,7 @@ export interface RuleModuleDefinition {
 }
 const define = (id: string, name: string): RuleModuleDefinition =>
   Object.freeze({ id, name, schemaVersion: 1, migrations: Object.freeze({}) });
-export const RULE_MODULES = Object.freeze([
+export const RULE_MODULES: readonly RuleModuleDefinition[] = Object.freeze([
   define('rules', 'Luật nền: mana, trụ, lõi, quá tải'),
   define('mana', 'Mana đầu trận'),
   define('deck', 'Deck, tay bài và đổi bài'),
@@ -30,7 +31,14 @@ export const RULE_MODULES = Object.freeze([
   define('economy', 'Giá và phần thưởng'),
   define('items', 'Vật phẩm cửa hàng'),
   define('communication', 'Emoji và chat nhanh'),
-  define('presentation', 'Đội hình hiển thị'),
+  Object.freeze({
+    id: 'presentation',
+    name: 'Đội hình, ánh sáng & công trình',
+    schemaVersion: 2,
+    migrations: Object.freeze({
+      1: (data: unknown) => ({ ...(data as object), arena: defaultArenaPresentation() }),
+    }),
+  }),
   define('competition', 'Đấu hạng, ghép trận & thử thách'),
 ]);
 export type RuleModuleId =

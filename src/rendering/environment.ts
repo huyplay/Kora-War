@@ -67,7 +67,8 @@ export function buildEnvironment(world: ArenaScene) {
     part(stage, 'box', ARENA_WALL[1], 0, 0.05, z, 34, 0.6, 0.7);
     part(stage, 'box', bronze, 0, 0.38, z - Math.sign(z) * 0.21, 34, 0.05, 0.16);
   }
-  const gateGeometry = fortressGates(stage, ARENA_WALL, bronze, part);
+  const fortressStage = new THREE.Group();
+  const gateGeometry = fortressGates(fortressStage, ARENA_WALL, bronze, part);
   // Battlements and silhouettes frame the arena without obscuring combat.
   part(stage, 'box', ARENA_WALL[0], 0, 0.25, -9.3, 35, 1.25, 1.3);
   part(stage, 'box', bronze, 0, 0.92, -8.78, 35, 0.06, 0.16);
@@ -93,7 +94,7 @@ export function buildEnvironment(world: ArenaScene) {
     world.scene.add(base);
     world.baseGroups.push(base);
     part(base, 'cylinder', ARENA_WALL[1], x, 0.2, 0, 1.9, 0.55, 2.2);
-    part(base, 'cylinder', bronze, x, 0.55, 0, 1.65, 0.18, 1.9);
+    part(base, 'cylinder', ARENA_WALL[2], x, 0.55, 0, 1.65, 0.18, 1.9);
     part(base, 'cylinder', ARENA_WALL[2], x, 1, 0, 1.25, 0.8, 1.5);
     const core = part(world.scene, 'crystal', color, x, 2.25, 0, 0.8, 1.55, 0.8, 0.8);
     world.coreCrystals.push(core);
@@ -102,10 +103,20 @@ export function buildEnvironment(world: ArenaScene) {
     for (let lane = 0; lane < LANES.length; lane++) {
       const tower = new THREE.Group();
       tower.position.set(sign * 9, 0, LANES[lane]);
-      part(tower, 'cylinder', ARENA_WALL[0], 0, 0.15, 0, 0.63, 0.3, 0.63);
-      part(tower, 'cylinder', ARENA_WALL[2], 0, 0.65, 0, 0.4, 0.85, 0.4);
-      part(tower, 'cylinder', bronze, 0, 1.12, 0, 0.55, 0.15, 0.55);
-      part(tower, 'crystal', color, 0, 1.72, 0, 0.32, 0.65, 0.32, 0.7);
+      const pedestal = new THREE.Group();
+      pedestal.name = 'TowerPedestal';
+      tower.add(pedestal);
+      part(pedestal, 'cylinder', ARENA_WALL[0], 0, 0.12, 0, 1.12, 0.22, 1.12);
+      part(pedestal, 'cylinder', ARENA_WALL[2], 0, 0.31, 0, 0.94, 0.22, 0.94);
+      part(pedestal, 'cylinder', ARENA_WALL[1], 0, 0.44, 0, 0.85, 0.07, 0.85);
+      const body = new THREE.Group();
+      body.name = 'TowerBody';
+      body.position.y = 0.48;
+      tower.add(body);
+      part(body, 'cylinder', ARENA_WALL[0], 0, 0.15, 0, 0.63, 0.3, 0.63);
+      part(body, 'cylinder', ARENA_WALL[2], 0, 0.65, 0, 0.4, 0.85, 0.4);
+      part(body, 'cylinder', bronze, 0, 1.12, 0, 0.55, 0.15, 0.55);
+      part(body, 'crystal', color, 0, 1.72, 0, 0.32, 0.65, 0.32, 0.7);
       world.scene.add(tower);
       world.towerMeshes.set(`${side}-${lane}`, tower);
     }
@@ -113,45 +124,56 @@ export function buildEnvironment(world: ArenaScene) {
       part(stage, 'cylinder', bronze, sign * 12.7, 0.6, z, 0.2, 1.1, 0.2);
     }
   }
-  for (const x of [-12.7, 12.7]) {
-    const lamp = new THREE.PointLight(0xffaa64, 2, 11, 2);
-    lamp.position.set(x, 3, -6.5);
-    world.scene.add(lamp);
-  }
-  stage.updateMatrixWorld(true);
-  const batches = new Map<THREE.Material, THREE.BufferGeometry[]>();
-  stage.traverse((object) => {
-    if (!(object instanceof THREE.Mesh)) return;
-    const geometry = (
-      object.geometry.index ? object.geometry.toNonIndexed() : object.geometry.clone()
-    ).applyMatrix4(object.matrixWorld);
-    const positions = geometry.getAttribute('position'),
-      normals = geometry.getAttribute('normal'),
-      uv = geometry.getAttribute('uv');
-    for (let i = 0; i < positions.count; i++) {
-      const nx = Math.abs(normals.getX(i)),
-        ny = Math.abs(normals.getY(i));
-      uv.setXY(
-        i,
-        nx > ny && nx > Math.abs(normals.getZ(i)) ? positions.getZ(i) / 2 : positions.getX(i) / 2,
-        ny > 0.5 ? positions.getZ(i) / 2 : positions.getY(i) / 2,
-      );
+  const fortresses: THREE.Group[] = [];
+  const bake = (source: THREE.Group, target: THREE.Group | THREE.Scene, offsetX = 0) => {
+    source.updateMatrixWorld(true);
+    const batches = new Map<THREE.Material, THREE.BufferGeometry[]>();
+    source.traverse((object) => {
+      if (!(object instanceof THREE.Mesh)) return;
+      const geometry = (
+        object.geometry.index ? object.geometry.toNonIndexed() : object.geometry.clone()
+      ).applyMatrix4(object.matrixWorld);
+      if (offsetX) geometry.translate(-offsetX, 0, 0);
+      const positions = geometry.getAttribute('position'),
+        normals = geometry.getAttribute('normal'),
+        uv = geometry.getAttribute('uv');
+      for (let i = 0; i < positions.count; i++) {
+        const nx = Math.abs(normals.getX(i)),
+          ny = Math.abs(normals.getY(i));
+        uv.setXY(
+          i,
+          nx > ny && nx > Math.abs(normals.getZ(i)) ? positions.getZ(i) / 2 : positions.getX(i) / 2,
+          ny > 0.5 ? positions.getZ(i) / 2 : positions.getY(i) / 2,
+        );
+      }
+      const material = object.material as THREE.Material;
+      if (!batches.has(material)) batches.set(material, []);
+      batches.get(material)!.push(geometry);
+    });
+    for (const [material, geometries] of batches) {
+      const geometry = mergeGeometries(geometries);
+      if (geometry) {
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.name = 'ArenaSurfaceBatch';
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        target.add(mesh);
+      }
+      geometries.forEach((geometry) => geometry.dispose());
     }
-    const material = object.material as THREE.Material;
-    if (!batches.has(material)) batches.set(material, []);
-    batches.get(material)!.push(geometry);
-  });
-  for (const [material, geometries] of batches) {
-    const geometry = mergeGeometries(geometries);
-    if (geometry) {
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.name = 'ArenaSurfaceBatch';
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      world.scene.add(mesh);
-    }
-    geometries.forEach((geometry) => geometry.dispose());
+  };
+  bake(stage, world.scene);
+  for (const side of fortressStage.children) {
+    const sign = side.userData.sign;
+    const group = new THREE.Group();
+    group.name = 'FortressSide';
+    group.position.x = sign * 16.8;
+    group.userData.sign = sign;
+    bake(side as THREE.Group, group, sign * 16.8);
+    world.scene.add(group);
+    fortresses.push(group);
   }
   blocks.forEach((geometry) => geometry.dispose());
   gateGeometry.forEach((geometry) => geometry.dispose());
+  return { fortresses };
 }

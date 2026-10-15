@@ -1,0 +1,12 @@
+import type { ContentConfig } from '../data/content';
+import { presentationOf } from '../data/presentation';
+import { input } from './html';
+export function arenaEditor(content: ContentConfig) {
+  const a = presentationOf(content).arena,
+    l = a.lighting,
+    s = a.structures,
+    t = a.towers;
+  return `<article class="panel"><h3>Ánh sáng ngày / đêm</h3><p>Áp dụng cho trận mới sau phát hành. Giữ một chế độ trong suốt trận và replay; không dùng giờ hệ thống để đổi ánh sáng.</p><div class="form-grid"><label>Khung cảnh<select data-path="presentation.arena.lighting.mode"><option value="day" ${l.mode === 'day' ? 'selected' : ''}>Ban ngày · mặt trời</option><option value="night" ${l.mode === 'night' ? 'selected' : ''}>Ban đêm · trăng & đuốc</option></select></label>${input('presentation.arena.lighting.sunIntensity', 'Mặt trời', l.sunIntensity)}${input('presentation.arena.lighting.dayAmbient', 'Ánh sáng nền ban ngày', l.dayAmbient)}${input('presentation.arena.lighting.moonIntensity', 'Ánh trăng', l.moonIntensity)}${input('presentation.arena.lighting.nightAmbient', 'Ánh sáng nền ban đêm', l.nightAmbient)}${input('presentation.arena.lighting.torchIntensity', 'Cường độ đuốc ban đêm', l.torchIntensity)}${input('presentation.arena.lighting.exposure', 'Hệ số exposure map', l.exposure)}</div></article>
+  <article class="panel"><h3>Quy mô thành & công trình</h3><div class="form-grid">${input('presentation.arena.structures.towerHeight', 'Chiều cao model trụ', s.towerHeight)}${input('presentation.arena.structures.coreHeight', 'Chiều cao model lõi', s.coreHeight)}${input('presentation.arena.structures.wallHeightScale', 'Tỷ lệ chiều cao thành', s.wallHeightScale)}${input('presentation.arena.structures.wallThicknessScale', 'Tỷ lệ độ dày thành', s.wallThicknessScale)}</div><p>Đây là kích thước hiển thị. Tầm đánh, HP và sát thương chỉnh tại Gameplay.</p></article>
+  <article class="panel"><h3>Hiển thị trụ tấn công</h3><label class="checkbox"><input type="checkbox" data-bool="presentation.arena.towers.showRange" ${t.showRange ? 'checked' : ''}>Hiện phạm vi cùng lane</label><div class="form-grid">${input('presentation.arena.towers.idleRangeOpacity', 'Độ rõ phạm vi khi nghỉ', t.idleRangeOpacity)}${input('presentation.arena.towers.firingRangeOpacity', 'Độ rõ phạm vi khi bắn', t.firingRangeOpacity)}${input('presentation.arena.towers.projectileSeconds', 'Thời gian bay hiệu ứng (s)', t.projectileSeconds)}</div><p>Sát thương do server quyết định ngay theo luật trận; hoạt ảnh đạn không trì hoãn hoặc cộng thêm sát thương.</p></article>`;
+}

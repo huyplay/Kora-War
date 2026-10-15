@@ -17,8 +17,11 @@ test('beveled architecture preserves bounds, finite UVs and a bounded static mes
   buildEnvironment({ scene, coreCrystals: [], baseGroups: [], towerMeshes: new Map() });
   const terrain = new TerrainStyle();
   terrain.apply(scene);
-  const batches = scene.children.filter((o) => o.name === 'ArenaSurfaceBatch') as THREE.Mesh[];
-  assert.ok(batches.length <= 20, 'static surface material batches');
+  const batches: THREE.Mesh[] = [];
+  scene.traverse((o) => {
+    if (o.name === 'ArenaSurfaceBatch') batches.push(o as THREE.Mesh);
+  });
+  assert.ok(batches.length <= 32, 'static surface material batches');
   const triangles = batches.reduce((n, mesh) => n + mesh.geometry.attributes.position.count / 3, 0);
   assert.ok(triangles < 25000, `static surface triangles: ${triangles}`);
   for (const mesh of batches) {
@@ -55,7 +58,10 @@ test('six gate arches stay outside the combat field and have finite merged surfa
   const root = new THREE.Group();
   const geometries = fortressGates(root, ARENA_WALL, 0x9c734a);
   root.updateMatrixWorld(true);
-  const gates = root.children.filter((c) => c.name === 'FortressGate');
+  const gates: THREE.Object3D[] = [];
+  root.traverse((o) => {
+    if (o.name === 'FortressGate') gates.push(o);
+  });
   assert.equal(gates.length, 6);
   for (const gate of gates) {
     const bounds = new THREE.Box3().setFromObject(gate);

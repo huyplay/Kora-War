@@ -1,5 +1,8 @@
 export const SOUND_CUES = [
   'click',
+  'card-draw',
+  'card-wait',
+  'card-ready',
   'play',
   'hit',
   'skill',

@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "files": [
+    {
+      "cue": "card-draw",
+      "seconds": 0.28,
+      "description": "Filtered paper swish, soft rising crystalline landing",
+      "path": "public/design/audio/card-draw-v1.wav",
+      "bytes": 12392,
+      "sha256": "aac324f75211c8ac35b15eb768c3feb40925924edbd987bae89233d2032dbfa0",
+      "sampleRate": 22050,
+      "channels": 1,
+      "encoding": "PCM 16-bit",
+      "author": "Kora War / Codex",
+      "source": "Original mathematical synthesis; tools/generate-card-audio.ts",
+      "license": "Original Kora War project asset; no third-party samples"
+    },
+    {
+      "cue": "card-wait",
+      "seconds": 0.12,
+      "description": "Short low descending wooden tick",
+      "path": "public/design/audio/card-wait-v1.wav",
+      "bytes": 5336,
+      "sha256": "e5eec2d50545e2e19329213b1a573e5836beb354b821c75500bbc299ccb8d8f5",
+      "sampleRate": 22050,
+      "channels": 1,
+      "encoding": "PCM 16-bit",
+      "author": "Kora War / Codex",
+      "source": "Original mathematical synthesis; tools/generate-card-audio.ts",
+      "license": "Original Kora War project asset; no third-party samples"
+    },
+    {
+      "cue": "card-ready",
+      "seconds": 0.3,
+      "description": "Two ascending bell partials, soft attack and decay",
+      "path": "public/design/audio/card-ready-v1.wav",
+      "bytes": 13274,
+      "sha256": "e15c86431044754d9a9a8d96b6a70e1f28e6129ab3f9cbb1c8e6a5877ded915f",
+      "sampleRate": 22050,
+      "channels": 1,
+      "encoding": "PCM 16-bit",
+      "author": "Kora War / Codex",
+      "source": "Original mathematical synthesis; tools/generate-card-audio.ts",
+      "license": "Original Kora War project asset; no third-party samples"
+    }
+  ]
+}

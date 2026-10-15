@@ -249,7 +249,7 @@ test('HTTP queue requires auth, ignores forged results, and publishes competitio
   const update = await fetch(base + '/api/admin/rule-modules/competition', {
     method: 'PUT',
     headers: { ...headers, Cookie: admin },
-    body: JSON.stringify({ version: config.version, schemaVersion: 1, data: changed }),
+    body: JSON.stringify({ version: config.version, schemaVersion: 2, data: changed }),
   });
   assert.equal(update.status, 200);
   assert.equal(f.db.config().published.competition!.rating.kFactor, 32);

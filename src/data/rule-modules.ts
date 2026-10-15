@@ -1,6 +1,6 @@
 import { defaultArenaPresentation } from './arena-presentation';
 import { defaultDeploymentRule } from './deployment';
-import { competitionOf } from './competition';
+import { competitionOf, defaultQueueFallback, type CompetitionConfig } from './competition';
 import type { ContentConfig } from './content';
 import { gameplayOf } from './gameplay/defaults';
 import { communicationOf } from './communication';
@@ -47,7 +47,20 @@ export const RULE_MODULES: readonly RuleModuleDefinition[] = Object.freeze([
       1: (data: unknown) => ({ ...(data as object), arena: defaultArenaPresentation() }),
     }),
   }),
-  define('competition', 'Đấu hạng, ghép trận & thử thách'),
+  Object.freeze({
+    id: 'competition',
+    name: 'Đấu hạng, ghép trận & thử thách',
+    schemaVersion: 2,
+    migrations: Object.freeze({
+      1: (data: unknown) => {
+        const c = data as CompetitionConfig;
+        const fallback = defaultQueueFallback();
+        // Preserve an admin's short queue expiry; never silently extend it.
+        if (c.queue.timeoutSeconds <= fallback.afterSeconds) fallback.enabled = false;
+        return { ...c, queue: { ...c.queue, fallback: c.queue.fallback ?? fallback } };
+      },
+    }),
+  }),
 ]);
 export type RuleModuleId =
   | 'rules'

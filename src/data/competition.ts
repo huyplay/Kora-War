@@ -3,6 +3,18 @@ import type { ContentConfig } from './content';
 export const MATCH_MODES = ['friendly', 'casual', 'ranked', 'challenge'] as const;
 export type MatchMode = (typeof MATCH_MODES)[number];
 export type QueueMode = Exclude<MatchMode, 'friendly'>;
+export const defaultQueueFallback = () => ({
+  enabled: true,
+  afterSeconds: 60,
+  difficulty: 'normal' as const,
+});
+/** Server/admin metadata only. Automated opponents have no player account or leaderboard entry. */
+export interface AutomatedOpponent {
+  side: 1;
+  rating: number;
+  difficulty: 'story' | 'normal' | 'hard';
+  waitSeconds: number;
+}
 export interface CompetitionConfig {
   modes: Record<MatchMode, { enabled: boolean; name: string; description: string }>;
   rating: {
@@ -12,7 +24,14 @@ export interface CompetitionConfig {
     scale: number;
     tiers: { name: string; minimum: number }[];
   };
-  queue: { initialRange: number; expandPerSecond: number; maximumRange: number; timeoutSeconds: number };
+  queue: {
+    initialRange: number;
+    expandPerSecond: number;
+    maximumRange: number;
+    timeoutSeconds: number;
+    /** Missing on historical snapshots: keep human-only matchmaking. */
+    fallback?: { enabled: boolean; afterSeconds: number; difficulty: 'story' | 'normal' | 'hard' };
+  };
   challenge: { name: string; manaPerSecond: number; overtimeAt: number };
 }
 /** Seeds only. Live matchmaking and settlement read the locked database content. */
@@ -42,7 +61,13 @@ export function defaultCompetition(): CompetitionConfig {
         { name: 'Cao Thủ', minimum: 2100 },
       ],
     },
-    queue: { initialRange: 150, expandPerSecond: 5, maximumRange: 800, timeoutSeconds: 180 },
+    queue: {
+      initialRange: 150,
+      expandPerSecond: 5,
+      maximumRange: 800,
+      timeoutSeconds: 180,
+      fallback: defaultQueueFallback(),
+    },
     challenge: { name: 'Dòng Aether', manaPerSecond: 2.1, overtimeAt: 90 },
   };
 }
@@ -111,6 +136,16 @@ export function validateCompetition(c: CompetitionConfig, base: ContentConfig) {
     !text(t.name, 80) ||
     !num(t.manaPerSecond, base.rules.manaPerSecond, 10000) ||
     !num(t.overtimeAt, 10, base.rules.overtimeAt)
+  )
+    fail();
+  const f = q.fallback;
+  if (
+    f !== undefined &&
+    (!f ||
+      typeof f.enabled !== 'boolean' ||
+      !num(f.afterSeconds, 1, 600) ||
+      (f.enabled && f.afterSeconds >= q.timeoutSeconds) ||
+      !['story', 'normal', 'hard'].includes(f.difficulty))
   )
     fail();
 }

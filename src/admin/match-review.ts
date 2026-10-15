@@ -35,7 +35,7 @@ export function wireMatchReview(root: HTMLElement) {
       if (request !== generation || !list.isConnected) return;
       total = result.total;
       status.textContent = '';
-      list.innerHTML = `<div class="module-table-scroll"><table class="review-table"><thead><tr><th>Trận / thời điểm</th><th>Người chơi</th><th>Chế độ</th><th>Trạng thái</th><th>Rà soát</th><th></th></tr></thead><tbody>${result.matches.map((m) => `<tr><td><code>${esc(m.id)}</code><small>${esc(new Date(m.started).toLocaleString('vi-VN'))} · rev ${m.revision}</small></td><td>${m.players.map((p) => `<code>${esc(p)}</code>`).join('<br>')}</td><td>${esc(m.mode)}</td><td>${esc(m.status)}</td><td>${m.alert ? '⚑ Cần xem · ' : ''}${esc(m.review)}</td><td><button data-review-id="${esc(m.id)}" data-kind="${m.kind}">Chi tiết</button></td></tr>`).join('') || '<tr><td colspan="6">Không có trận phù hợp.</td></tr>'}</tbody></table></div>`;
+      list.innerHTML = `<div class="module-table-scroll"><table class="review-table"><thead><tr><th>Trận / thời điểm</th><th>Người chơi</th><th>Chế độ</th><th>Trạng thái</th><th>Rà soát</th><th></th></tr></thead><tbody>${result.matches.map((m) => `<tr><td><code>${esc(m.id)}</code><small>${esc(new Date(m.started).toLocaleString('vi-VN'))} · rev ${m.revision}</small></td><td>${m.players.map((p) => `<code>${esc(p)}</code>`).join('<br>')}</td><td>${esc(m.mode)}${m.automation ? '<small>Đối thủ máy dự phòng</small>' : ''}</td><td>${esc(m.status)}</td><td>${m.alert ? '⚑ Cần xem · ' : ''}${esc(m.review)}</td><td><button data-review-id="${esc(m.id)}" data-kind="${m.kind}">Chi tiết</button></td></tr>`).join('') || '<tr><td colspan="6">Không có trận phù hợp.</td></tr>'}</tbody></table></div>`;
       root.querySelector('#matches-count')!.textContent =
         `${total ? offset + 1 : 0}–${Math.min(offset + result.limit, total)} / ${total}`;
       (root.querySelector('#matches-prev') as HTMLButtonElement).disabled = offset === 0;
@@ -65,7 +65,7 @@ export function wireMatchReview(root: HTMLElement) {
     const d = selected!;
     detail.innerHTML = `<article class="panel review-detail"><div class="section-title"><div><h3>Chi tiết ${esc(d.id)}</h3><p>${esc(d.kind)} · ${esc(d.mode)} · revision ${d.revision} · ${esc(d.status)}</p></div><button id="review-export">Xuất hồ sơ JSON</button></div>
     <div class="review-alerts">${d.alerts.map((a) => `<p>⚑ ${esc(a)}</p>`).join('') || '<p>Không vượt ngưỡng cảnh báo hiện có. Điều này không chứng minh trận không có gian lận.</p>'}</div>
-    <h4>Kết quả gốc</h4><pre>${esc(JSON.stringify(d.result, null, 2))}</pre><h4>Tổng kết server</h4><pre>${esc(JSON.stringify(d.evidence.summary, null, 2))}</pre>
+    ${d.automation ? `<p class="muted">Đối thủ máy dự phòng · sau ${d.automation.waitSeconds.toFixed(1)}s · ${esc(d.automation.difficulty)} · Elo đối chiếu ${d.automation.rating}. Không có tài khoản/xếp hạng riêng.</p>` : ''}<h4>Kết quả gốc</h4><pre>${esc(JSON.stringify(d.result, null, 2))}</pre><h4>Tổng kết server</h4><pre>${esc(JSON.stringify(d.evidence.summary, null, 2))}</pre>
     <details><summary>Bộ bài và cấu hình trận đã khóa</summary><pre>${esc(JSON.stringify(d.loadouts, null, 2))}</pre><pre>${esc(JSON.stringify(d.content, null, 2))}</pre></details>
     <h4>Nhật ký lệnh</h4><p>${d.evidence.available ? `${d.evidence.entries.length} lệnh được lưu${d.evidence.truncated ? ' · đã chạm giới hạn, không đầy đủ' : ''}. Hiển thị 200 lệnh cuối; xuất JSON để xem tất cả.` : 'Trận này chưa có nhật ký lệnh. AI chỉ có kết quả đã được server xác minh; trận PvP cũ không được dựng lại bằng chứng.'}</p>
     <div class="review-evidence"><table><thead><tr><th>Tick / người chơi</th><th>Lệnh</th><th>Kết quả</th></tr></thead><tbody>${d.evidence.entries
@@ -76,7 +76,16 @@ export function wireMatchReview(root: HTMLElement) {
       )
       .join('')}</tbody></table></div>
     <h4>Khóa PvP hiện tại</h4>${d.bans.map((b) => `<p>${esc(b.player)} · đến ${esc(new Date(b.until).toLocaleString('vi-VN'))} · ${esc(b.reason)}</p>`).join('') || '<p>Không có khóa còn hiệu lực.</p>'}
-    ${d.kind === 'pvp' ? `<form id="moderation-form"><h3>Xử lý thủ công</h3><p>Hủy kết quả hoàn tác đúng phần Elo đã cộng/trừ, giảm số trận/thắng hạng; không tính lại các trận sau. Không sửa kết quả gốc. Khóa chỉ chặn trận PvP mới; trận đang chạy tiếp tục.</p><div class="form-grid"><label>Thao tác<select name="action"><option value="note">Ghi chú</option><option value="flag">Đánh dấu cần điều tra</option><option value="clear">Đã xem / không xử lý</option><option value="void">Hủy kết quả & hoàn tác Elo</option><option value="ban">Khóa PvP có thời hạn</option><option value="unban">Gỡ khóa PvP</option></select></label><label>Người chơi (khi khóa/gỡ)<select name="player">${d.players.map((p) => `<option>${esc(p)}</option>`).join('')}</select></label><label>Thời hạn khóa (giờ)<input name="hours" type="number" min="1" step="1" value="24" /></label><label>Lý do<textarea name="reason" required minlength="5" maxlength="1000" rows="3"></textarea></label></div><label class="checkbox"><input name="confirmed" type="checkbox" required>Tôi đã xem bằng chứng và xác nhận thao tác đã chọn cho trận này.</label><button type="submit" class="gold">Ghi nhận xử lý</button><p id="moderation-status" role="status"></p></form>` : ''}
+    ${
+      d.kind === 'pvp'
+        ? `<form id="moderation-form"><h3>Xử lý thủ công</h3><p>Hủy kết quả hoàn tác đúng phần Elo đã cộng/trừ, giảm số trận/thắng hạng; không tính lại các trận sau. Không sửa kết quả gốc. Khóa chỉ chặn trận PvP mới; trận đang chạy tiếp tục.</p><div class="form-grid"><label>Thao tác<select name="action"><option value="note">Ghi chú</option><option value="flag">Đánh dấu cần điều tra</option><option value="clear">Đã xem / không xử lý</option><option value="void">Hủy kết quả & hoàn tác Elo</option><option value="ban">Khóa PvP có thời hạn</option><option value="unban">Gỡ khóa PvP</option></select></label><label>Người chơi (khi khóa/gỡ)<select name="player">${d.players
+            .filter((_, side) => side !== d.automation?.side)
+            .map((p) => `<option>${esc(p)}</option>`)
+            .join(
+              '',
+            )}</select></label><label>Thời hạn khóa (giờ)<input name="hours" type="number" min="1" step="1" value="24" /></label><label>Lý do<textarea name="reason" required minlength="5" maxlength="1000" rows="3"></textarea></label></div><label class="checkbox"><input name="confirmed" type="checkbox" required>Tôi đã xem bằng chứng và xác nhận thao tác đã chọn cho trận này.</label><button type="submit" class="gold">Ghi nhận xử lý</button><p id="moderation-status" role="status"></p></form>`
+        : ''
+    }
     <h4>Lịch sử xử lý</h4>${d.actions.map((a) => `<div class="review-action"><strong>${esc(a.action)}</strong> · ${esc(a.actor)} · ${esc(new Date(a.created).toLocaleString('vi-VN'))}<p>${esc(a.reason)}</p><pre>${esc(JSON.stringify(a.detail, null, 2))}</pre></div>`).join('') || '<p>Chưa có thao tác.</p>'}</article>`;
     detail.querySelector<HTMLButtonElement>('#review-export')!.onclick = () => {
       const url = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }));

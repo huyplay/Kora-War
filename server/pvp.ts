@@ -4,6 +4,7 @@ import {
   type MatchMode,
   type QueueMode,
   type MatchOutcome,
+  type AutomatedOpponent,
 } from '../src/data/competition';
 import type { CompetitionStore } from './competition-store';
 import { randomBytes, randomInt, randomUUID } from 'node:crypto';
@@ -56,6 +57,7 @@ interface Room {
   nextReaction: number;
   reactionAt: number[];
   reactionReplies: Map<string, string | null>[];
+  automation?: AutomatedOpponent;
 }
 /** Single-process authoritative combat; competition store persists locked results and Elo. */
 export class PvpRooms {
@@ -109,6 +111,28 @@ export class PvpRooms {
         break;
       }
     }
+    // Exhaust compatible human pairs first, including on the fallback deadline tick.
+    for (const r of waiting) {
+      const fallback = competitionOf(r.content).queue.fallback;
+      if (
+        !this.rooms.has(r.code) ||
+        r.battle ||
+        !['casual', 'ranked'].includes(r.mode) ||
+        !fallback?.enabled ||
+        at - r.created < fallback.afterSeconds * 1000
+      )
+        continue;
+      const input = this.validate(
+        { deck: [], spells: [], cards: r.content.gameplay!.deck.aiCards },
+        r.content,
+      );
+      this.startBattle(r, `automated-${r.id}`, input, at, {
+        side: 1,
+        rating: r.rating,
+        difficulty: fallback.difficulty,
+        waitSeconds: (at - r.created) / 1000,
+      });
+    }
   }
   private redirects = new Map<string, { player: string; code: string; expires: number }>();
   private settle(r: Room) {
@@ -160,7 +184,7 @@ export class PvpRooms {
       this.settle(r);
       return;
     }
-    const disconnected = r.seen[0] <= r.seen[1] ? 0 : 1;
+    const disconnected = r.automation ? 0 : r.seen[0] <= r.seen[1] ? 0 : 1;
     const deadline = r.seen[disconnected] + b.gameplay.match.reconnectSeconds * 1000;
     const timedOut = at > deadline;
     // Resolve in chronological order: combat must not run past a disconnect deadline.
@@ -197,7 +221,8 @@ export class PvpRooms {
       // A room can finish while nobody polls it; reclaim it from its real deadline.
       if (
         r.battle?.phase === 'playing' &&
-        at - Math.min(...r.seen) > r.battle.gameplay.match.reconnectSeconds * 1000 + FINISHED_TTL
+        at - (r.automation ? r.seen[0] : Math.min(...r.seen)) >
+          r.battle.gameplay.match.reconnectSeconds * 1000 + FINISHED_TTL
       )
         this.advance(r, at);
       if (this.expired(r, at)) this.rooms.delete(code);
@@ -307,10 +332,15 @@ export class PvpRooms {
     }
     input = this.validate(input, r.content);
     if (!!input.cards !== !!r.loadouts[0].cards) throw new Error('Hai người cần cùng phiên bản deck.');
+    this.startBattle(r, player, input, at);
+    return this.state(player, code);
+  }
+  private startBattle(r: Room, player: string, input: Loadout, at: number, automation?: AutomatedOpponent) {
     r.players.push(player);
     r.loadouts.push(structuredClone(input));
+    r.automation = automation;
     r.battle = input.cards
-      ? cycleBattle(r.loadouts[0].cards!, r.content, r.seed, input.cards)
+      ? cycleBattle(r.loadouts[0].cards!, r.content, r.seed, input.cards, automation?.difficulty)
       : tacticalBattle(r.loadouts[0].deck, r.loadouts[0].spells, r.content, r.seed, input.deck, input.spells);
     try {
       this.competition?.start({
@@ -321,19 +351,30 @@ export class PvpRooms {
         revision: r.revision,
         seed: r.seed,
         loadouts: r.loadouts,
+        automation,
       });
     } catch (error) {
       r.players.pop();
       r.loadouts.pop();
       r.battle = undefined;
+      r.automation = undefined;
       throw error;
     }
-    r.battle.aiEnabled = false;
+    r.battle.aiEnabled = !!automation;
+    if (automation) {
+      r.battle.mulligan(1, []);
+      this.competition?.review.record(
+        r.id,
+        player,
+        0,
+        { id: 'auto-keep-1', type: 'mulligan', cards: [], lane: 0, x: 0 },
+        null,
+      );
+    }
     r.battle.start();
     if (input.cards) r.openingEnds = at + r.battle.gameplay.match.openingSeconds * 1000;
     r.started = at;
     r.seen = [at, at];
-    return this.state(player, code);
   }
   private member(player: string, code: string, at = this.now()) {
     this.prune(at);

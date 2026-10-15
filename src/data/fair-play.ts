@@ -1,3 +1,5 @@
+import type { AutomatedOpponent } from './competition';
+
 export interface FairPlayPolicy {
   enabled: boolean;
   rejectedCommandThreshold: number;
@@ -38,6 +40,7 @@ export interface MatchReviewSummary {
   revision: number;
   review: string;
   alert: boolean;
+  automation?: AutomatedOpponent;
 }
 export interface ModerationAction {
   id: number;

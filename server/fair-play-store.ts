@@ -1,5 +1,5 @@
 import type { GameDatabase } from './database';
-import type { MatchOutcome } from '../src/data/competition';
+import type { MatchOutcome, AutomatedOpponent } from '../src/data/competition';
 import {
   defaultFairPlayPolicy,
   validateFairPlayPolicy,
@@ -28,6 +28,10 @@ export class FairPlayStore {
   policy() {
     const row = this.store.db.prepare('SELECT * FROM fair_play_policy WHERE id=1').get()!;
     return { version: Number(row.version), policy: JSON.parse(String(row.payload)) as FairPlayPolicy };
+  }
+  automation(id: string): AutomatedOpponent | undefined {
+    const row = this.store.db.prepare('SELECT payload FROM pvp_automation WHERE match=?').get(id);
+    return row ? (JSON.parse(String(row.payload)) as AutomatedOpponent) : undefined;
   }
   savePolicy(policy: unknown, version: number) {
     validateFairPlayPolicy(policy);
@@ -173,6 +177,7 @@ export class FairPlayStore {
         ? 'voided'
         : String(review?.status ?? 'legacy');
       item.alert = this.alerts(item.id, item).length > 0;
+      item.automation = this.automation(item.id);
     }
     return item;
   }
@@ -276,8 +281,11 @@ export class FairPlayStore {
       const row = this.store.db.prepare('SELECT * FROM pvp_matches WHERE id=?').get(input.match);
       if (!row) throw new Error('Chỉ xử lý trận PvP tồn tại.');
       const players = JSON.parse(String(row.players)) as string[];
+      const automation = this.automation(input.match);
       if (['ban', 'unban'].includes(input.action) && (!input.player || !players.includes(input.player)))
         throw new Error('Người chơi không thuộc trận.');
+      if (['ban', 'unban'].includes(input.action) && input.player === players[automation?.side ?? -1])
+        throw new Error('Đối thủ máy không có tài khoản để khóa.');
       if (
         input.action === 'ban' &&
         (!Number.isInteger(input.hours) ||
@@ -300,7 +308,8 @@ export class FairPlayStore {
           )
             throw new Error('Chờ người chơi kết thúc trận hiện tại trước khi điều chỉnh Elo.');
         const outcomes = JSON.parse(String(row.outcomes)) as MatchOutcome[];
-        detail = players.map((player, i) => {
+        detail = players.flatMap((player, i) => {
+          if (i === automation?.side) return [];
           const rating = this.store.db.prepare('SELECT * FROM ratings WHERE player=?').get(player)!;
           const delta = row.mode === 'ranked' ? -outcomes[i].delta : 0;
           const after = Number(rating.rating) + delta;
@@ -314,7 +323,7 @@ export class FairPlayStore {
             this.store.db
               .prepare('UPDATE ratings SET rating=?,games=games-1,wins=wins-? WHERE player=? AND games>0')
               .run(after, Number(outcomes[i].result === 'win'), player);
-          return { player, before: Number(rating.rating), after, delta };
+          return [{ player, before: Number(rating.rating), after, delta }];
         });
       } else if (input.action === 'ban')
         detail = { until: Date.now() + input.hours! * 3600000, hours: input.hours };

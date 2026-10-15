@@ -6,6 +6,7 @@ import {
   type MatchMode,
   type MatchOutcome,
   type CompetitionOverview,
+  type AutomatedOpponent,
 } from '../src/data/competition';
 import type { ContentConfig } from '../src/data/content';
 import type { GameDatabase } from './database';
@@ -18,6 +19,7 @@ export interface MatchRecord {
   revision: number;
   seed: number;
   loadouts: unknown[];
+  automation?: AutomatedOpponent;
 }
 interface Rating {
   player: string;
@@ -39,7 +41,9 @@ export class CompetitionStore {
       CREATE TABLE IF NOT EXISTS pvp_members (
       match TEXT NOT NULL REFERENCES pvp_matches(id), player TEXT NOT NULL REFERENCES players(id),
       PRIMARY KEY(match,player));
-      CREATE INDEX IF NOT EXISTS pvp_player_history ON pvp_members(player,match);`);
+      CREATE INDEX IF NOT EXISTS pvp_player_history ON pvp_members(player,match);
+      CREATE TABLE IF NOT EXISTS pvp_automation (
+      match TEXT PRIMARY KEY REFERENCES pvp_matches(id), payload TEXT NOT NULL CHECK(json_valid(payload)));`);
     this.review = new FairPlayStore(store);
   }
   private rating(player: string, c: ContentConfig): Rating {
@@ -54,8 +58,20 @@ export class CompetitionStore {
   start(match: MatchRecord) {
     if (match.players.length !== 2 || new Set(match.players).size !== 2)
       throw new Error('Trận cần hai người chơi khác nhau.');
+    if (
+      match.automation &&
+      (match.automation.side !== 1 ||
+        match.players[1] !== `automated-${match.id}` ||
+        !['ranked', 'casual'].includes(match.mode) ||
+        !Number.isSafeInteger(match.automation.rating) ||
+        !Number.isFinite(match.automation.waitSeconds) ||
+        match.automation.waitSeconds < 0 ||
+        !['story', 'normal', 'hard'].includes(match.automation.difficulty))
+    )
+      throw new Error('Đối thủ dự phòng không hợp lệ.');
+    const humanPlayers = match.players.filter((_, side) => side !== match.automation?.side);
     this.store.transaction(() => {
-      for (const player of match.players) {
+      for (const player of humanPlayers) {
         const active = this.store.db
           .prepare(
             `SELECT 1 FROM pvp_members m JOIN pvp_matches p ON p.id=m.match
@@ -80,8 +96,12 @@ export class CompetitionStore {
           JSON.stringify(match.loadouts),
           Date.now(),
         );
+      if (match.automation)
+        this.store.db
+          .prepare('INSERT INTO pvp_automation VALUES(?,?)')
+          .run(match.id, JSON.stringify(match.automation));
       this.review.start(match.id);
-      for (const player of match.players)
+      for (const player of humanPlayers)
         this.store.db.prepare('INSERT INTO pvp_members VALUES(?,?)').run(match.id, player);
     });
   }
@@ -95,15 +115,20 @@ export class CompetitionStore {
       const content = JSON.parse(String(row.content)) as ContentConfig,
         config = competitionOf(content);
       const players = JSON.parse(String(row.players)) as string[],
-        mode = row.mode as MatchMode;
-      const ratings = players.map((player) => this.rating(player, content));
+        mode = row.mode as MatchMode,
+        automation = this.review.automation(id);
+      const ratings = players.map((player, side) =>
+        side === automation?.side
+          ? { player, rating: automation.rating, games: 0, wins: 0 }
+          : this.rating(player, content),
+      );
       const outcomes: MatchOutcome[] = ratings.map((r, side) => {
         const score = winner === null ? 0.5 : Number(winner === side);
         const after =
-          mode === 'ranked' && !voided
+          mode === 'ranked' && !voided && side !== automation?.side
             ? eloAfter(r.rating, ratings[1 - side].rating, score, config)
             : r.rating;
-        if (mode === 'ranked' && !voided)
+        if (mode === 'ranked' && !voided && side !== automation?.side)
           this.store.db
             .prepare('UPDATE ratings SET rating=?,games=games+1,wins=wins+? WHERE player=?')
             .run(after, Number(winner === side), r.player);

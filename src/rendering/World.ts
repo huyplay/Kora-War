@@ -1,5 +1,7 @@
 import { ArenaLighting } from './arena-lighting';
 import { TowerEffects } from './vfx/tower-effects';
+import { TowerHealthBars } from './tower-health';
+import { ArenaBackdrop } from './arena-backdrop';
 import { DeploymentGuidance } from './deployment-guidance';
 import { portraitCamera } from './portrait-camera';
 import { canDeployInRange } from '../core/physics/deployment-range';
@@ -80,6 +82,8 @@ export class World {
   private structures = new StructureAnimator();
   private lighting = new ArenaLighting();
   private towerEffects = new TowerEffects();
+  private towerHealth = new TowerHealthBars();
+  private backdrop = new ArenaBackdrop();
   private fortressSides: THREE.Group[] = [];
   private gateFrontages: THREE.Group[] = [];
   private structureShadows = new ContactShadows();
@@ -139,7 +143,13 @@ export class World {
     this.camera.position.set(0, 29, 35.2);
     this.camera.lookAt(0, 0.5, 1.2);
     this.arenaCamera = new ArenaCamera(this.camera);
-    this.scene.add(this.lighting.root, this.towerEffects.root, this.structureShadows.root);
+    this.scene.add(
+      this.lighting.root,
+      this.towerEffects.root,
+      this.structureShadows.root,
+      this.towerHealth.root,
+      this.backdrop.root,
+    );
     this.lighting.configure(presentationOf({}).arena.lighting);
     this.buildEnvironment();
     this.terrain.apply(this.scene);
@@ -174,7 +184,7 @@ export class World {
     this.camera.aspect = aspect;
     // Reserve a little foreground for the card hand; perspective keeps rear lanes narrower.
     const distance = Math.hypot(29 - 0.5, 34);
-    const frameHeight = Math.max(18, 43 / aspect);
+    const frameHeight = Math.max(20, 47 / aspect);
     this.camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(frameHeight / (2 * distance)));
     this.camera.updateProjectionMatrix();
   }
@@ -221,6 +231,12 @@ export class World {
     this.scene.background = skyColor;
     this.scene.fog = new THREE.FogExp2(skyColor, 0.009);
     this.renderer.toneMappingExposure = content.map.exposure * arena.lighting.exposure;
+    await this.backdrop.configure(
+      content.map.backdropAssetId,
+      arena.lighting.mode === 'night',
+      undefined,
+      content.map.backdropCrop ?? 1,
+    );
     await this.models.supportTextures(this.renderer);
     this.sprites.configure(content.vfx);
     await this.spellEffects.configure(content.vfx);
@@ -244,7 +260,8 @@ export class World {
           yaw: p.yaw,
           clips: {},
         });
-        instance.root.position.set(p.x, 0, p.z);
+        instance.root.position.set(p.x, p.y ?? 0, p.z);
+        if (p.tint) instance.tint(p.tint);
         this.mapInstances.push(instance);
         this.scene.add(instance.root);
       }),
@@ -426,6 +443,7 @@ export class World {
     this.contactShadows.begin();
     this.structures.reset(this.towerMeshes);
     this.towerEffects.reset();
+    this.towerHealth.reset();
     this.corpses.forEach((c) => c.model.dispose());
     this.corpses = [];
     this.sprites.reset();
@@ -475,6 +493,8 @@ export class World {
     this.contactShadows.dispose();
     this.structures.dispose();
     this.towerEffects.dispose();
+    this.towerHealth.dispose();
+    this.backdrop.dispose();
     this.deploymentGuidance.dispose();
     this.lighting.dispose();
     this.structureShadows.dispose();
@@ -649,6 +669,7 @@ export class World {
   render(battle: Battle, dt: number, selected: boolean, spellTarget = false, animationRate = 1) {
     this.placementState = battle;
     this.arenaCamera.update(dt);
+    this.backdrop.update(this.camera);
     // Smooth render-frame motion, independent of the simulation's 20 Hz snapshots.
     const animationDt = battle.phase === 'playing' ? dt * animationRate : 0;
     this.clock += animationDt;
@@ -749,6 +770,13 @@ export class World {
       this.camera,
     );
     this.numbers.update(animationDt, this.camera);
+    this.towerHealth.update(
+      battle.towers,
+      presentationOf(battle.content).arena.structures.towerHeight,
+      animationDt,
+      this.camera,
+      this.canvas.clientHeight,
+    );
     this.structures.update(battle.towers, this.towerMeshes, animationDt);
     this.coreCrystals.forEach((c, i) => {
       c.rotation.y = this.clock * 0.35 * (i === 0 ? 1 : -1);

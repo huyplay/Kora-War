@@ -8,7 +8,7 @@ export function arenaSurroundings(
   bronze: number,
   make: typeof part,
 ) {
-  make(stage, 'box', wall[0], 0, -1.25, -1.5, 44, 1.5, 27);
+  make(stage, 'box', wall[0], 0, -1.25, -1.5, 44, 1.5, 24);
   for (const sign of [-1, 1]) {
     make(stage, 'box', wall[1], sign * 18.6, -0.22, 0, 8.8, 0.45, 18.4);
     for (const lane of [-4.8, 0, 4.8]) {

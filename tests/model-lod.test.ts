@@ -30,3 +30,28 @@ test('model instances select one sibling LOD before computing bounds without mod
     }
   });
 });
+
+test('scenery tint clones per-instance materials while preserving source textures and other instances', () => {
+  const source = new THREE.Group(),
+    material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+  const texture = new THREE.Texture();
+  material.map = texture;
+  source.add(new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), material));
+  const binding = { assetId: 'fixture', height: 2, yaw: 0, clips: {} };
+  const a = new ModelInstance(source, [], binding),
+    b = new ModelInstance(source, [], binding);
+  a.tint('#807569');
+  const tinted = (a.model.children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial;
+  assert.notEqual(tinted, material);
+  assert.equal(tinted.map, texture);
+  assert.equal(material.color.getHex(), 0xffffff);
+  assert.equal((b.model.children[0] as THREE.Mesh).material, material);
+  let released = 0;
+  tinted.addEventListener('dispose', () => released++);
+  a.dispose();
+  b.dispose();
+  assert.equal(released, 1);
+  texture.dispose();
+  material.dispose();
+  (source.children[0] as THREE.Mesh).geometry.dispose();
+});

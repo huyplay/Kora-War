@@ -32,6 +32,8 @@ export interface MapProp {
   assetId: string;
   x: number;
   z: number;
+  y?: number;
+  tint?: string;
   scale: number;
   yaw: number;
 }
@@ -54,6 +56,8 @@ export interface ContentConfig {
     props: MapProp[];
     towerAssetId?: string;
     coreAssetId?: string;
+    backdropAssetId?: string;
+    backdropCrop?: number;
     textures?: Partial<Record<'stone' | 'grass' | 'wall', TextureBinding>>;
   };
   vfx: {
@@ -258,6 +262,7 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
     !text(c.map.name) ||
     !color(c.map.background) ||
     !num(c.map.exposure, 0.2, 3) ||
+    (c.map.backdropCrop !== undefined && !num(c.map.backdropCrop, 0.35, 1)) ||
     !Array.isArray(c.map.props) ||
     c.map.props.length > 100
   )
@@ -267,11 +272,13 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
       !asset(p.assetId) ||
       !num(p.x, -22, 22) ||
       !num(p.z, -13, 13) ||
+      (p.y !== undefined && !num(p.y, -20, 10)) ||
+      (p.tint !== undefined && !color(p.tint)) ||
       !num(p.scale, 0.01, 20) ||
       !num(p.yaw, -360, 360)
     )
       fail('Prop map không hợp lệ.');
-  for (const id of [c.map.towerAssetId, c.map.coreAssetId])
+  for (const id of [c.map.towerAssetId, c.map.coreAssetId, c.map.backdropAssetId])
     if (id && !asset(id)) fail('Asset cấu trúc map không hợp lệ.');
   for (const [kind, binding] of Object.entries(c.map.textures || {}))
     if (
@@ -381,7 +388,7 @@ export function assetReferences(c: ContentConfig): string[] {
       ...(c.vfx.spriteAssetId ? [c.vfx.spriteAssetId] : []),
       ...Object.values(c.vfx.eventSprites || {}).map((binding) => binding.assetId),
       ...Object.values(c.vfx.spellSprites || {}).map((binding) => binding.assetId),
-      ...[c.map.towerAssetId, c.map.coreAssetId].filter((id): id is string => !!id),
+      ...[c.map.towerAssetId, c.map.coreAssetId, c.map.backdropAssetId].filter((id): id is string => !!id),
       ...Object.values(c.map.textures || {}).flatMap((b) => [
         b.assetId,
         ...[b.normalAssetId, b.roughnessAssetId].filter((id): id is string => !!id),

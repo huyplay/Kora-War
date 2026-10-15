@@ -29,16 +29,189 @@ function storage(t: TestContext, code?: string) {
   });
   return values;
 }
-test('a transient restore failure preserves the room code for reconnection', async (t) => {
+test('a transient restore failure preserves the room code and retries without a reload', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
   const values = storage(t, packet().code);
+  let requests = 0;
   t.mock.method(globalThis, 'fetch', async () => {
-    throw new TypeError('offline');
+    if (++requests === 1) throw new TypeError('offline');
+    return Response.json(packet());
   });
   const session = new PvpSession();
   t.after(() => session.dispose());
   await session.restore();
   assert.equal(values.get('kora-pvp-room'), packet().code);
+  assert.equal(session.restoring, true);
+  assert.equal(session.connected, false);
+  t.mock.timers.tick(1500);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(session.packet?.code, packet().code);
   assert.equal(session.restoring, false);
+  assert.equal(session.connected, true);
+});
+
+test('restore retries keep new room requests blocked and stop after authoritative no-room response', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const values = storage(t),
+    paths: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    paths.push(path);
+    if (paths.length === 1) return Response.json({ error: 'busy' }, { status: 503 });
+    return Response.json(null);
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  await session.restore();
+  await assert.rejects(session.open(DEFAULT_DECK, DEFAULT_SPELLS), /khôi phục/);
+  await assert.rejects(session.queue('ranked', [], 1), /khôi phục/);
+  assert.deepEqual(paths, ['/api/pvp/current']);
+  t.mock.timers.tick(1500);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(session.restoring, false);
+  assert.equal(session.connected, true);
+  assert.equal(session.active, false);
+  assert.equal(values.size, 0);
+  t.mock.timers.tick(5000);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(paths.length, 2);
+});
+
+test('restore retries stop on disposal/leave, and terminal authentication failures clear the saved room', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const values = storage(t, packet().code);
+  let calls = 0;
+  t.mock.method(globalThis, 'fetch', async () => {
+    calls++;
+    throw new TypeError('offline');
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  await session.restore();
+  session.dispose();
+  t.mock.timers.tick(1500);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(calls, 1);
+  await session.restore();
+  await session.leave();
+  t.mock.timers.tick(1500);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(calls, 2);
+  assert.equal(values.size, 0);
+  values.set('kora-pvp-room', packet().code);
+  t.mock.method(globalThis, 'fetch', async () => {
+    calls++;
+    return Response.json({ error: 'AUTH: sign in' }, { status: 401 });
+  });
+  await session.restore();
+  assert.equal(session.restoring, false);
+  assert.equal(values.size, 0);
+  t.mock.timers.tick(5000);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(calls, 3);
+});
+
+test('duplicate restore attempts share one request and stale failures cannot revive retries', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  storage(t, packet().code);
+  let fail!: (error: Error) => void,
+    calls = 0;
+  t.mock.method(globalThis, 'fetch', async () => {
+    calls++;
+    return new Promise<Response>((_, reject) => {
+      fail = reject;
+    });
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  const first = session.restore(),
+    second = session.restore();
+  assert.equal(calls, 1);
+  session.dispose();
+  fail(new TypeError('late failure'));
+  await Promise.all([first, second]);
+  t.mock.timers.tick(5000);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(calls, 1);
+  assert.equal(session.restoring, false);
+});
+
+test('lost create, join and queue responses discover the server room without resubmitting a mutation', async (t) => {
+  storage(t);
+  const paths: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    paths.push(path);
+    if (path !== '/api/pvp/current') throw new TypeError('response lost after commit');
+    return Response.json(packet());
+  });
+  for (const kind of ['create', 'join', 'queue'] as const) {
+    const session = new PvpSession();
+    t.after(() => session.dispose());
+    if (kind === 'queue') await session.queue('ranked', [], 1);
+    else await session.open(DEFAULT_DECK, DEFAULT_SPELLS, kind === 'join' ? packet().code : undefined);
+    assert.equal(session.packet?.code, packet().code);
+    session.dispose();
+  }
+  assert.deepEqual(paths, [
+    '/api/pvp/create',
+    '/api/pvp/current',
+    '/api/pvp/join',
+    '/api/pvp/current',
+    '/api/pvp/queue',
+    '/api/pvp/current',
+  ]);
+});
+
+test('room requests reject concurrent transitions and do not recover validation errors or a canceled response', async (t) => {
+  storage(t);
+  const paths: string[] = [];
+  let fail!: (error: Error) => void;
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    paths.push(path);
+    return new Promise<Response>((_, reject) => {
+      fail = reject;
+    });
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  const pending = session.queue('ranked', [], 1);
+  await assert.rejects(session.open(DEFAULT_DECK, DEFAULT_SPELLS), /đang xử lý/i);
+  await session.restore();
+  assert.equal(paths.length, 1);
+  session.dispose();
+  fail(new TypeError('canceled request'));
+  await assert.rejects(pending);
+  assert.equal(paths.length, 1);
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    paths.push(path);
+    return Response.json({ error: 'invalid deck' }, { status: 400 });
+  });
+  await assert.rejects(session.queue('ranked', [], 1), /invalid deck/);
+  assert.equal(paths.length, 2);
+  assert.equal(session.active, false);
+});
+
+test('lost room response reports the original error when no server room exists, and ignores late recovery after leave', async (t) => {
+  storage(t);
+  let recover!: (response: Response) => void;
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    if (path.endsWith('/queue')) throw new TypeError('queue offline');
+    return Response.json(null);
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  await assert.rejects(session.queue('ranked', [], 1), /queue offline/);
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    if (path.endsWith('/queue')) throw new TypeError('queue response lost');
+    return new Promise<Response>((resolve) => {
+      recover = resolve;
+    });
+  });
+  const pending = session.queue('ranked', [], 1);
+  await new Promise((resolve) => setImmediate(resolve));
+  await session.leave();
+  recover(Response.json(packet()));
+  await pending;
+  assert.equal(session.active, false);
 });
 test('an expired stored room falls back to the current authenticated room', async (t) => {
   const values = storage(t, 'EXPIRED00000'),

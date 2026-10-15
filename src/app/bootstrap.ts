@@ -5,6 +5,7 @@ import { cycleBattle } from '../core/cycle-battle';
 import { quickDeploymentX } from '../core/physics/deployment-range';
 import { ManaDisplay } from '../ui/mana-display';
 import { HandFeedback } from '../ui/hand-feedback';
+import { DefenseFeedback } from '../ui/defense-feedback';
 import { gameplayOf, fitDeck, synergyDescription, type TraitId } from '../data/gameplay';
 import { spellCard } from '../ui/spell-card';
 import { openingHand } from '../ui/screens/opening-hand';
@@ -123,6 +124,7 @@ function persist() {
 $('#app').innerHTML = renderShell();
 const manaDisplay = new ManaDisplay($('.mana-panel'), $('#mana-track'), $('#mana'));
 const handFeedback = lifetime.own(new HandFeedback($('#hand'), $('.draw-back'), (cue) => sound.tone(cue)));
+const defenseFeedback = lifetime.own(new DefenseFeedback((cue) => sound.tone(cue)));
 $('#home-roster .tile-note').textContent = `${GAMEPLAY.deck.size} thẻ · tay ${GAMEPLAY.deck.handSize} thẻ`;
 if (!gameSession.wallet) {
   const pvpButton = $<HTMLButtonElement>('#pvp-open');
@@ -393,6 +395,7 @@ async function startBattle(withTutorial = false) {
   $('#combat-message').textContent = '';
   mode = 'battle';
   handFeedback.reset();
+  defenseFeedback.reset();
   world.reset();
   battle = cycleBattle(
     cardDeck,
@@ -477,6 +480,7 @@ function showOpening() {
   );
 }
 function lobby() {
+  defenseFeedback.reset();
   quickChat.reset();
   quickChat.configure(gameSession.content);
   if (pvp.active) {
@@ -963,6 +967,7 @@ document.addEventListener(
 document.addEventListener(
   'visibilitychange',
   () => {
+    defenseFeedback.reset();
     if (document.hidden && !pvp.active && mode === 'battle' && battle.phase === 'playing') pause();
     lastFrame = performance.now();
     runner.reset();
@@ -1018,6 +1023,7 @@ pvp.onState = (packet: PvpPacket) => {
     if (packet.loadout.cards) cardDeck = packet.loadout.cards.slice();
     mode = 'battle';
     handFeedback.reset();
+    defenseFeedback.reset();
     gestures.cancel();
     closeModal();
     world.reset();
@@ -1094,10 +1100,7 @@ function loop(now: number) {
       if (e.id > lastAudioEvent) {
         lastAudioEvent = e.id;
         sound.event(e);
-        if (e.type === 'tower')
-          toast(
-            e.side === 1 ? 'Đã phá trụ địch! Tiến vào lõi năng lượng.' : 'Một trụ đồng minh đã thất thủ!',
-          );
+        if (e.type === 'tower' && e.side === 1) toast('Đã phá trụ địch! Tiến vào lõi năng lượng.');
       }
     sound.movement(battle.units);
     if ((battle.phase as string) === 'ended') result();
@@ -1110,6 +1113,7 @@ function loop(now: number) {
       !!selected && isSpell(selected),
       pvp.active ? 1 : speed,
     );
+  defenseFeedback.update(battle, dt, mode === 'battle' && !landscape.blocked && !document.hidden && pvp.connected);
   if (now - lastUi > 160) {
     updateHud();
     lastUi = now;

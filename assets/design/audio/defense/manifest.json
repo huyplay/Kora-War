@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "files": [
+    {
+      "cue": "tower-warning",
+      "seconds": 0.58,
+      "pitch": 740,
+      "beats": [
+        0,
+        0.22
+      ],
+      "description": "Two descending resonant caution chimes",
+      "path": "public/design/audio/defense/tower-warning-v1.wav",
+      "bytes": 25622,
+      "sha256": "54515e726b58d70e2c4f4e405cacceeee06feea99f9b32ad1feef90b32e71a67",
+      "sampleRate": 22050,
+      "channels": 1,
+      "encoding": "PCM 16-bit",
+      "author": "Kora War / Codex",
+      "source": "Original mathematical synthesis; tools/generate-defense-audio.ts",
+      "license": "Original Kora War project asset; no third-party samples"
+    },
+    {
+      "cue": "core-warning",
+      "seconds": 0.74,
+      "pitch": 392,
+      "beats": [
+        0,
+        0.24,
+        0.48
+      ],
+      "description": "Three low urgent pulses with soft bell overtones",
+      "path": "public/design/audio/defense/core-warning-v1.wav",
+      "bytes": 32678,
+      "sha256": "934d7c0149f5f22abe6a95290f42f45f35223639969ccdb70cd6b6574e437d53",
+      "sampleRate": 22050,
+      "channels": 1,
+      "encoding": "PCM 16-bit",
+      "author": "Kora War / Codex",
+      "source": "Original mathematical synthesis; tools/generate-defense-audio.ts",
+      "license": "Original Kora War project asset; no third-party samples"
+    }
+  ]
+}

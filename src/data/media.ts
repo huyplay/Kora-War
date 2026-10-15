@@ -8,12 +8,16 @@ export const SOUND_CUES = [
   'skill',
   'tower',
   'core',
+  'tower-warning',
+  'core-warning',
   'death',
   'footstep',
   'win',
   'lose',
 ] as const;
 export type SoundCue = (typeof SOUND_CUES)[number];
+/** Compatibility fallback; new live bindings are seeded in the database Audio module. */
+export const DEFENSE_CUE_COOLDOWN = { 'tower-warning': 4000, 'core-warning': 2800 } as const;
 export interface SoundBinding {
   assetId: string;
   volume: number;

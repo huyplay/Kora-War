@@ -92,3 +92,9 @@ Xem [kiến trúc](docs/ARCHITECTURE.md) và [quyết định](docs/DECISIONS.md
 - Người dùng yêu cầu hạn chế chữ không cần thiết, tính kỹ không gian/vị trí cho vuốt chạm; ưu tiên hình thẻ, số tài nguyên, biểu tượng và vùng chạm tối thiểu 44px. Giữ mô tả đầy đủ trong aria-label/màn chi tiết; không dùng tooltip hover trong thao tác touch.
 - Bổ sung hoạt ảnh/âm thanh rút thẻ và chờ thẻ sẵn sàng. Phản hồi chờ đọc mana/cooldown hiện có, không thêm thời gian rút bài hay đổi luật. Chỉ thẻ thay thế bay từ chồng rút vào ô vừa dùng; thẻ còn lại giữ DOM/focus. Âm chờ phát khi chạm, âm sẵn sàng phát một lần; không lặp âm liên tục.
 - Cue âm thanh thẻ là binding tùy chọn trong module audio database; nội dung cũ vẫn hợp lệ. Hỗ trợ tắt âm, pause và reduced motion.
+
+## Cảnh báo công trình — quyết định 15/10/2026
+
+- Người dùng yêu cầu tiếng/thông báo khi trụ hoặc thành bị sát thương, kèm hai mép màn hình đỏ nhấp nháy khi thành mất HP. Chỉ cảnh báo công trình phe mình theo HP snapshot; không thêm HP tường hoặc sửa combat. Lõi được ưu tiên khi cả trụ và thành cùng bị đánh.
+- `tower-warning` và `core-warning` là cue tùy chọn của module audio database; admin chỉnh file, âm lượng, tốc độ và nhịp lặp qua `cooldownMs`. Chỉ installer thêm binding cho content mới sau backup; không sửa revision/replay cũ hoặc ghi đè lựa chọn admin.
+- Cảnh báo có giới hạn nhịp, không phát từ snapshot đầu/reconnect; dọn khi đổi trận, kết thúc hoặc chuyển tab. Overlay không bắt chạm. Reduced motion giữ mép đỏ tĩnh thay nhấp nháy; mute/master/UI gain vẫn được tôn trọng.

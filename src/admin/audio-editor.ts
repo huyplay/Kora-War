@@ -14,6 +14,8 @@ export function audioEditor(state: State) {
     skill: 'Thi triển phép',
     tower: 'Trụ',
     core: 'Lõi',
+    'tower-warning': 'Cảnh báo trụ bị đánh',
+    'core-warning': 'Cảnh báo thành mất máu',
     death: 'Tử trận',
     footstep: 'Bước chân',
     win: 'Chiến thắng',

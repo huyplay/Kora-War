@@ -1,5 +1,5 @@
 import type { GameEvent, Unit } from '../core/types';
-import { defaultAudio, type AudioProfile, type SoundCue } from '../data/media';
+import { defaultAudio, DEFENSE_CUE_COOLDOWN, type AudioProfile, type SoundCue } from '../data/media';
 
 /** Browser-only presentation service. Audio never controls simulation timing. */
 export class Sound {
@@ -94,15 +94,36 @@ export class Sound {
     const now = c.currentTime,
       last = this.played.get(key) ?? -Infinity;
     const cardCue = cue.startsWith('card-');
+    const warning = cue === 'tower-warning' || cue === 'core-warning';
     const cooldown =
-      (binding?.cooldownMs ?? (cardCue ? 350 : cue === 'hit' ? 100 : cue === 'footstep' ? 320 : 60)) / 1000;
-    if (now - last < cooldown || this.voices.size >= this.profile.maxVoices) return;
-    const bus = cardCue || ['click', 'win', 'lose'].includes(cue) ? this.profile.ui : this.profile.effects;
+      (binding?.cooldownMs ??
+        (warning
+          ? DEFENSE_CUE_COOLDOWN[cue]
+          : cardCue
+            ? 350
+            : cue === 'hit'
+              ? 100
+              : cue === 'footstep'
+                ? 320
+                : 60)) / 1000;
+    if (now - last < cooldown) return;
+    const bus =
+      warning || cardCue || ['click', 'win', 'lose'].includes(cue) ? this.profile.ui : this.profile.effects;
     if (bus <= 0 || this.profile.master <= 0 || binding?.volume === 0) return;
+    if (this.voices.size >= this.profile.maxVoices && !warning) return;
+    while (this.voices.size && this.voices.size >= this.profile.maxVoices) {
+      const oldest = this.voices.values().next().value!;
+      try {
+        oldest.stop();
+      } catch {
+        /* already finished */
+      }
+      this.voices.delete(oldest);
+    }
     this.played.set(key, now);
     const gain = c.createGain(),
       pan = c.createStereoPanner();
-    gain.gain.value = (binding?.volume ?? 0.08) * bus;
+    gain.gain.value = (binding?.volume ?? (warning ? 0.24 : 0.08)) * bus;
     pan.pan.value = Math.max(-0.8, Math.min(0.8, x / 20));
     gain.connect(pan);
     pan.connect(this.master!);
@@ -120,11 +141,17 @@ export class Sound {
       source.frequency.value =
         cue === 'win' ? 784 : cue === 'lose' ? 196 : cue === 'skill' ? 660 : cue === 'hit' ? 120 : 440;
       gain.gain.setValueAtTime(gain.gain.value * 0.6, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + (warning ? 0.5 : 0.12));
       if (cardCue) {
         const frequency = cue === 'card-draw' ? 520 : cue === 'card-ready' ? 784 : 190;
         source.frequency.setValueAtTime(frequency, now);
         source.frequency.exponentialRampToValueAtTime(cue === 'card-wait' ? 150 : frequency * 1.5, now + 0.1);
+      }
+      if (warning) {
+        const frequency = cue === 'core-warning' ? 392 : 740;
+        source.frequency.setValueAtTime(frequency, now);
+        source.frequency.setValueAtTime(frequency * 0.75, now + 0.18);
+        source.frequency.setValueAtTime(frequency, now + 0.36);
       }
     }
     this.voices.add(source);
@@ -136,7 +163,7 @@ export class Sound {
       pan.disconnect();
     };
     source.start();
-    if (!buffer) source.stop(now + 0.14);
+    if (!buffer) source.stop(now + (warning ? 0.55 : 0.14));
   }
   event(event: GameEvent) {
     const specific = event.heroId && this.profile.heroes[event.heroId];

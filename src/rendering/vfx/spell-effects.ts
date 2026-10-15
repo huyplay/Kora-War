@@ -16,6 +16,10 @@ interface ZoneVisual {
 interface StatusVisual {
   group: THREE.Group;
   frost: THREE.Group;
+  iceShell: THREE.Mesh;
+  iceShards: THREE.InstancedMesh;
+  chillRing: THREE.Mesh;
+  freezeRune?: THREE.Sprite;
   fire: THREE.Group;
   haste: THREE.Mesh;
   weaken: THREE.Mesh;
@@ -178,10 +182,12 @@ export class SpellEffects {
     const frost = new THREE.Group();
     frost.name = 'frost';
     const shell = new THREE.Mesh(this.shellGeometry, this.shellMaterial);
+    shell.name = 'FreezeShell';
     shell.position.y = 1.15;
     shell.scale.y = 2.3;
     frost.add(shell);
     const shards = new THREE.InstancedMesh(this.crystalGeometry, this.iceMaterial, 5);
+    shards.name = 'FreezeShards';
     shards.frustumCulled = false;
     for (let i = 0; i < 5; i++) {
       const angle = (i * Math.PI * 2) / 5;
@@ -189,6 +195,12 @@ export class SpellEffects {
       shards.setMatrixAt(i, this.matrix);
     }
     frost.add(shards);
+    const chillRing = new THREE.Mesh(this.ringGeometry, this.iceMaterial);
+    chillRing.name = 'ChillRing';
+    chillRing.rotation.x = -Math.PI / 2;
+    chillRing.position.y = 0.24;
+    chillRing.scale.setScalar(0.8);
+    frost.add(chillRing);
     const frostRune = this.sprite('ice', 2.5);
     if (frostRune) {
       frostRune.position.y = 1;
@@ -209,7 +221,17 @@ export class SpellEffects {
     weaken.scale.setScalar(1);
     group.add(frost, fire, haste, weaken);
     this.root.add(group);
-    return { group, frost, fire, haste, weaken };
+    return {
+      group,
+      frost,
+      iceShell: shell,
+      iceShards: shards,
+      chillRing,
+      freezeRune: frostRune,
+      fire,
+      haste,
+      weaken,
+    };
   }
 
   update(
@@ -241,8 +263,8 @@ export class SpellEffects {
     const activeIds = new Set<number>();
     for (const unit of units) {
       if (unit.hp <= 0) continue;
-      const chilled =
-        (unit.slowUntil > time + 1e-8 && unit.slowFactor < 1) || (unit.frozenUntil ?? 0) > time + 1e-8;
+      const frozen = (unit.frozenUntil ?? 0) > time + 1e-8;
+      const chilled = (unit.slowUntil > time + 1e-8 && unit.slowFactor < 1) || frozen;
       const burning = zones.some(
         (zone) =>
           zone.spellId === 'fire' &&
@@ -270,6 +292,9 @@ export class SpellEffects {
       );
       visual.group.scale.setScalar(point?.scale ?? 1);
       visual.frost.visible = chilled;
+      visual.iceShell.visible = visual.iceShards.visible = frozen;
+      if (visual.freezeRune) visual.freezeRune.visible = frozen;
+      visual.chillRing.visible = !frozen;
       visual.fire.visible = burning;
       visual.haste.visible = hasted;
       visual.weaken.visible = weakened;

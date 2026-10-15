@@ -121,6 +121,8 @@ Kết quả PvP nay persist; state mô phỏng/phòng vẫn trong bộ nhớ m�
 
 `server/fair-play-store.ts` quản lý dữ liệu vận hành kiểm duyệt (policy versioned riêng, command evidence, moderation actions, bans và Elo corrections). `PvpRooms` ghi bằng chứng tại command boundary, tự giữ bài và kết thúc trận; không gửi seed/log đối thủ qua snapshot người chơi. Admin API có cùng session/origin protection với Content Studio. Xem [FAIR-PLAY.md](FAIR-PLAY.md) về giới hạn bằng chứng và tác động xử lý.
 
+`rendering/unit-overlays.ts` gom thanh máu/khiên và biểu tượng trạng thái vào một pool instanced 100 quân, giữ kích thước theo CSS pixel qua lane/zoom. Vòng ngắm trụ dùng pool riêng 32 slot; các cue chỉ đọc snapshot và tọa độ đội hình hiển thị. Xem [QA độ rõ giao tranh](COMBAT-READABILITY-QA.md).
+
 ## Ánh sáng và công trình (15/10/2026)
 
 `data/arena-presentation.ts` định nghĩa phần `presentation.arena`, module presentation schema 2; migration thêm cấu hình mặc định và giữ nguyên formation/lịch sử. `rendering/arena-lighting.ts` dựng mặt trời/trăng, hemisphere và bốn đuốc không tạo shadow map. Chế độ khóa theo content snapshot, không đọc giờ hệ thống. Thành gộp theo material riêng mỗi bên để đổi tỷ lệ quanh điểm neo ngoài vùng triển khai; trụ tách bệ đá và thân model. `vfx/tower-effects.ts` đọc sự kiện trụ, dùng pool 32 phát với bốn InstancedMesh; cảnh báo phạm vi lấy `towerRange` và bề rộng lane từ luật trận. Không thay đổi sát thương, chọn mục tiêu hoặc thứ tự tick. Xem [QA và giới hạn](ARENA-LIGHTING-QA.md).

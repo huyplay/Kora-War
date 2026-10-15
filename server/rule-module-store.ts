@@ -51,13 +51,11 @@ export class RuleModuleStore {
           this.write(scope, config[scope]);
           migrated = true;
         } else {
-          // Explicit upgrade from the complete 15-module release. Partial stores still fail.
-          const additions = ['communication', 'presentation'];
-          const previous = RULE_MODULES.filter((m) => !additions.includes(m.id));
-          if (old.length === previous.length && previous.every((d) => old.some((m) => m.id === d.id))) {
+          const upgraded = this.historicalModules(config[scope], old);
+          if (upgraded.length !== old.length) {
             old.push(
-              ...extractRuleModules(config[scope])
-                .filter((m) => additions.includes(m.id))
+              ...upgraded
+                .filter((m) => !old.some((o) => o.id === m.id))
                 .map((m) => ({ ...m, dataVersion: 1 })),
             );
             schemaChanged = true;
@@ -157,10 +155,12 @@ export class RuleModuleStore {
       }));
   }
   historicalModules(content: ContentConfig, modules: RuleModuleRecord[]) {
-    const additions = ['communication', 'presentation'];
-    const previous = RULE_MODULES.filter((m) => !additions.includes(m.id));
-    if (modules.length === previous.length && previous.every((d) => modules.some((m) => m.id === d.id)))
-      return [...modules, ...extractRuleModules(content).filter((m) => additions.includes(m.id))];
+    // Only complete known releases (15 or 17 modules) may acquire new modules.
+    for (const additions of [['communication', 'presentation', 'competition'], ['competition']]) {
+      const previous = RULE_MODULES.filter((m) => !additions.includes(m.id));
+      if (modules.length === previous.length && previous.every((d) => modules.some((m) => m.id === d.id)))
+        return [...modules, ...extractRuleModules(content).filter((m) => additions.includes(m.id))];
+    }
     return modules;
   }
   status(): RuleModuleStatus[] {

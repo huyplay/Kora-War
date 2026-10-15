@@ -110,3 +110,9 @@ Các geometry/material dùng chung thuộc World, không bị hủy khi một un
 `core/cycle-battle.ts` tạo luật hiện hành từ content database, mặc định 4 mana, deck 14/tay 6 và chỉ số chuẩn hóa. `core/tactical.ts` giữ bản 4 tướng + 2 phép để replay cũ tiếp tục hoạt động. `core/systems/spells.ts` validate/cast/update vùng phép, `spell-effect.ts` diễn giải chuỗi hiệu ứng; `data/gameplay.ts` định nghĩa schema/validation/preset tương thích. `Battle()` mặc định giữ compatibility với fixture/replay legacy. Core không đọc database trực tiếp; app/server cấp content snapshot. Xem [cấu hình gameplay](GAMEPLAY-CONFIG.md).
 
 `server/pvp.ts` sở hữu Battle và đồng hồ server, nhận command có ID, khóa loadout và xác thực thành viên theo cookie gateway. `core/online-state.ts` trả bản sao state theo góc nhìn phe; `services/pvp-session.ts` poll khoảng 10 Hz, loại packet cũ theo version, giữ mã phòng cho reconnect. App online không gọi `step()`. Renderer đọc spell zones để vẽ cảnh báo. Room không persist; SignalR/PostgreSQL match persistence vẫn là bước sau.
+
+## Đấu trường và kết quả bền vững (15/10/2026)
+
+`data/competition.ts` định nghĩa schema/preset, tính Elo và áp dụng biến thể Thử thách trên bản sao content. Module `competition` là module rule thứ 18. `server/competition-store.ts` lưu trận, thành viên, kết quả và rating bằng transaction; `server/pvp.ts` ghép hàng chờ theo mode/revision, tiến mô phỏng bằng heartbeat và gọi settlement idempotent. `ui/screens/pvp.ts` hiển thị chế độ, bảng hạng và lịch sử; admin có `competition-editor.ts`. Xem [quy tắc và QA](COMPETITION.md).
+
+Kết quả PvP nay persist; state mô phỏng/phòng vẫn trong bộ nhớ một tiến trình. Restart ghi hủy trận còn active, không đổi Elo; chưa khôi phục trận đang chơi từ database. Các mô tả “chưa persistent ranked/rewards” ở tài liệu lịch sử không áp dụng cho Elo mới; chưa thêm thưởng tiền/vật phẩm PvP.

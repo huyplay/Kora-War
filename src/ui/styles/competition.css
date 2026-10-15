@@ -1,0 +1,251 @@
+.modal:has(.competition-screen) {
+  width: min(940px, 94vw);
+}
+.competition-screen {
+  width: 100%;
+  text-align: left;
+}
+.competition-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.competition-heading h2 {
+  margin: 4px 0 10px;
+}
+.competition-heading button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.competition-profile {
+  border: 1px solid #776341;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #f3da9e;
+  background: #161c2b;
+  font-size: 13px;
+}
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 14px 0;
+}
+.mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  padding: 18px;
+  min-width: 0;
+  border: 1px solid #497d9a;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #253c55, #101b2d);
+  color: #fff2d7;
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    border-color 0.15s;
+}
+.mode-ranked {
+  border-color: #ba9655;
+  background: linear-gradient(145deg, #52402a, #1b1b30);
+}
+.mode-challenge {
+  border-color: #9368ba;
+  background: linear-gradient(145deg, #46305d, #181d33);
+}
+.mode-card:hover:not(:disabled) {
+  transform: translateY(-3px);
+  border-color: #ffe0a2;
+}
+.mode-card:focus-visible,
+.competition-screen button:focus-visible,
+.friend-room summary:focus-visible {
+  outline: 3px solid #b7eeff;
+  outline-offset: 3px;
+}
+.mode-card:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.mode-symbol {
+  font-size: 32px;
+  line-height: 1;
+  color: #edcd88;
+}
+.mode-card strong {
+  font-size: 21px;
+}
+.mode-card small {
+  color: #d2d9e3;
+  line-height: 1.4;
+}
+.mode-card em {
+  font-size: 11px;
+  color: #c6bed6;
+  font-style: normal;
+}
+.mode-enter {
+  margin-top: auto;
+  padding-top: 6px;
+  color: #ffe6b3;
+  font-weight: bold;
+}
+.competition-bottom {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.competition-bottom > button {
+  min-height: 44px;
+}
+.friend-room {
+  flex: 1;
+  border: 1px solid #4a5265;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+.friend-room summary {
+  padding: 12px 0;
+  cursor: pointer;
+}
+.friend-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+}
+.friend-actions input {
+  flex: 1;
+  min-width: 150px;
+  color: white;
+  background: #151d2c;
+  border: 1px solid #727e98;
+  border-radius: 6px;
+  padding: 10px;
+}
+.queue-display {
+  text-align: center;
+  padding: 10px 20px;
+}
+.queue-display small {
+  color: #b9c7dc;
+}
+.queue-emblem {
+  font-size: 64px;
+  color: #e5c58c;
+  animation: queue-glow 2s ease-in-out infinite alternate;
+}
+@keyframes queue-glow {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.ranking-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.ranking-list {
+  max-height: 45vh;
+  overflow: auto;
+}
+.ranking-row,
+.history-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid #3c4355;
+  padding: 12px 6px;
+  font-size: 13px;
+}
+.ranking-row > span,
+.history-row > span {
+  flex: 1;
+}
+.ranking-row small,
+.history-row small {
+  display: block;
+  color: #aabbd0;
+  font-size: 11px;
+  margin-top: 4px;
+}
+.ranking-row.is-self {
+  background: #2d4058;
+  border-radius: 6px;
+}
+.ranking-empty {
+  color: #acbbcd;
+  line-height: 1.6;
+  font-size: 13px;
+}
+.history-win {
+  color: #8bdfb8;
+}
+.history-loss {
+  color: #f5a3a3;
+}
+.rank-receipt {
+  color: #ffe0a2;
+  font-size: 20px;
+  font-weight: 700;
+}
+@media (max-height: 500px) {
+  .competition-screen {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  .competition-heading h2 {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  .competition-profile {
+    margin: 6px 0;
+    padding: 7px 12px;
+  }
+  .mode-grid {
+    margin: 8px 0;
+    gap: 8px;
+  }
+  .mode-card {
+    padding: 10px 12px;
+    gap: 5px;
+  }
+  .mode-symbol {
+    font-size: 24px;
+  }
+  .mode-card strong {
+    font-size: 17px;
+  }
+  .mode-card small {
+    font-size: 11px;
+  }
+  .competition-screen #pvp-status {
+    margin: 6px 0;
+    font-size: 12px;
+  }
+  .ranking-list {
+    max-height: 40vh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .queue-emblem {
+    animation: none;
+  }
+  .mode-card {
+    transition: none;
+  }
+}
+
+.modal .result-content > .rank-receipt {
+  display: block;
+  color: #ffe0a2;
+  font-size: 18px;
+  margin: 8px 0;
+}

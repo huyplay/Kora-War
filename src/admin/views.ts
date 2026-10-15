@@ -1,3 +1,4 @@
+import { competitionEditor } from './competition-editor';
 import type { ModelBinding } from '../data/content';
 import { abilityEditor } from './ability-editor';
 import { esc, input } from './html';
@@ -9,6 +10,7 @@ import { communicationEditor } from './communication-editor';
 export function renderStudioPage(state: State, section: string, hero: string, selectedAsset: string): string {
   if (section === 'audio') return audioEditor(state);
   if (section === 'gameplay') return gameplayEditor(state.draft, state.ruleModules);
+  if (section === 'competition') return competitionEditor(state.draft);
   if (section === 'communication') return communicationEditor(state.draft, state.assets);
   const labels: Record<string, string> = {
     hp: 'Máu',

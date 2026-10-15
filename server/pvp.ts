@@ -1,4 +1,12 @@
-import { randomBytes, randomInt } from 'node:crypto';
+import {
+  competitionOf,
+  modeContent,
+  type MatchMode,
+  type QueueMode,
+  type MatchOutcome,
+} from '../src/data/competition';
+import type { CompetitionStore } from './competition-store';
+import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import type { ContentConfig } from '../src/data/content';
 import { validateSpellDeck, isSpell, type SpellId } from '../src/data/spells';
 import { tacticalBattle } from '../src/core/tactical';
@@ -24,6 +32,13 @@ export interface PvpCommand {
   x: number;
 }
 interface Room {
+  id: string;
+  mode: MatchMode;
+  revision: number;
+  rating: number;
+  contentKey: string;
+  outcomes?: MatchOutcome[];
+  reason?: string;
   code: string;
   players: string[];
   loadouts: Loadout[];
@@ -42,11 +57,55 @@ interface Room {
   reactionAt: number[];
   reactionReplies: Map<string, string | null>[];
 }
-/** Single-process authoritative MVP. Rooms expire; no persistent ranked/rewards. */
+/** Single-process authoritative combat; competition store persists locked results and Elo. */
 export class PvpRooms {
   private rooms = new Map<string, Room>();
   // Room lifetimes use elapsed time, so changing the system clock cannot pause a match.
-  constructor(private now = () => performance.now()) {}
+  constructor(
+    private now = () => performance.now(),
+    private competition?: CompetitionStore,
+  ) {}
+  tick() {
+    const at = this.now();
+    for (const r of this.rooms.values()) this.advance(r, at);
+    this.prune(at);
+    const waiting = [...this.rooms.values()].filter((r) => !r.battle && r.mode !== 'friendly');
+    for (let i = 0; i < waiting.length; i++) {
+      const a = waiting[i];
+      if (!this.rooms.has(a.code) || a.battle) continue;
+      for (const b of waiting.slice(i + 1)) {
+        if (
+          !this.rooms.has(b.code) ||
+          b.battle ||
+          a.mode !== b.mode ||
+          a.revision !== b.revision ||
+          a.contentKey !== b.contentKey
+        )
+          continue;
+        const q = competitionOf(a.content).queue;
+        const range = Math.min(
+          q.maximumRange,
+          q.initialRange + ((at - Math.min(a.created, b.created)) / 1000) * q.expandPerSecond,
+        );
+        if (a.mode === 'ranked' && Math.abs(a.rating - b.rating) > range) continue;
+        this.rooms.delete(b.code);
+        try {
+          this.join(b.players[0], a.code, b.loadouts[0], true);
+        } catch (error) {
+          this.rooms.set(b.code, b);
+          throw error;
+        }
+        // Polling the previous queue token must discover the new room without exposing it to others.
+        this.redirects.set(b.code, { player: b.players[0], code: a.code, expires: at + WAITING_TTL });
+        break;
+      }
+    }
+  }
+  private redirects = new Map<string, { player: string; code: string; expires: number }>();
+  private settle(r: Room) {
+    if (r.battle?.phase === 'ended' && !r.outcomes && this.competition)
+      r.outcomes = this.competition.finish(r.id, r.battle.winner, r.reason ?? 'combat');
+  }
   private validate(input: Loadout, content: ContentConfig) {
     if (!input || !Array.isArray(input.deck)) throw new Error('Đội hình không hợp lệ.');
     if (input.cards !== undefined) {
@@ -69,7 +128,10 @@ export class PvpRooms {
       b.start();
       r.started = r.openingEnds!;
     }
-    if (b.phase !== 'playing') return;
+    if (b.phase !== 'playing') {
+      this.settle(r);
+      return;
+    }
     const disconnected = r.seen[0] <= r.seen[1] ? 0 : 1;
     const deadline = r.seen[disconnected] + b.gameplay.match.reconnectSeconds * 1000;
     const timedOut = at > deadline;
@@ -85,16 +147,24 @@ export class PvpRooms {
       b.winner = (1 - disconnected) as Side;
       b.phase = 'ended';
       r.finished = deadline;
+      r.reason = 'disconnect';
     }
+    this.settle(r);
   }
   private expired(r: Room, at: number) {
     return (
-      (!r.battle && at - r.created > WAITING_TTL) ||
+      (!r.battle &&
+        at - r.created >
+          (r.mode === 'friendly' ? WAITING_TTL : competitionOf(r.content).queue.timeoutSeconds * 1000)) ||
+      (!r.battle &&
+        r.mode !== 'friendly' &&
+        at - r.seen[0] > r.content.gameplay!.match.reconnectSeconds * 1000) ||
       (r.finished !== undefined && at - r.finished > FINISHED_TTL) ||
       at - Math.max(...r.seen) > WAITING_TTL
     );
   }
   private prune(at = this.now()) {
+    for (const [code, redirect] of this.redirects) if (at > redirect.expires) this.redirects.delete(code);
     for (const [code, r] of this.rooms) {
       // A room can finish while nobody polls it; reclaim it from its real deadline.
       if (
@@ -105,7 +175,43 @@ export class PvpRooms {
       if (this.expired(r, at)) this.rooms.delete(code);
     }
   }
-  create(player: string, input: Loadout, content: ContentConfig) {
+  create(player: string, input: Loadout, content: ContentConfig, revision = 0) {
+    if (!competitionOf(content).modes.friendly.enabled) throw new Error('Đấu bạn bè đang tạm đóng.');
+    return this.createRoom(player, input, content, 'friendly', revision);
+  }
+  enqueue(player: string, input: Loadout, base: ContentConfig, mode: QueueMode, revision: number) {
+    if (!['casual', 'ranked', 'challenge'].includes(mode) || !competitionOf(base).modes[mode]?.enabled)
+      throw new Error('Chế độ đang tạm đóng hoặc không hợp lệ.');
+    if (!input?.cards) throw new Error('Ghép trận yêu cầu deck cycle-v1.');
+    const current = this.current(player);
+    if (current) {
+      if (current.mode !== mode) throw new Error('Hãy rời phòng/chế độ hiện tại trước.');
+      return current;
+    }
+    const content = modeContent(base, mode);
+    const contentKey = JSON.stringify(content);
+    input = this.validate(input, content);
+    const rating = this.competition?.score(player, content) ?? competitionOf(content).rating.initial;
+    const at = this.now(),
+      config = competitionOf(content).queue;
+    for (const r of this.rooms.values()) {
+      if (r.battle || r.mode !== mode || r.revision !== revision || r.contentKey !== contentKey) continue;
+      const range = Math.min(
+        config.maximumRange,
+        config.initialRange + ((at - r.created) / 1000) * config.expandPerSecond,
+      );
+      if (mode === 'ranked' && Math.abs(r.rating - rating) > range) continue;
+      return this.join(player, r.code, input, true);
+    }
+    return this.createRoom(player, input, content, mode, revision);
+  }
+  private createRoom(
+    player: string,
+    input: Loadout,
+    content: ContentConfig,
+    mode: MatchMode,
+    revision: number,
+  ) {
     this.prune();
     input = this.validate(input, content);
     const current = this.current(player);
@@ -113,6 +219,11 @@ export class PvpRooms {
     if (this.rooms.size >= 200) throw new Error('Máy chủ đầy phòng. Thử lại sau.');
     const code = randomBytes(6).toString('hex').toUpperCase();
     this.rooms.set(code, {
+      id: randomUUID(),
+      mode,
+      revision,
+      contentKey: JSON.stringify(content),
+      rating: this.competition?.score(player, content) ?? competitionOf(content).rating.initial,
       code,
       players: [player],
       loadouts: [structuredClone(input)],
@@ -144,12 +255,13 @@ export class PvpRooms {
     }
     return null;
   }
-  join(player: string, code: string, input: Loadout) {
+  join(player: string, code: string, input: Loadout, matched = false) {
     const at = this.now();
     this.prune(at);
     const r = this.rooms.get(code);
     if (!r) throw new Error('Phòng không tồn tại hoặc đã hết hạn.');
     if (r.players.includes(player)) return this.state(player, code);
+    if (r.mode !== 'friendly' && !matched) throw new Error('Phòng ghép trận không nhận mã mời.');
     if (r.players.length !== 1 || r.battle) throw new Error('Phòng đã đủ người.');
     for (const other of this.rooms.values()) {
       if (other === r || !other.players.includes(player)) continue;
@@ -168,6 +280,22 @@ export class PvpRooms {
     r.battle = input.cards
       ? cycleBattle(r.loadouts[0].cards!, r.content, r.seed, input.cards)
       : tacticalBattle(r.loadouts[0].deck, r.loadouts[0].spells, r.content, r.seed, input.deck, input.spells);
+    try {
+      this.competition?.start({
+        id: r.id,
+        players: r.players,
+        mode: r.mode,
+        content: r.content,
+        revision: r.revision,
+        seed: r.seed,
+        loadouts: r.loadouts,
+      });
+    } catch (error) {
+      r.players.pop();
+      r.loadouts.pop();
+      r.battle = undefined;
+      throw error;
+    }
     r.battle.aiEnabled = false;
     r.battle.start();
     if (input.cards) r.openingEnds = at + r.battle.gameplay.match.openingSeconds * 1000;
@@ -177,6 +305,8 @@ export class PvpRooms {
   }
   private member(player: string, code: string, at = this.now()) {
     this.prune(at);
+    const redirect = this.redirects.get(code);
+    if (redirect?.player === player && redirect.expires >= at) code = redirect.code;
     const r = this.rooms.get(code),
       side = r?.players.indexOf(player);
     if (!r || side === undefined || side < 0) throw new Error('Không có quyền truy cập phòng.');
@@ -189,10 +319,19 @@ export class PvpRooms {
   }
   state(player: string, code: string, metadata = true) {
     const at = this.now();
+    const redirect = this.redirects.get(code);
+    if (redirect?.player === player && redirect.expires >= at) {
+      code = redirect.code;
+      metadata = true;
+    }
     const { r, side } = this.member(player, code, at);
     r.seen[side] = at;
     return {
       code,
+      mode: r.mode,
+      revision: r.revision,
+      outcome: structuredClone(r.outcomes?.[side]),
+      queueSeconds: Math.max(0, Math.floor((at - r.created) / 1000)),
       version: ++r.version,
       waiting: !r.battle,
       seed: r.loadouts[0].cards ? 0 : r.seed,
@@ -295,6 +434,8 @@ export class PvpRooms {
       r.battle.winner = (1 - side) as Side;
       r.battle.phase = 'ended';
       r.finished = at;
+      r.reason = 'surrender';
+      this.settle(r);
     }
     return { ok: true };
   }

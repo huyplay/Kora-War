@@ -33,7 +33,7 @@ export function renderHome() {
         <text x="210" y="314" fill="#fff0c9" font-size="19" font-weight="700" text-anchor="middle" letter-spacing="5">AETHERFALL</text>
       </svg>
       <h1>KORA WAR</h1><p>Bảo vệ ánh sáng của Elyndra</p>
-      <div id="lobby-actions" class="home-actions"><button class="home-battle" id="start">LUYỆN TẬP ${icon('sword')}</button><button class="home-pvp" id="pvp-open">PvP · Đấu bạn bè ${icon('chevron')}</button><button class="text-button" id="tutorial-open">${icon('info')} Cách chơi</button></div>
+      <div id="lobby-actions" class="home-actions"><button class="home-battle" id="start">LUYỆN TẬP ${icon('sword')}</button><button class="home-pvp" id="pvp-open">Đấu trường · Hạng & thường ${icon('chevron')}</button><button class="text-button" id="tutorial-open">${icon('info')} Cách chơi</button></div>
     </div>
     <aside class="home-column home-vault" aria-label="Kho Aether">
       <button class="home-wallet" id="vault-shop" aria-label="Cửa hàng"><span>◉</span><b id="wallet-gold">—</b><small>VÀNG</small><i>+</i></button>

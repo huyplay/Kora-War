@@ -29,6 +29,7 @@ export const sections = [
   ['overview', '◈', 'Tổng quan'],
   ['heroes', '♜', 'Nhân vật'],
   ['gameplay', '⚔', 'Gameplay'],
+  ['competition', '♜', 'Đấu trường & hạng'],
   ['communication', '☏', 'Chat & đội hình'],
   ['assets', '⬡', 'Thư viện asset'],
   ['map', '▧', 'Màn chơi'],

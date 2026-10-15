@@ -6,6 +6,9 @@ export function audioEditor(state: State) {
   const audio = (state.draft.audio ||= defaultAudio());
   const labels = {
     click: 'Chạm UI',
+    'card-draw': 'Rút thẻ',
+    'card-wait': 'Thẻ đang chờ',
+    'card-ready': 'Thẻ sẵn sàng',
     play: 'Triệu hồi',
     hit: 'Va chạm',
     skill: 'Thi triển phép',

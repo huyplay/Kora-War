@@ -1,0 +1,236 @@
+/* Mobile game HUD: art, resources and touch targets carry the information. */
+.in-battle .hand .hero-card {
+  isolation: isolate;
+}
+.in-battle .hand .hero-card.unaffordable::before {
+  content: '';
+  position: absolute;
+  z-index: 7;
+  left: 0;
+  bottom: 0;
+  top: auto;
+  right: auto;
+  transform: none;
+  width: var(--wait-fill, 0%);
+  height: 4px;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(90deg, #2686c6, #a1f6ff);
+  box-shadow: 0 0 5px #4bddff;
+  pointer-events: none;
+}
+.in-battle .hand .waiting-card {
+  border-color: #6fcded;
+}
+.in-battle .hand .waiting-card .card-cost {
+  animation: hand-wait-pulse 1.2s ease-in-out infinite;
+}
+.hand-paused *,
+.hand-paused *::before,
+.hand-paused *::after {
+  animation-play-state: paused !important;
+}
+.in-battle #cancel-select {
+  font-size: 28px !important;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid #8fa7ba;
+  border-radius: 10px;
+  background: #162b3b;
+}
+.in-battle #cancel-select::before {
+  content: none;
+}
+.in-battle .base-title {
+  font-size: 0;
+}
+.in-battle .base-title b {
+  font-size: 16px;
+}
+.in-battle .base-health small,
+.in-battle .hand-caption,
+.in-battle .draw-pile small,
+.in-battle .card-origin,
+.in-battle .card-role {
+  display: none;
+}
+.in-battle .hand .hero-card.drawn-card {
+  animation: none;
+}
+@keyframes hand-wait-pulse {
+  50% {
+    filter: brightness(1.6);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 540px) {
+  .in-battle .command-deck {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    align-items: center;
+    width: min(72vw, 620px);
+    max-width: calc(100vw - 120px);
+    padding: 7px 8px 5px;
+    gap: 10px;
+    bottom: max(5px, env(safe-area-inset-bottom));
+  }
+  .in-battle .cards-area {
+    width: 100%;
+    min-width: 0;
+  }
+  .in-battle .hand-and-draw {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 38px;
+    gap: 9px;
+  }
+  .in-battle .hand {
+    display: grid;
+    grid-template-columns: repeat(var(--hand-size, 6), minmax(44px, 1fr));
+    gap: 6px;
+  }
+  .in-battle .hand .hero-card,
+  .in-battle .hand .hero-card.spell-card {
+    width: 100%;
+    min-width: 44px;
+    height: clamp(62px, 19vh, 84px);
+    margin: 0;
+  }
+  .in-battle .hand .card-name {
+    display: none;
+  }
+  .in-battle .hand.large-hand {
+    grid-template-columns: repeat(var(--hand-columns), minmax(44px, 1fr));
+    max-width: none;
+    padding-top: 0;
+    overflow: hidden;
+  }
+  .in-battle .hand.large-hand .hero-card {
+    height: 46px;
+  }
+  .in-battle .hand .selected .card-name {
+    display: block;
+    font-size: 10px;
+    bottom: 4px;
+  }
+  .in-battle .hand .card-shade {
+    background: linear-gradient(transparent 75%, #08122280);
+  }
+  .in-battle .hand .card-cost {
+    left: -4px;
+    top: -5px;
+  }
+  .in-battle .draw-pile {
+    min-width: 0;
+    width: 38px;
+  }
+  .in-battle .draw-back {
+    width: 32px;
+    height: 48px;
+    font-size: 24px;
+  }
+  .in-battle .draw-pile strong {
+    right: -2px;
+    bottom: -4px;
+    font-size: 11px;
+  }
+  .in-battle .battle-actions {
+    display: flex;
+    flex-direction: column;
+    width: 44px;
+    gap: 5px;
+    align-items: center;
+  }
+  .in-battle .pulse-button {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+  .in-battle .pulse-button > span:not(.pulse-symbol),
+  .in-battle .pulse-button kbd {
+    display: none;
+  }
+  .in-battle .lane-shortcuts,
+  .in-battle #zoom-in,
+  .in-battle #zoom-out {
+    display: none !important;
+  }
+  .in-battle .arena-zoom {
+    right: max(8px, env(safe-area-inset-right));
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .in-battle .arena-zoom button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .in-battle .quick-chat-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .in-battle .base-health {
+    min-width: 0;
+    padding: 4px 8px;
+  }
+  .in-battle .base-title b {
+    font-size: 15px;
+  }
+  .in-battle .timer-wrap .icon-button {
+    position: absolute;
+    left: calc(100% + 7px);
+    top: 0;
+    margin-top: 0;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .in-battle .mana-panel {
+    margin-top: 4px;
+  }
+  .home-kicker,
+  .home-center > p,
+  .home-footer,
+  .home-heading > span,
+  .home-tile .tile-note,
+  .home-record small {
+    display: none;
+  }
+  .home-column .home-heading h2 {
+    font-size: 15px;
+  }
+  .opening-header .eyebrow,
+  .opening-header p {
+    display: none;
+  }
+  .opening-header h2 {
+    font-size: 22px;
+  }
+  .modal-content.centered h2 {
+    font-size: 24px;
+  }
+  .modal-content.centered button {
+    min-height: 44px;
+  }
+  .result-content .result-verdict,
+  .result-content > .eyebrow {
+    display: none;
+  }
+}
+@media (orientation: landscape) and (max-width: 700px) {
+  .in-battle .command-deck {
+    width: calc(100vw - 116px);
+    gap: 6px;
+    padding-inline: 6px;
+  }
+  .in-battle .hand {
+    gap: 4px;
+  }
+  .in-battle .hand-and-draw {
+    gap: 5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .in-battle .hand .waiting-card .card-cost {
+    animation: none;
+  }
+}

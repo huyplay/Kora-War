@@ -25,6 +25,7 @@ export class Sound {
   ctx: AudioContext | null = null;
   configure(profile?: AudioProfile) {
     this.profile = structuredClone(profile || defaultAudio());
+    if (this.master) this.master.gain.value = this.profile.master;
   }
   unlock() {
     if (this.disposed) return;
@@ -92,10 +93,13 @@ export class Sound {
     if (!this.enabled || !c || c.state !== 'running' || this.disposed) return;
     const now = c.currentTime,
       last = this.played.get(key) ?? -Infinity;
-    const cooldown = (binding?.cooldownMs ?? (cue === 'hit' ? 100 : cue === 'footstep' ? 320 : 60)) / 1000;
+    const cardCue = cue.startsWith('card-');
+    const cooldown =
+      (binding?.cooldownMs ?? (cardCue ? 350 : cue === 'hit' ? 100 : cue === 'footstep' ? 320 : 60)) / 1000;
     if (now - last < cooldown || this.voices.size >= this.profile.maxVoices) return;
+    const bus = cardCue || ['click', 'win', 'lose'].includes(cue) ? this.profile.ui : this.profile.effects;
+    if (bus <= 0 || this.profile.master <= 0 || binding?.volume === 0) return;
     this.played.set(key, now);
-    const bus = ['click', 'win', 'lose'].includes(cue) ? this.profile.ui : this.profile.effects;
     const gain = c.createGain(),
       pan = c.createStereoPanner();
     gain.gain.value = (binding?.volume ?? 0.08) * bus;
@@ -112,11 +116,16 @@ export class Sound {
     } else {
       if (binding) void this.load(binding.assetId);
       source = c.createOscillator();
-      source.type = cue === 'hit' || cue === 'tower' ? 'triangle' : 'sine';
+      source.type = cue === 'hit' || cue === 'tower' || cue === 'card-draw' ? 'triangle' : 'sine';
       source.frequency.value =
         cue === 'win' ? 784 : cue === 'lose' ? 196 : cue === 'skill' ? 660 : cue === 'hit' ? 120 : 440;
       gain.gain.setValueAtTime(gain.gain.value * 0.6, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      if (cardCue) {
+        const frequency = cue === 'card-draw' ? 520 : cue === 'card-ready' ? 784 : 190;
+        source.frequency.setValueAtTime(frequency, now);
+        source.frequency.exponentialRampToValueAtTime(cue === 'card-wait' ? 150 : frequency * 1.5, now + 0.1);
+      }
     }
     this.voices.add(source);
     source.connect(gain);

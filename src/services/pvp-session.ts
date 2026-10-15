@@ -1,3 +1,4 @@
+import type { MatchMode, QueueMode, MatchOutcome } from '../data/competition';
 import { api, ApiError } from './api';
 import type { ContentConfig } from '../data/content';
 import type { SpellId } from '../data/spells';
@@ -5,6 +6,10 @@ import type { OnlineState } from '../core/online-state';
 import type { ReactionPacket } from '../data/communication';
 export interface PvpPacket {
   code: string;
+  mode?: MatchMode;
+  revision?: number;
+  queueSeconds?: number;
+  outcome?: MatchOutcome;
   version: number;
   waiting: boolean;
   seed: number;
@@ -60,6 +65,19 @@ export class PvpSession {
         code,
         cards,
       },
+      this.requests.signal,
+    );
+    if (generation !== this.generation) return;
+    this.accept(packet);
+    this.poll();
+  }
+  async queue(mode: QueueMode, cards: string[], revision: number) {
+    if (this.leaving) throw new Error('Đang rời phòng.');
+    const generation = this.generation;
+    const packet = await api<PvpPacket>(
+      '/api/pvp/queue',
+      'POST',
+      { mode, cards, revision, deck: [], spells: [] },
       this.requests.signal,
     );
     if (generation !== this.generation) return;

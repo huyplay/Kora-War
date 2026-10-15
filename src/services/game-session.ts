@@ -34,6 +34,7 @@ interface RemoteMatch {
 }
 export class GameSession {
   content = defaultContent();
+  resumeContent?: ContentConfig;
   assets: ManagedAsset[] = [];
   revision = 0;
   wallet?: Wallet;
@@ -51,6 +52,29 @@ export class GameSession {
       this.revision = result.revision;
       this.assets = result.assets;
       this.wallet = await api<Wallet>('/api/player', 'POST', {});
+      // Load the locked arena before constructing World when restoring an older live revision.
+      try {
+        let code: string | null = null;
+        try {
+          code = sessionStorage.getItem('kora-pvp-room');
+        } catch {
+          /* optional storage */
+        }
+        let room: { content?: ContentConfig } | null;
+        try {
+          room = await api(
+            code ? `/api/pvp/state?metadata=1&code=${encodeURIComponent(code)}` : '/api/pvp/current',
+          );
+        } catch {
+          room = await api('/api/pvp/current');
+        }
+        if (room?.content) {
+          validateContent(room.content);
+          this.resumeContent = room.content;
+        }
+      } catch {
+        /* PvP restoration may retry after a transient connection failure. */
+      }
     } catch {
       /* Static/offline demo stays playable without economy. */
     }

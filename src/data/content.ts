@@ -1,3 +1,4 @@
+import { defaultCompetition, validateCompetition, type CompetitionConfig } from './competition';
 import { ABILITIES, DEFAULT_ENGAGE, type AbilityDefinition } from './abilities';
 import { HEROES } from './heroes';
 import { RULES } from './rules';
@@ -34,6 +35,7 @@ export interface MapProp {
 }
 export interface ContentConfig {
   schema: 1;
+  competition?: CompetitionConfig;
   heroes: Hero[];
   abilities: Record<string, AbilityDefinition>;
   rules: BattleRules;
@@ -90,6 +92,7 @@ export function defaultContent(): ContentConfig {
     abilities: { ...ABILITIES, nyx: { ...ABILITIES.nyx, engage: DEFAULT_ENGAGE } },
     rules: RULES,
     gameplay: defaultGameplay(),
+    competition: defaultCompetition(),
     communication: defaultCommunication(),
     presentation: defaultPresentation(),
     models: {},
@@ -119,6 +122,7 @@ export function upgradeContent(input: ContentConfig): ContentConfig {
   c.gameplay.board.quickSpawnX ??= defaultGameplay().board.quickSpawnX;
   c.communication ??= defaultCommunication();
   c.presentation ??= defaultPresentation();
+  c.competition ??= defaultCompetition();
   return c;
 }
 export function validateContent(input: unknown): asserts input is ContentConfig {
@@ -334,6 +338,7 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
     )
       fail('VFX event atlas không hợp lệ.');
   }
+  if (c.competition) validateCompetition(c.competition, c);
   if (!c.economy) fail('Thiếu economy.');
   for (const k of ['winGold', 'lossGold', 'chestCost', 'chestGold', 'upgradeBase'] as const)
     if (!Number.isInteger(c.economy[k]) || !num(c.economy[k], 1, 100000))

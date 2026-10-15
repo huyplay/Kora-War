@@ -1,3 +1,4 @@
+import { competitionOf } from './competition';
 import type { ContentConfig } from './content';
 import { gameplayOf } from './gameplay/defaults';
 import { communicationOf } from './communication';
@@ -30,6 +31,7 @@ export const RULE_MODULES = Object.freeze([
   define('items', 'Vật phẩm cửa hàng'),
   define('communication', 'Emoji và chat nhanh'),
   define('presentation', 'Đội hình hiển thị'),
+  define('competition', 'Đấu hạng, ghép trận & thử thách'),
 ]);
 export type RuleModuleId =
   | 'rules'
@@ -48,7 +50,8 @@ export type RuleModuleId =
   | 'economy'
   | 'items'
   | 'communication'
-  | 'presentation';
+  | 'presentation'
+  | 'competition';
 const CONTENT_MODULES = [
   'rules',
   'heroes',
@@ -57,6 +60,7 @@ const CONTENT_MODULES = [
   'items',
   'communication',
   'presentation',
+  'competition',
 ] as const;
 type ContentModuleId = (typeof CONTENT_MODULES)[number];
 export interface RuleModuleRecord {
@@ -94,11 +98,13 @@ export function extractRuleModules(content: ContentConfig): RuleModuleRecord[] {
     schemaVersion: d.schemaVersion,
     data: structuredClone(
       CONTENT_MODULES.includes(d.id as ContentModuleId)
-        ? d.id === 'communication'
-          ? communicationOf(content)
-          : d.id === 'presentation'
-            ? presentationOf(content)
-            : content[d.id as ContentModuleId]
+        ? d.id === 'competition'
+          ? competitionOf(content)
+          : d.id === 'communication'
+            ? communicationOf(content)
+            : d.id === 'presentation'
+              ? presentationOf(content)
+              : content[d.id as ContentModuleId]
         : d.id === 'mana'
           ? { startingMana: g.startingMana }
           : g[d.id as Exclude<RuleModuleId, ContentModuleId | 'mana'>],

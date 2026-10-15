@@ -1,3 +1,4 @@
+import { CompetitionStore } from './competition-store';
 import { createServer, type IncomingMessage } from 'node:http';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, join, extname } from 'node:path';
@@ -21,9 +22,11 @@ async function body(req: IncomingMessage, limit = 1024 * 1024) {
 const cookies = (req: IncomingMessage) =>
   Object.fromEntries((req.headers.cookie || '').split(';').map((s) => s.trim().split('=')));
 export function createGameServer(store: GameDatabase, staticDir = resolve('dist')) {
-  const pvp = new PvpRooms();
+  const competition = new CompetitionStore(store);
+  competition.recover();
+  const pvp = new PvpRooms(undefined, competition);
   const attempts = new Map<string, { count: number; until: number }>();
-  return createServer(async (req, res) => {
+  const server = createServer(async (req, res) => {
     const send = (status: number, data: unknown) => {
       res.writeHead(status, {
         'Content-Type': 'application/json; charset=utf-8',
@@ -183,6 +186,8 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
       if (path === '/api/player' && req.method === 'GET') return send(200, store.wallet(player()));
       if (path.startsWith('/api/pvp/')) {
         const id = player();
+        if (path === '/api/pvp/overview' && req.method === 'GET')
+          return send(200, competition.overview(id, store.config().published));
         if (path === '/api/pvp/current' && req.method === 'GET') return send(200, pvp.current(id));
         if (path === '/api/pvp/state' && req.method === 'GET')
           return send(
@@ -191,7 +196,17 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
           );
         if (req.method !== 'POST') return send(405, { error: 'Method không hợp lệ.' });
         const input = JSON.parse((await body(req, 4096)).toString());
-        if (path === '/api/pvp/create') return send(201, pvp.create(id, input, store.config().published));
+        if (path === '/api/pvp/create' || path === '/api/pvp/queue') {
+          const config = store.config();
+          if (path.endsWith('/queue') && input.revision !== config.revision)
+            throw new Error('CONFLICT: Nội dung game đã cập nhật. Tải lại trang trước khi tìm trận.');
+          return send(
+            201,
+            path.endsWith('/queue')
+              ? pvp.enqueue(id, input, config.published, input.mode, config.revision)
+              : pvp.create(id, input, config.published, config.revision),
+          );
+        }
         if (path === '/api/pvp/join') return send(200, pvp.join(id, input.code, input));
         if (path === '/api/pvp/command') return send(200, pvp.command(id, input.code, input.command));
         if (path === '/api/pvp/reaction') return send(200, pvp.reaction(id, input.code, input.command));
@@ -245,6 +260,16 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
       });
     }
   });
+  const timer = setInterval(() => {
+    try {
+      pvp.tick();
+    } catch (error) {
+      console.error('PvP tick failed:', error);
+    }
+  }, 250);
+  timer.unref();
+  server.on('close', () => clearInterval(timer));
+  return server;
 }
 function requireSeparator() {
   return process.platform === 'win32' ? '\\' : '/';

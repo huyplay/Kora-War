@@ -1,3 +1,4 @@
+import type { MatchOutcome } from '../data/competition';
 import type { Battle, Difficulty } from '../core/index';
 import type { Hero } from '../data/index';
 import type { World } from '../rendering/World';
@@ -13,6 +14,7 @@ export interface ScreenContext {
   cards: string[];
   spells: SpellId[];
   readonly online: boolean;
+  readonly matchOutcome?: MatchOutcome;
   difficulty: Difficulty;
   wins: number;
   mode: 'lobby' | 'battle';

@@ -62,3 +62,9 @@ Xem [kiến trúc](docs/ARCHITECTURE.md) và [quyết định](docs/DECISIONS.md
 - Gemini không sửa core/data/server/app/workflow hoặc World.ts trong task art. Bàn giao manifest/provenance/budget/preview; Codex tích hợp qua PR sau QA local.
 - Quyết định mới nhất ngày 14/10/2026: người dùng không cần CI/CD; Codex tự QA và merge main. Workflow GitHub Actions đã tắt, không có required status checks. Quyết định này thay thế yêu cầu CI/CD/checks trước đó.
 - Giữ PR, lịch sử tuyến tính, giải quyết hội thoại và cấm force push/xóa main. Chỉ Codex thực hiện tích hợp sau các kiểm tra phù hợp, ghi bằng chứng vào PR/issue.
+
+## Đấu trường — quyết định 15/10/2026
+
+- Người dùng chọn Elo: điểm tăng/giảm theo đối thủ, bậc hạng do admin cấu hình. Đấu thường không đổi điểm, cả hai dùng map chuẩn và chỉ số chuẩn hóa.
+- Thêm Thử thách riêng với hồi mana nhanh và quá tải sớm, thông số do admin cấu hình. Không đưa cơ chế đặc biệt này vào đấu hạng/thường.
+- Module database `competition` quản lý chế độ, Elo, bậc hạng, ghép trận và Thử thách. Kết quả và điểm do server xác nhận, lưu SQLite; snapshot luật theo trận.

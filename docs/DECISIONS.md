@@ -118,3 +118,7 @@ Số nổi lấy chênh lệch HP giữa các snapshot, không lấy giá trị 
 ## QA thủ công và phối hợp Codex/Gemini — quyết định mới nhất 14/10/2026
 
 Người dùng yêu cầu không cần CI/CD, giao Codex tự QA và merge main; Gemini đang chạy song song phần design. Tắt GitHub workflow CI và gỡ required status checks, giữ PR/bảo vệ main. Codex review đúng HEAD sau các kiểm tra local phù hợp rồi squash/rebase merge; không chờ Billing hoặc tự bật lại CI/CD. Task/nhánh/worktree/scope riêng theo GitHub issues để hai agent không cùng sửa file. Xem [quy trình nhóm](TEAM-WORKFLOW.md).
+
+## 15/10/2026 — Đấu thường, Elo và Thử thách
+
+Người dùng chốt Elo và admin cấu hình bậc hạng; đấu thường/hạng dùng map chuẩn, chỉ số chuẩn hóa. Chế độ Thử thách riêng dùng hồi mana nhanh và quá tải sớm. Module `competition` và kết quả trận lưu SQLite, khóa cấu hình khi ghép trận; không reset mùa hoặc thưởng rank trong đợt này. Chi tiết: [Đấu trường](COMPETITION.md).

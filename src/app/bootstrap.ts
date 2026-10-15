@@ -1,3 +1,4 @@
+import { modeContent, competitionOf } from '../data/competition';
 import { type Difficulty } from '../core/index';
 import { tacticalBattle } from '../core/tactical';
 import { cycleBattle } from '../core/cycle-battle';
@@ -67,7 +68,8 @@ let gestureUid: number | undefined;
 let handSignature = '',
   openingKey = '';
 const activeGameplay = () => (mode === 'battle' ? battle.gameplay : GAMEPLAY);
-const cardInfo = (id: string) => (isSpell(id) ? activeGameplay().spells[id] : HERO_MAP[id]);
+const cardInfo = (id: string) =>
+  isSpell(id) ? activeGameplay().spells[id] : (mode === 'battle' ? battle.heroes : HERO_MAP)[id];
 const renderSpell = (id: keyof typeof SPELLS, index: number, roster = false) =>
   spellCard(id, index, roster, activeGameplay().spells);
 const spellTarget = (id: string): boolean | 'all' =>
@@ -148,7 +150,8 @@ $('#app').insertAdjacentHTML(
   'beforeend',
   '<div id="asset-loading" role="status">◈ Đang kết nối lõi Aether…</div>',
 );
-await world.prepareContent(gameSession.content);
+const renderContent = gameSession.resumeContent ?? gameSession.content;
+await world.prepareContent(renderContent);
 $('.arena-heading h1').textContent = gameSession.content.map.name;
 const portraits = Object.fromEntries(HEROES.map((h) => [h.id, world.portrait(h)]));
 function card(h: Hero, index: number, roster = false) {
@@ -169,7 +172,9 @@ function renderDeck() {
   handSignature = cards.map((card) => `${card.uid}:${card.id}`).join('|');
   $('#hand').classList.toggle('large-hand', cards.length > 6);
   $('#hand').innerHTML = cards
-    .map(({ id }, i) => (isSpell(id) ? renderSpell(id, i) : card(HERO_MAP[id], i)))
+    .map(({ id }, i) =>
+      isSpell(id) ? renderSpell(id, i) : card((mode === 'battle' ? battle.heroes : HERO_MAP)[id], i),
+    )
     .join('');
   const counts = traits([...new Set(deck)]);
   $('#synergies').innerHTML =
@@ -206,7 +211,7 @@ function renderDeck() {
 function showTooltip(id: string, el: HTMLElement) {
   if ($('#modal-root').children.length) return;
   if (isSpell(id)) return;
-  const h = HERO_MAP[id],
+  const h = (mode === 'battle' ? battle.heroes : HERO_MAP)[id],
     r = el.getBoundingClientRect();
   $('#hero-tooltip').innerHTML =
     `<span class="tooltip-origin">${ORIGINS[h.origin].name} · ${ROLES[h.role].name}</span><h3>${h.name} <small>${escapeHTML(h.title)}</small></h3><div class="stat-row"><span>♥ ${h.hp}</span><span>⚔ ${h.attack}</span><span>◎ ${h.range}m</span></div><b>✦ ${escapeHTML(h.ability)}</b><p>${escapeHTML(h.description)}</p><small>Tự kích hoạt · Hồi ${h.skillCooldown} giây</small>`;
@@ -437,7 +442,8 @@ function showOpening() {
   }
   openingHand(
     battle.hands[0],
-    (id, i) => (isSpell(id) ? renderSpell(id, i) : card(HERO_MAP[id], i)),
+    (id, i) =>
+      isSpell(id) ? renderSpell(id, i) : card((mode === 'battle' ? battle.heroes : HERO_MAP)[id], i),
     async (uids) => {
       if (pvp.active) return pvp.command('mulligan', undefined, 0, 0, undefined, uids);
       const error = battle.mulligan(0, uids);
@@ -466,6 +472,10 @@ function lobby() {
       .then(() => {
         onlineStarted = false;
         document.body.classList.remove('online-battle');
+        if (JSON.stringify(renderContent) !== JSON.stringify(gameSession.content)) {
+          location.reload();
+          return;
+        }
         lobby();
       })
       .catch((e) => toast(String(e)));
@@ -532,7 +542,9 @@ function updateHud() {
         ? 'LÕI ĐANG QUÁ TẢI'
         : battle.phase === 'paused'
           ? 'TẠM DỪNG'
-          : 'TRANH ĐOẠT LÕI';
+          : pvp.packet?.mode === 'challenge'
+            ? battle.content.map.name.toUpperCase()
+            : 'TRANH ĐOẠT LÕI';
     for (const [side, label] of [
       [0, 'ally'],
       [1, 'enemy'],
@@ -552,7 +564,9 @@ function updateHud() {
     document.querySelectorAll<HTMLElement>('#hand .hero-card').forEach((el) => {
       const id = el.dataset.hero!,
         remaining = Math.max(0, (battle.cooldowns[0][id] || 0) - battle.time);
-      const cooldown = isSpell(id) ? activeGameplay().spells[id].cooldown : RULES.cardCooldown;
+      const cooldown = isSpell(id)
+        ? activeGameplay().spells[id].cooldown
+        : (mode === 'battle' ? battle.content.rules : RULES).cardCooldown;
       el.classList.toggle('unaffordable', battle.mana[0] < cardInfo(id).cost);
       el.style.setProperty('--cooldown', `${(cooldown > 0 ? remaining / cooldown : 0) * 100}%`);
     });
@@ -593,6 +607,9 @@ const screenContext: ScreenContext = {
   },
   set spells(value) {
     spells = value;
+  },
+  get matchOutcome() {
+    return pvp.packet?.outcome;
   },
   get online() {
     return pvp.active;
@@ -960,13 +977,19 @@ pvp.onClosed = () => {
 pvp.onState = (packet: PvpPacket) => {
   if (packet.waiting) {
     if (!document.querySelector('#pvp-leave')) pvpScreen(pvp, deck, spells, lobby, cardDeck);
+    const status = document.querySelector('#pvp-status');
+    if (status && packet.mode && packet.mode !== 'friendly')
+      status.textContent = `Đang tìm đối thủ · ${packet.queueSeconds ?? 0}s · có thể hủy bất cứ lúc nào`;
     return;
   }
   if (!packet.state || !packet.content || !packet.opponent) return;
   if (!onlineStarted) {
-    if (JSON.stringify(packet.content) !== JSON.stringify(gameSession.content)) {
-      toast('Nội dung phòng khác phiên bản. Tải lại trang để đồng bộ.');
-      void pvp.leave().catch((e) => toast(String(e)));
+    if (
+      JSON.stringify(packet.content) !== JSON.stringify(renderContent) &&
+      JSON.stringify(packet.content) !== JSON.stringify(modeContent(renderContent, packet.mode ?? 'friendly'))
+    ) {
+      // The stored room token survives reload; never surrender solely because content was published.
+      location.reload();
       return;
     }
     onlineStarted = true;
@@ -1006,7 +1029,9 @@ pvp.onState = (packet: PvpPacket) => {
     $('.map-note').hidden = true;
     renderDeck();
     clearSelection();
-    toast('PvP bắt đầu · đội bạn luôn ở bên trái');
+    toast(
+      `${competitionOf(packet.content).modes[packet.mode ?? 'friendly'].name} · ${packet.content.map.name}`,
+    );
   }
   Object.assign(battle, packet.state);
   quickChat.receive(packet.code, packet.reactions ?? []);

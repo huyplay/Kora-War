@@ -178,11 +178,12 @@ test('the complete previous module release upgrades communication/presentation o
   const raw = db.config().published;
   delete raw.communication;
   delete raw.presentation;
+  delete raw.competition;
   const oldJson = JSON.stringify(raw);
   db.db.prepare('UPDATE config SET draft=?,published=? WHERE id=1').run(oldJson, oldJson);
   db.db.prepare('UPDATE revisions SET content=? WHERE id=1').run(oldJson);
   db.db.exec(
-    "DELETE FROM rule_modules WHERE module_id IN ('communication','presentation'); DELETE FROM rule_module_revisions WHERE module_id IN ('communication','presentation');",
+    "DELETE FROM rule_modules WHERE module_id IN ('communication','presentation','competition'); DELETE FROM rule_module_revisions WHERE module_id IN ('communication','presentation','competition');",
   );
   db.close();
   db = new GameDatabase(dir, 'test-password');

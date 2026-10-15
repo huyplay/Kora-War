@@ -203,6 +203,15 @@ async function save() {
   notice('Đã lưu bản nháp.');
 }
 function wire() {
+  const addTier = document.querySelector<HTMLButtonElement>('#add-rank-tier');
+  if (addTier)
+    addTier.onclick = () => {
+      const tiers = state.draft.competition!.rating.tiers;
+      tiers.push({ name: `Bậc ${tiers.length + 1}`, minimum: (tiers.at(-1)?.minimum ?? 0) + 200 });
+      dirty = true;
+      render();
+    };
+
   const addEngage = document.querySelector<HTMLButtonElement>('#add-engage');
   if (addEngage)
     addEngage.onclick = () => {

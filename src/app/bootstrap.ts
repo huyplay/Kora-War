@@ -994,9 +994,9 @@ pvp.onClosed = () => {
 pvp.onState = (packet: PvpPacket) => {
   if (packet.waiting) {
     if (!document.querySelector('#pvp-leave')) pvpScreen(pvp, deck, spells, lobby, cardDeck);
-    const status = document.querySelector('#pvp-status');
-    if (status && packet.mode && packet.mode !== 'friendly')
-      status.textContent = `Đang tìm đối thủ · ${packet.queueSeconds ?? 0}s · có thể hủy bất cứ lúc nào`;
+    const clock = document.querySelector('#pvp-queue-time');
+    const elapsed = `${packet.queueSeconds ?? 0}s`;
+    if (clock && clock.textContent !== elapsed) clock.textContent = elapsed;
     return;
   }
   if (!packet.state || !packet.content || !packet.opponent) return;

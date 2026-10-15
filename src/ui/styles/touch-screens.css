@@ -165,13 +165,6 @@ body {
   max-height: none;
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
-.ranking-list {
-  max-height: none;
-  overflow: hidden;
-}
-.competition-screen:has(.friend-room[open]) .mode-grid {
-  display: none;
-}
 .story-modal #story-pages {
   min-height: 72px;
 }
@@ -313,51 +306,6 @@ body {
   .economy-item > span {
     font-size: 10px;
   }
-  .competition-screen {
-    padding: 10px 16px !important;
-  }
-  .competition-heading h2 {
-    font-size: 23px;
-    margin: 0;
-  }
-  .competition-profile {
-    padding: 5px 8px;
-    margin: 4px 0;
-    font-size: 11px;
-  }
-  .mode-card {
-    min-height: 130px;
-    padding: 8px;
-    gap: 4px;
-  }
-  .mode-card small {
-    font-size: 10px;
-  }
-  .mode-card em {
-    font-size: 9px;
-  }
-  .mode-symbol {
-    font-size: 23px;
-  }
-  .ranking-columns {
-    gap: 12px;
-  }
-  .ranking-columns h3 {
-    margin: 3px 0;
-    font-size: 13px;
-  }
-  .ranking-row,
-  .history-row {
-    min-height: 40px;
-    padding: 4px;
-    font-size: 11px;
-    gap: 8px;
-  }
-  .ranking-row small,
-  .history-row small {
-    font-size: 9px;
-    margin: 1px 0;
-  }
   .story-modal .chapter-art {
     display: none;
   }
@@ -480,33 +428,8 @@ body {
   .home-battle {
     font-size: 15px;
   }
-  .competition-heading .eyebrow,
-  .mode-card em {
-    display: none;
-  }
-  .mode-grid {
-    margin: 6px 0;
-  }
-  .mode-card {
-    min-height: 112px;
-  }
-  .mode-card strong {
-    font-size: 17px;
-  }
-  .mode-card small {
-    font-size: 9px;
-  }
-  .mode-symbol {
-    font-size: 20px;
-  }
   #pvp-status:empty {
     display: none;
-  }
-  .ranking-row,
-  .history-row {
-    min-height: 36px;
-    padding: 3px;
-    font-size: 10px;
   }
   .story-modal #story-pages {
     min-height: 48px;

@@ -18,3 +18,5 @@
 Test input tự động kiểm tra một pointer, ngưỡng drag, double-up, pointercancel và cleanup. QA trình duyệt theo viewport được ghi ở [báo cáo QA](06-implementation/qa.md). Chưa kiểm chứng khóa orientation hoặc haptic trên thiết bị iOS/Android thật.
 
 Cập nhật mới: [HUD và phản hồi thẻ](MOBILE-HAND-QA.md), [bộ bài và chat nhanh](MOBILE-SHEETS-QA.md).
+
+[Đấu trường và thành tích mobile](MOBILE-ARENA-QA.md): chọn chế độ, phòng bạn bè, phân trang theo chiều cao và xử lý tải chậm/lỗi.

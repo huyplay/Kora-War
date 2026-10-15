@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { pageDeck, pageWindow } from '../src/ui/page-deck';
+import { fitPages } from '../src/ui/fit-pages';
 
 class Element extends EventTarget {
   children: Element[] = [];
@@ -14,8 +15,12 @@ class Element extends EventTarget {
   classList = { add() {} };
   buttons: Element[] = [];
   status?: Element;
+  afterElement?: Element;
+  clientHeight = 0;
   captures = new Set<number>();
-  after() {}
+  after(element: Element) {
+    this.afterElement = element;
+  }
   setAttribute() {}
   setPointerCapture(id: number) {
     this.captures.add(id);
@@ -100,4 +105,70 @@ test('touch pages expose every card, clamp endpoints, suppress swipe clicks and 
   assert.equal(pager.page, 2);
   assert.ok(nav.removed);
   assert.deepEqual(pageWindow(0, 6, -1), { page: 0, pages: 1, start: 0, end: 0 });
+});
+
+test('fitted ranking pages preserve the visible anchor on resize and release their observer on close', (t) => {
+  const originals = ['document', 'ResizeObserver'].map(
+    (key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)] as const,
+  );
+  let resize = () => {},
+    disconnected = false;
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: {
+      createElement: () => {
+        const nav = new Element();
+        nav.buttons = [new Element(), new Element()];
+        nav.status = new Element();
+        return nav;
+      },
+    },
+  });
+  Object.defineProperty(globalThis, 'ResizeObserver', {
+    configurable: true,
+    value: class {
+      constructor(callback: () => void) {
+        resize = callback;
+      }
+      observe() {}
+      disconnect() {
+        disconnected = true;
+      }
+    },
+  });
+  t.after(() =>
+    originals.forEach(([key, descriptor]) =>
+      descriptor
+        ? Object.defineProperty(globalThis, key, descriptor)
+        : Reflect.deleteProperty(globalThis, key),
+    ),
+  );
+  const root = new Element();
+  root.children = Array.from({ length: 100 }, () => new Element());
+  root.clientHeight = 192;
+  const pages = fitPages(root as unknown as HTMLElement, 'Xếp hạng');
+  assert.equal(root.children.filter((row) => !row.hidden).length, 4);
+  for (let i = 0; i < 5; i++) root.afterElement!.buttons[1].onclick!();
+  assert.equal(
+    root.children.findIndex((row) => !row.hidden),
+    20,
+  );
+  root.clientHeight = 96;
+  resize();
+  assert.equal(
+    root.children.findIndex((row) => !row.hidden),
+    20,
+  );
+  assert.equal(root.afterElement!.status!.textContent, '11 / 50');
+  root.clientHeight = 0;
+  resize();
+  assert.equal(root.afterElement!.status!.textContent, '11 / 50', 'hidden tab retains its page');
+  root.clientHeight = 144;
+  resize();
+  assert.equal(root.children[20].hidden, false, 'previous anchor remains on screen after growing');
+  while (!root.afterElement!.buttons[1].disabled) root.afterElement!.buttons[1].onclick!();
+  assert.equal(root.children[99].hidden, false, 'last standing stays reachable');
+  pages.dispose();
+  assert.ok(disconnected);
+  assert.ok(root.afterElement!.removed);
 });

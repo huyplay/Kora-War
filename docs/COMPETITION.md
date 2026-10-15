@@ -13,6 +13,8 @@ Sảnh → **Đấu trường · Hạng & thường**:
 
 Top 100 gồm người đã có ít nhất một trận hạng; cùng điểm sắp theo ID ổn định. Hồ sơ hiển thị tên tự sinh từ ID, bậc, Elo, số thắng/trận và vị trí. Lịch sử trả tối đa 20 trận của chính người chơi, gồm trận bị hủy.
 
+Giao diện mobile hiện dùng tab riêng cho bảng hạng/lịch sử và số hàng tự thích ứng chiều cao. Phòng bạn bè có màn riêng; Enter gửi mã và viewport thấp vẫn giữ nút vào phòng. Xem [QA đấu trường mobile](MOBILE-ARENA-QA.md).
+
 ## Admin và database
 
 Content Studio → **Đấu trường & hạng**: bật/tắt chế độ, đổi tên/mô tả, Elo khởi tạo/sàn/K/thang chênh lệch, thêm/bỏ/đổi ngưỡng bậc, khoảng ghép và thời hạn chờ, tên map Thử thách, hồi mana mỗi giây và thời điểm quá tải. Lưu nháp/phát hành theo revision như các module khác.

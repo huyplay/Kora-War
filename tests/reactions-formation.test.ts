@@ -168,6 +168,42 @@ test('mixed model footprints reserve actual body widths while keeping simulation
   }
 });
 
+test('rear-defense summons reserve a visual slot without moving existing invaders or combat positions', () => {
+  for (const home of [0, 1] as const) {
+    const sign = home === 0 ? -1 : 1;
+    const input = units(6).map((u, i) => ({ ...u, side: (1 - home) as 0 | 1, x: sign * (12.7 + i * 0.1) }));
+    const f = content.presentation!.formation,
+      board = content.gameplay!.board;
+    const layout = new FormationLayout();
+    const before = layout.update(input, f, board, 1 / 60);
+    const guards = units(6).map((u, i) => ({
+      ...u,
+      id: 20 + i,
+      side: home,
+      x: sign * (board.spawnMax - 0.1),
+    }));
+    const combined = [...input, ...guards],
+      combat = structuredClone(combined);
+    const after = layout.update(combined, f, board, 1 / 60);
+    for (const u of input) assert.deepEqual(after.get(u.id), before.get(u.id));
+    assert.equal(after.size, combined.length);
+    for (const u of guards) {
+      const a = after.get(u.id)!;
+      assert.ok(a.x >= board.minX && a.x <= board.maxX);
+      for (const v of combined.filter((v) => v.id !== u.id)) {
+        const b = after.get(v.id)!;
+        const gap =
+          (f.radius * (a.scale + b.scale)) / f.modelScale +
+          (f.spacing * Math.min(a.scale, b.scale)) / f.modelScale;
+        assert.ok(Math.hypot(a.x - b.x, a.z - b.z) >= gap - 1e-6);
+      }
+    }
+    assert.deepEqual(combined, combat);
+    const later = layout.update(combined, f, board, 1 / 60);
+    for (const u of input) assert.deepEqual(later.get(u.id), before.get(u.id));
+  }
+});
+
 test('the complete previous module release upgrades communication/presentation once and preserves history', (t) => {
   const dir = mkdtempSync(join(tmpdir(), 'kora-social-migration-'));
   let db = new GameDatabase(dir, 'test-password');

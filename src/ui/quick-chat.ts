@@ -2,6 +2,7 @@ import { communicationOf, type CommunicationConfig, type ReactionPacket } from '
 import type { ContentConfig } from '../data/content';
 import { escapeHTML } from './dom';
 import './styles/quick-chat.css';
+import { pageDeck } from './page-deck';
 
 /** UI reactions never enter the deterministic command log or simulation state. */
 export class QuickChat {
@@ -14,6 +15,7 @@ export class QuickChat {
   private sending = false;
   private timers: ReturnType<typeof setTimeout>[] = [];
   private generation = 0;
+  private pageCleanup: (() => void)[] = [];
   constructor(
     private context: {
       send: (id: string) => Promise<string | null>;
@@ -36,10 +38,13 @@ export class QuickChat {
     this.render();
   }
   private render() {
-    this.root.innerHTML = `<button class="quick-chat-toggle" aria-label="Chat nhanh" aria-expanded="false">•••</button><section class="quick-chat-panel" hidden aria-label="Emoji và chat nhanh"><div class="quick-chat-title"><strong>PHẢN HỒI NHANH</strong><button class="quick-chat-close" aria-label="Đóng chat nhanh">×</button></div><label class="quick-chat-mute"><input type="checkbox" ${this.muted ? 'checked' : ''}>Tắt phản hồi đối thủ</label><div class="quick-chat-content"><div class="quick-phrases">${this.config.reactions
+    this.pageCleanup.splice(0).forEach((f) => f());
+    this.root.innerHTML = `<button class="quick-chat-toggle" aria-label="Chat nhanh" aria-expanded="false">•••</button><section class="quick-chat-panel" hidden aria-label="Emoji và chat nhanh"><div class="quick-chat-title"><strong>PHẢN HỒI NHANH</strong><button class="quick-chat-close" aria-label="Đóng chat nhanh">×</button></div><label class="quick-chat-mute"><input type="checkbox" ${this.muted ? 'checked' : ''}>Tắt phản hồi đối thủ</label><nav class="screen-tabs" aria-label="Loại phản hồi"><button data-chat-tab="phrase" class="active">Câu nhanh</button><button data-chat-tab="emoji">Emoji</button></nav><div class="quick-chat-content"><section class="chat-page" data-chat-page="phrase"><div class="quick-phrases">${this.config.reactions
       .filter((r) => r.enabled && r.kind === 'phrase')
       .map((r) => `<button data-reaction="${escapeHTML(r.id)}">${escapeHTML(r.text)}</button>`)
-      .join('')}</div><div class="quick-emojis">${this.config.reactions
+      .join(
+        '',
+      )}</div></section><section class="chat-page" data-chat-page="emoji" hidden><div class="quick-emojis">${this.config.reactions
       .filter((r) => r.enabled && r.kind === 'emoji')
       .map(
         (r) =>
@@ -47,7 +52,23 @@ export class QuickChat {
       )
       .join(
         '',
-      )}</div></div><small>${this.context.online() ? 'Phản hồi gửi tới đối thủ' : 'Phản hồi luyện tập · chỉ bạn thấy'}</small></section><div class="reaction-bubble own" hidden aria-live="polite"></div><div class="reaction-bubble opponent" hidden aria-live="polite"></div>`;
+      )}</div></section></div><small>${this.context.online() ? 'Phản hồi gửi tới đối thủ' : 'Phản hồi luyện tập · chỉ bạn thấy'}</small></section><div class="reaction-bubble own" hidden aria-live="polite"></div><div class="reaction-bubble opponent" hidden aria-live="polite"></div>`;
+    this.root.querySelectorAll<HTMLElement>('[data-chat-tab]').forEach(
+      (button) =>
+        (button.onclick = () => {
+          this.root
+            .querySelectorAll<HTMLElement>('[data-chat-page]')
+            .forEach((page) => (page.hidden = page.dataset.chatPage !== button.dataset.chatTab));
+          this.root
+            .querySelectorAll<HTMLElement>('[data-chat-tab]')
+            .forEach((tab) => tab.classList.toggle('active', tab === button));
+        }),
+    );
+    for (const [selector, size, label] of [
+      ['.quick-phrases', 6, 'Câu nhanh'],
+      ['.quick-emojis', 8, 'Emoji'],
+    ] as const)
+      this.pageCleanup.push(pageDeck(this.root.querySelector<HTMLElement>(selector)!, size, label).dispose);
     const toggle = this.root.querySelector<HTMLButtonElement>('.quick-chat-toggle')!,
       panel = this.root.querySelector<HTMLElement>('.quick-chat-panel')!;
     const closePanel = (restoreFocus = true) => {
@@ -161,6 +182,7 @@ export class QuickChat {
     this.root.querySelector('.quick-chat-toggle')?.setAttribute('aria-expanded', 'false');
   }
   dispose() {
+    this.pageCleanup.splice(0).forEach((f) => f());
     this.reset();
     this.root.remove();
   }

@@ -11,9 +11,11 @@ export interface FormationPoint {
 export class FormationLayout {
   private rows = new Map<number, number>();
   private anchors = new Map<number, number>();
+  private rearDefenders = new Set<number>();
   reset() {
     this.rows.clear();
     this.anchors.clear();
+    this.rearDefenders.clear();
   }
   update(
     units: readonly Unit[],
@@ -28,6 +30,7 @@ export class FormationLayout {
       if (!alive.has(id)) {
         this.rows.delete(id);
         this.anchors.delete(id);
+        this.rearDefenders.delete(id);
       }
     if (!f.enabled) {
       for (const u of units)
@@ -36,10 +39,24 @@ export class FormationLayout {
     }
     const blend = 1 - Math.exp(-f.smoothing * Math.max(0, dt));
     for (let lane = 0; lane < LANES.length; lane++) {
-      const members = units
+      const laneUnits = units
         .filter((u) => u.lane === lane && u.hp > 0)
         .slice()
         .sort((a, b) => a.id - b.id);
+      const rule = board.deployment;
+      for (const u of laneUnits) {
+        const direction = u.side === 0 ? 1 : -1;
+        if (
+          rule?.enabled &&
+          !this.rows.has(u.id) &&
+          direction * u.x <= -board.spawnMax + rule.rearDefenseWidth &&
+          laneUnits.some((v) => v.side !== u.side && direction * v.x - rule.clearance <= -board.spawnMax)
+        )
+          this.rearDefenders.add(u.id);
+      }
+      // Reserve existing attackers first. A newly summoned rear guard may find a
+      // different visual slot, but must never push those attackers out of place.
+      const members = laneUnits.filter((u) => !this.rearDefenders.has(u.id));
       const counts = Array.from({ length: f.laneRows }, () => 0);
       for (const u of members) {
         const row = this.rows.get(u.id);
@@ -109,6 +126,47 @@ export class FormationLayout {
       ordered.forEach((u, i) =>
         result.set(u.id, { x: packed[i] + shift, z: LANES[lane] + z(u), scale: f.modelScale * compression }),
       );
+      for (const u of laneUnits.filter((v) => this.rearDefenders.has(v.id))) {
+        const old = this.anchors.get(u.id);
+        const anchor = old === undefined ? u.x : old + (u.x - old) * blend;
+        this.anchors.set(u.id, anchor);
+        const radius = Math.max(f.radius, footprint?.(u) || 0);
+        let chosen: FormationPoint | undefined;
+        for (let attempt = 0; attempt < 40 && !chosen; attempt++) {
+          const scale = 0.85 ** attempt,
+            r = radius * scale;
+          let bestDistance = Infinity;
+          for (let row = 0; row < f.laneRows; row++) {
+            const rowZ =
+              LANES[lane] + (row / (f.laneRows - 1) - 0.5) * 2 * Math.max(0.1, board.halfWidth - 0.3);
+            const low = lower + r,
+              high = upper - r;
+            const intervals = laneUnits.flatMap((v) => {
+              const p = result.get(v.id);
+              if (!p) return [];
+              const otherScale = p.scale / f.modelScale;
+              const gap =
+                r +
+                Math.max(f.radius, footprint?.(v) || 0) * otherScale +
+                f.spacing * Math.min(scale, otherScale);
+              const dx = Math.sqrt(Math.max(0, gap * gap - (rowZ - p.z) ** 2));
+              return dx > 0 ? [[p.x - dx, p.x + dx]] : [];
+            });
+            const candidates = [anchor, low, high, ...intervals.flatMap(([a, b]) => [a - 1e-5, b + 1e-5])];
+            for (const value of candidates) {
+              const x = Math.max(low, Math.min(high, value));
+              if (intervals.some(([a, b]) => x > a && x < b)) continue;
+              const distance = (x - anchor) ** 2 + (rowZ - LANES[lane]) ** 2;
+              if (distance < bestDistance) {
+                bestDistance = distance;
+                chosen = { x, z: rowZ, scale: f.modelScale * scale };
+                this.rows.set(u.id, row);
+              }
+            }
+          }
+        }
+        if (chosen) result.set(u.id, chosen);
+      }
     }
     return result;
   }

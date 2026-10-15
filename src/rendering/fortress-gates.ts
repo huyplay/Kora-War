@@ -2,6 +2,20 @@ import * as THREE from 'three';
 import { part } from './resources';
 import { LANES } from '../data/map';
 
+export const GATE_CONTACT_X = 0.61;
+/** Keep the visible strike face on the authoritative shared-core target plane. */
+export function alignFortressFrontages(
+  groups: THREE.Group[],
+  coreX: number,
+  height: number,
+  thickness: number,
+) {
+  for (const group of groups) {
+    group.scale.set(thickness, height, 1);
+    group.position.x = group.userData.sign * (coreX + GATE_CONTACT_X * thickness);
+  }
+}
+
 /** Original Elyndra gate silhouettes, built from reusable stone and metal surfaces. */
 export function fortressGates(stage: THREE.Group, stone: number[], bronze: number, make: typeof part = part) {
   const geometry: THREE.BufferGeometry[] = [];
@@ -42,6 +56,8 @@ export function fortressGates(stage: THREE.Group, stone: number[], bronze: numbe
         mesh.rotation.y = Math.PI / 2;
       }
       for (const edge of [-1, 1]) {
+        make(gate, 'box', stone[0], sign * 0.9, 0.82, edge * 1.68, 2.4, 1.8, 0.38);
+        make(gate, 'box', stone[2], sign * 0.9, 1.77, edge * 1.68, 2.5, 0.14, 0.48);
         for (let row = 0; row < 4; row++)
           part(
             gate,
@@ -56,13 +72,14 @@ export function fortressGates(stage: THREE.Group, stone: number[], bronze: numbe
           );
         make(gate, 'box', bronze, -sign * 0.52, 1.6, edge * 1.63, 0.08, 0.13, 0.47);
       }
-      // Recessed oak portcullis reads as an entrance behind the arch.
-      make(gate, 'box', 0x1e222c, sign * 0.65, 1.45, 0, 0.15, 2.8, 2.8);
+      // Strike face meets the lane endpoint; return walls join the fortress behind it.
+      make(gate, 'box', 0x1e222c, -sign * 0.48, 1.45, 0, 0.15, 2.8, 2.8);
       for (let bar = 0; bar < 7; bar++) {
         const z = (bar - 3) * 0.39;
-        make(gate, 'box', bar % 2 ? 0x513c2e : 0x433329, sign * 0.52, 1.4, z, 0.13, 2.65, 0.33);
+        make(gate, 'box', bar % 2 ? 0x513c2e : 0x433329, -sign * 0.52, 1.4, z, 0.13, 2.65, 0.33);
       }
-      for (const y of [0.6, 1.5, 2.35]) make(gate, 'box', bronze, sign * 0.41, y, 0, 0.08, 0.12, 2.8);
+      for (const y of [0.6, 1.5, 2.35])
+        make(gate, 'box', bronze, -sign * GATE_CONTACT_X, y, 0, 0.08, 0.12, 2.8);
       const gem = part(
         gate,
         'crystal',

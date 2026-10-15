@@ -4,6 +4,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { LANES } from '../data/index';
 import { part as primitive, seeded } from './resources';
 import { arenaBlock } from './arena-block';
+import { arenaSurroundings } from './arena-surroundings';
 
 export interface ArenaScene {
   scene: THREE.Scene;
@@ -31,6 +32,7 @@ export function buildEnvironment(world: ArenaScene) {
   stage.name = 'ArenaArchitecture';
   const random = seeded();
   const bronze = 0x9c734a;
+  arenaSurroundings(stage, ARENA_STONE, ARENA_WALL, bronze, part);
   part(stage, 'box', 0x242a35, 0, -0.8, 0, 35.4, 1.3, 16.8);
   part(stage, 'box', ARENA_WALL[0], 0, -0.28, 0, 33.8, 0.45, 15.7);
   for (let lane = 0; lane < LANES.length; lane++) {
@@ -76,10 +78,6 @@ export function buildEnvironment(world: ArenaScene) {
     const x = -16.8 + i * 2.4;
     part(stage, 'box', ARENA_WALL[2], x, 1.25, -9.3, 1.05, 0.75, 1.35);
     part(stage, 'box', ARENA_WALL[1], x, 1.65, -9.3, 1.13, 0.12, 1.42);
-    if (i % 3 === 0) {
-      const rock = part(stage, 'orb', 0x323b4d, x * 1.2, -1.1, -20, 5, 3 + random() * 2, 3.8);
-      rock.rotation.set(0.2, random() * 2, 0.3);
-    }
   }
   for (const side of [0, 1]) {
     const sign = side ? 1 : -1,
@@ -125,6 +123,7 @@ export function buildEnvironment(world: ArenaScene) {
     }
   }
   const fortresses: THREE.Group[] = [];
+  const gateFrontages: THREE.Group[] = [];
   const bake = (source: THREE.Group, target: THREE.Group | THREE.Scene, offsetX = 0) => {
     source.updateMatrixWorld(true);
     const batches = new Map<THREE.Material, THREE.BufferGeometry[]>();
@@ -165,6 +164,15 @@ export function buildEnvironment(world: ArenaScene) {
   bake(stage, world.scene);
   for (const side of fortressStage.children) {
     const sign = side.userData.sign;
+    const gateSource = new THREE.Group();
+    for (const child of side.children.slice()) if (child.name === 'FortressGate') gateSource.add(child);
+    const frontage = new THREE.Group();
+    frontage.name = 'FortressGateFrontage';
+    frontage.userData.sign = sign;
+    frontage.position.x = sign * 16.8;
+    bake(gateSource, frontage, sign * 16.8);
+    world.scene.add(frontage);
+    gateFrontages.push(frontage);
     const group = new THREE.Group();
     group.name = 'FortressSide';
     group.position.x = sign * 16.8;
@@ -175,5 +183,5 @@ export function buildEnvironment(world: ArenaScene) {
   }
   blocks.forEach((geometry) => geometry.dispose());
   gateGeometry.forEach((geometry) => geometry.dispose());
-  return { fortresses };
+  return { fortresses, gateFrontages };
 }

@@ -21,9 +21,9 @@ test('beveled architecture preserves bounds, finite UVs and a bounded static mes
   scene.traverse((o) => {
     if (o.name === 'ArenaSurfaceBatch') batches.push(o as THREE.Mesh);
   });
-  assert.ok(batches.length <= 32, 'static surface material batches');
+  assert.ok(batches.length <= 36, 'static surface material batches including the continuous rear terraces');
   const triangles = batches.reduce((n, mesh) => n + mesh.geometry.attributes.position.count / 3, 0);
-  assert.ok(triangles < 25000, `static surface triangles: ${triangles}`);
+  assert.ok(triangles < 35000, `static surface triangles: ${triangles}`);
   for (const mesh of batches) {
     for (const attr of ['position', 'normal', 'uv']) {
       assert.ok(mesh.geometry.attributes[attr]);
@@ -51,7 +51,7 @@ test('targeting uses the imported model footprint at the current formation scale
     scale = 0.4;
   assert.equal(unitVisualMetrics(3, scale, radius).pickRadius, radius * scale);
 });
-import { fortressGates } from '../src/rendering/fortress-gates';
+import { fortressGates, alignFortressFrontages, GATE_CONTACT_X } from '../src/rendering/fortress-gates';
 import { ARENA_WALL } from '../src/rendering/environment';
 
 test('six gate arches stay outside the combat field and have finite merged surface attributes', () => {
@@ -72,4 +72,25 @@ test('six gate arches stay outside the combat field and have finite merged surfa
     assert.ok([-4.8, 0, 4.8].includes(gate.position.z));
   }
   geometries.forEach((g) => g.dispose());
+});
+
+test('scaled gate strike faces meet the shared core plane on all three lanes', () => {
+  const scene = new THREE.Scene();
+  const { gateFrontages } = buildEnvironment({
+    scene,
+    coreCrystals: [],
+    baseGroups: [],
+    towerMeshes: new Map(),
+  });
+  for (const thickness of [0.8, 1.35, 2.2]) {
+    alignFortressFrontages(gateFrontages, 14, 1.6, thickness);
+    scene.updateMatrixWorld(true);
+    for (const group of gateFrontages) {
+      for (const z of [-4.8, 0, 4.8]) {
+        const point = group.localToWorld(new THREE.Vector3(-group.userData.sign * GATE_CONTACT_X, 1.5, z));
+        assert.ok(Math.abs(point.x - group.userData.sign * 14) < 1e-9);
+        assert.equal(point.z, z);
+      }
+    }
+  }
 });

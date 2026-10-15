@@ -134,3 +134,7 @@ Người dùng chốt Elo và admin cấu hình bậc hạng; đấu thường/h
 ## 15/10/2026 — Admin kiểm duyệt thủ công
 
 Người dùng chọn admin hủy kết quả, hoàn tác phần Elo của trận và khóa PvP có thời hạn, bắt buộc lý do; cảnh báo không tự động phạt. Kết quả gốc giữ nguyên, correction/action/audit lưu riêng. Xem [kiểm duyệt](FAIR-PLAY.md).
+
+## 15/10/2026 — Công thành, phòng thủ cuối lane và màn hình chạm
+
+Người dùng xác nhận cả ba cổng là phần hiển thị của lõi chung: đánh cổng trừ HP lõi, không tạo HP tường hoặc vật cản. Cổng được căn theo `board.coreX`, giữ khoảng đánh hiện tại của từng tướng. Triệu hồi cuối lane không di chuyển quân địch; renderer dành chỗ cho quân mới sau khi bố trí quân đang có. Các màn game chuyển sang trang cố định và vuốt ngang thay vì cuộn tài liệu. Xem [triển khai và QA](SIEGE-MOBILE.md).

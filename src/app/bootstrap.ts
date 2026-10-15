@@ -41,6 +41,7 @@ import { ArenaGestures } from './arena-gestures';
 import { QuickChat } from '../ui/quick-chat';
 import '../ui/styles/battle-hud.css';
 import '../ui/styles/energy-cards.css';
+import '../ui/styles/touch-screens.css';
 const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
 lifetime.defer(() => inputLifetime.abort());
@@ -175,6 +176,7 @@ function renderDeck() {
         );
   handSignature = cards.map((card) => `${card.uid}:${card.id}`).join('|');
   $('#hand').classList.toggle('large-hand', cards.length > 6);
+  $('#hand').style.setProperty('--hand-columns', String(Math.ceil(cards.length / 2)));
   $('#hand').innerHTML = cards
     .map(({ id }, i) =>
       isSpell(id) ? renderSpell(id, i) : card((mode === 'battle' ? battle.heroes : HERO_MAP)[id], i),

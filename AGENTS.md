@@ -79,3 +79,10 @@ Xem [kiến trúc](docs/ARCHITECTURE.md) và [quyết định](docs/DECISIONS.md
 
 - Người dùng chọn admin xử lý thủ công: hủy kết quả và hoàn tác phần Elo của trận, khóa PvP có thời hạn; bắt buộc lý do, không tự động phạt theo cảnh báo.
 - Kết quả gốc/bản sao luật giữ nguyên. Điều chỉnh Elo và khóa lưu riêng trong SQLite cùng audit; không tính lại các trận xảy ra sau đó.
+
+## Công thành và thao tác mobile — quyết định 15/10/2026
+
+- Mỗi lane giới hạn thả tướng theo quân địch gần căn cứ mình nhất; khi bị ép hết chỗ thì mở dải phòng thủ cuối lane. Chỉ phép được miễn giới hạn hiện tại; các tướng đặc biệt sẽ được quyết định sau. Luật nằm trong module database `board.deployment`, snapshot cũ không có policy giữ luật cũ.
+- Người dùng xác nhận đánh cổng/tường cuối cả ba lane trừ HP lõi chung hiện tại. Không thêm HP tường hoặc vật cản mới; mặt cổng hiển thị phải khớp tọa độ mục tiêu lõi.
+- Triệu hồi phòng thủ giữ nguyên vị trí địch, chỉ tìm chỗ hiển thị cho quân mới. Không thêm lực đẩy hoặc va chạm vào combat.
+- Các màn game dùng khung cố định, chạm/kéo thả và vuốt chuyển trang; không dùng cuộn trang để truy cập thẻ hoặc nút. Admin CMS vẫn là công cụ quản trị riêng.

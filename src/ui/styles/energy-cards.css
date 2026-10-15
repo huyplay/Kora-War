@@ -1,0 +1,310 @@
+/* Original code-native facets and animation; values are presentation only. */
+.in-battle .command-deck {
+  border: 2px solid #ac8c56;
+  border-bottom-color: #4b3d30;
+  background: linear-gradient(105deg, #121925f5, #243445ed 48%, #111926f5);
+  box-shadow:
+    inset 0 1px #fff3,
+    0 3px 18px #0009;
+}
+.in-battle .hero-card {
+  border: 3px solid #bcc8d1;
+  border-bottom-color: #77828c;
+  border-radius: 5px;
+  background: radial-gradient(
+    ellipse at 50% 25%,
+    color-mix(in srgb, var(--hero-color) 55%, #27374e),
+    #101a2b 80%
+  );
+  box-shadow:
+    0 3px 3px #000b,
+    inset 0 0 0 2px #0d1629;
+  overflow: visible;
+}
+.in-battle .hero-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  transform: none;
+  border-radius: 2px;
+  filter: contrast(1.08) saturate(1.12);
+}
+.in-battle .hero-card::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border: 1px solid #f7ecb550;
+  pointer-events: none;
+  border-radius: 2px;
+}
+.in-battle .hero-card .card-shade {
+  inset: 0;
+  border-radius: 2px;
+  background: linear-gradient(transparent 48%, #07111bc9 82%, #070e1ff2);
+}
+.in-battle .hero-card .card-name {
+  font-weight: 800;
+  color: #fff9e7;
+  text-shadow: 0 2px 2px #000;
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+.in-battle .hero-card .card-cost {
+  top: -7px;
+  left: -8px;
+  width: 33px;
+  height: 36px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(50% 0, 97% 25%, 97% 75%, 50% 100%, 3% 75%, 3% 25%);
+  background: conic-gradient(
+    from 30deg,
+    #9ae8ff 0 20%,
+    #2d9edb 20% 48%,
+    #17749f 48% 67%,
+    #76cdeb 67% 83%,
+    #d4f6ff 83%
+  );
+  color: white;
+  font:
+    900 26px/1 'Be Vietnam Pro',
+    sans-serif;
+  text-shadow:
+    0 2px #09243c,
+    1px 0 #09243c,
+    -1px 0 #09243c;
+  box-shadow: inset 0 0 0 2px #d6f7ff;
+}
+.in-battle .hero-card.selected {
+  transform: translateY(-10px) scale(1.045);
+  z-index: 5;
+  border-color: #ffe9a5;
+  box-shadow:
+    0 0 0 1px #614517,
+    0 0 18px #ffce6466;
+  animation: card-ready 1.6s ease-in-out infinite;
+}
+.in-battle .hero-card.unaffordable {
+  opacity: 1;
+  filter: none;
+  border-color: #7b858f;
+}
+.in-battle .hero-card.unaffordable img,
+.in-battle .hero-card.unaffordable .spell-art {
+  filter: grayscale(1) brightness(0.64);
+}
+.in-battle .hero-card.unaffordable .card-cost {
+  background: conic-gradient(#dce3e8, #707d8b, #ccd4dc, #9da8b1, #dce3e8);
+  color: #fff;
+  text-shadow: 0 2px #1f2831;
+}
+.in-battle .hero-card:not(.unaffordable) .spell-art {
+  filter: drop-shadow(0 0 10px var(--hero-color));
+}
+.in-battle .mana-panel {
+  position: relative;
+  gap: 5px;
+  height: 34px;
+  margin: 7px 0 0;
+  padding-left: 1px;
+}
+.in-battle .mana-crystal {
+  display: none;
+}
+.in-battle .mana-panel > strong {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 39px;
+  height: 40px;
+  font:
+    900 26px/1 'Be Vietnam Pro',
+    sans-serif;
+  color: #fff;
+  text-shadow: 0 2px #123d57;
+  clip-path: polygon(50% 0, 96% 25%, 96% 75%, 50% 100%, 4% 75%, 4% 25%);
+  background: conic-gradient(from 30deg, #9becff, #167bba 37%, #34a4d4 65%, #c5f5ff);
+}
+.in-battle .mana-panel > strong::after {
+  content: '/' attr(data-max);
+  font-size: 8px;
+  position: absolute;
+  bottom: 5px;
+  right: 8px;
+  text-shadow: 0 1px #183b54;
+}
+.in-battle .mana-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 3px;
+  height: 23px;
+  overflow: visible;
+  padding: 0 2px;
+  background: linear-gradient(#112238, #0a1526);
+  border: 1px solid #607e95;
+  border-radius: 13px;
+}
+.in-battle .mana-track > span {
+  position: relative;
+  flex: 0 1 24px;
+  width: 24px;
+  min-width: 0;
+  height: 26px;
+  transform: none;
+  border-radius: 0;
+  border: 0;
+  overflow: visible;
+  background: #5d6978;
+  clip-path: polygon(50% 0, 98% 25%, 98% 75%, 50% 100%, 2% 75%, 2% 25%);
+}
+.in-battle .mana-track > span > i {
+  position: absolute;
+  inset: 0;
+  width: auto !important;
+  height: auto;
+  display: block;
+  transform: scaleY(1);
+  background: conic-gradient(
+    from 30deg,
+    #4f5b69 0 20%,
+    #313d4c 20% 48%,
+    #232d3a 48% 67%,
+    #465264 67% 83%,
+    #687787 83%
+  );
+}
+.in-battle .mana-track > span > i > b {
+  display: block;
+  position: absolute;
+  inset: 0;
+  clip-path: inset(calc(100% - var(--mana-fill)) 0 0);
+  background: conic-gradient(
+    from 30deg,
+    #b2f6ff 0 20%,
+    #3fbaed 20% 48%,
+    #136da4 48% 67%,
+    #6bd4ef 67% 83%,
+    #ddfbff 83%
+  );
+  transition: clip-path 0.17s linear;
+}
+.in-battle .mana-track > span.filled {
+  animation: mana-arrive 0.38s ease-out;
+}
+.in-battle .mana-track > span.filling {
+  filter: brightness(1.3);
+}
+.in-battle .mana-track > span.filling::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 15%, #fff9 50%, transparent 80%);
+  animation: mana-shimmer 1s linear infinite;
+}
+.in-battle .mana-panel[data-state='full'] .mana-track {
+  box-shadow: 0 0 12px #59d6ff55;
+}
+.in-battle .draw-back {
+  border-color: #b2deff;
+  background: linear-gradient(135deg, #48c8f9 0 18%, #1679b8 19% 48%, #0d3f70 49% 80%, #286d9d 81%);
+  box-shadow:
+    3px 0 #142b43,
+    5px 0 #b5daef,
+    inset 0 0 0 3px #104a76;
+}
+@keyframes mana-arrive {
+  from {
+    filter: brightness(2.2);
+    transform: translateY(-3px) scale(1.12);
+  }
+  to {
+    filter: brightness(1);
+    transform: none;
+  }
+}
+@keyframes mana-shimmer {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(110%);
+  }
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .in-battle .mana-panel {
+    height: 25px;
+    margin-top: 5px;
+    gap: 3px;
+  }
+  .in-battle .mana-panel > strong {
+    flex-basis: 30px;
+    height: 32px;
+    font-size: 22px;
+  }
+  .in-battle .mana-track {
+    height: 18px;
+    gap: 3px;
+  }
+  .in-battle .mana-track > span {
+    width: 20px;
+    flex-basis: 20px;
+    height: 21px;
+  }
+  .in-battle .hero-card .card-cost {
+    width: 27px;
+    height: 30px;
+    font-size: 21px;
+    top: -5px;
+    left: -6px;
+  }
+  .in-battle .hero-card.selected {
+    transform: translateY(-6px) scale(1.035);
+  }
+  .in-battle .hero-card .card-name {
+    font-size: 12px;
+  }
+}
+@media (orientation: landscape) and (max-height: 420px) {
+  .in-battle .mana-panel {
+    height: 20px;
+    margin-top: 4px;
+  }
+  .in-battle .mana-panel > strong {
+    flex-basis: 26px;
+    height: 27px;
+    font-size: 19px;
+  }
+  .in-battle .mana-panel > strong::after {
+    font-size: 7px;
+    bottom: 2px;
+    right: 5px;
+  }
+  .in-battle .mana-track,
+  .in-battle .mana-track > span {
+    height: 18px;
+  }
+  .in-battle .hero-card .card-cost {
+    width: 23px;
+    height: 26px;
+    font-size: 18px;
+  }
+  .in-battle .hero-card .card-name {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .in-battle .mana-track > span,
+  .in-battle .mana-track > span.filling::after,
+  .in-battle .hero-card.selected {
+    animation: none;
+  }
+  .in-battle .mana-track > span > i > b {
+    transition: none;
+  }
+}

@@ -4,7 +4,7 @@
   "license": "Project owner confirmed permission to use Riot assets in Kora War on 2026-10-13; scope supplied by owner, not independently verified",
   "models": [
     {"hero":"solan","champion":"garen","modelId":86000,"height":2.25},
-    {"hero":"aurelia","champion":"lux","modelId":99000,"height":2.15},
+    {"hero":"aurelia","champion":"lux","modelId":99000,"height":2.15,"portraitYaw":180},
     {"hero":"lyra","champion":"ashe","modelId":22000,"height":2.15},
     {"hero":"brann","champion":"maokai","modelId":57000,"height":2.7},
     {"hero":"nyx","champion":"katarina","modelId":55000,"height":2.1},

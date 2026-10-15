@@ -37,7 +37,7 @@ test('spell targeting previews match each spell radius, warning width and color'
   }
 });
 
-test('spell previews reject off-lane positions and restore hero and pulse rings afterward', () => {
+test('spell previews reject off-lane positions, mark invalid hero placement red and restore valid rings', () => {
   const { world, point } = preview();
   try {
     point.spellValid = false;
@@ -46,9 +46,9 @@ test('spell previews reject off-lane positions and restore hero and pulse rings 
     point.spellValid = true;
     world.setHover(0, 0, true, 'fire');
     world.setHover(0, 0);
-    assert.equal(world.hoverRing.visible, false);
+    assert.equal(world.hoverRing.visible, true);
     assert.deepEqual(world.hoverRing.scale.toArray(), [1, 1, 1]);
-    assert.equal(world.hoverRing.material.color.getHex(), 0xa2ffdd);
+    assert.equal(world.hoverRing.material.color.getHex(), 0xff536a);
     point.valid = true;
     world.setHover(0, 0);
     assert.equal(world.hoverRing.visible, true);

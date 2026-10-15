@@ -1,6 +1,7 @@
 import { defaultContent, validateContent, type ContentConfig } from '../data/content';
 import { DEFAULT_DECK, ENEMY_DECK, HERO_MAP, LANES, RULES, STEP, traits, type Hero } from '../data/index';
 import { runAI } from './ai/heuristic';
+import { quickDeploymentX } from './physics/deployment-range';
 import { castAbility } from './systems/cast-ability';
 import { applyDamage, applyHealing } from './systems/damage';
 import { deployUnit, validateDeployment } from './systems/deployment';
@@ -199,7 +200,9 @@ export class Battle {
     side: Side,
     heroId: string,
     lane: number,
-    x = (side === 0 ? -1 : 1) * this.gameplay.board.spawnX,
+    x = this.cycling
+      ? quickDeploymentX(this, side, lane, this.gameplay.board.spawnX)
+      : (side === 0 ? -1 : 1) * this.gameplay.board.spawnX,
     uid?: number,
   ): string | null {
     return validateDeployment(this, side, heroId, lane, x, uid);
@@ -208,7 +211,9 @@ export class Battle {
     side: Side,
     heroId: string,
     lane: number,
-    x = (side === 0 ? -1 : 1) * this.gameplay.board.spawnX,
+    x = this.cycling
+      ? quickDeploymentX(this, side, lane, this.gameplay.board.spawnX)
+      : (side === 0 ? -1 : 1) * this.gameplay.board.spawnX,
     uid?: number,
   ): string | null {
     return deployUnit(this, side, heroId, lane, x, uid);

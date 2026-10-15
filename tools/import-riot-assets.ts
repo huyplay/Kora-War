@@ -8,7 +8,7 @@ import { selectAnimationClips } from './animation-mapping';
 const manifest = JSON.parse(readFileSync('assets/riot/manifest.json', 'utf8')) as {
   author: string;
   license: string;
-  models: { hero: string; champion: string; modelId: number; height: number }[];
+  models: { hero: string; champion: string; modelId: number; height: number; portraitYaw?: number }[];
 };
 const directory = resolve(process.env.KORA_DATA_DIR || '.data');
 const store = new GameDatabase(directory, process.env.KORA_ADMIN_PASSWORD);
@@ -58,7 +58,13 @@ try {
         sourceUrl,
         rightsConfirmed: true,
       });
-    current.draft.models[model.hero] = { assetId: String(asset.id), height: model.height, yaw: 0, clips };
+    current.draft.models[model.hero] = {
+      assetId: String(asset.id),
+      height: model.height,
+      yaw: 0,
+      portraitYaw: model.portraitYaw ?? 0,
+      clips,
+    };
     processed.push({
       hero: model.hero,
       champion: model.champion,

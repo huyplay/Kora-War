@@ -14,13 +14,18 @@ class Element extends EventTarget {
   classList = { add() {} };
   buttons: Element[] = [];
   status?: Element;
+  captures = new Set<number>();
   after() {}
   setAttribute() {}
-  setPointerCapture() {}
-  hasPointerCapture() {
-    return true;
+  setPointerCapture(id: number) {
+    this.captures.add(id);
   }
-  releasePointerCapture() {}
+  hasPointerCapture(id: number) {
+    return this.captures.has(id);
+  }
+  releasePointerCapture(id: number) {
+    this.captures.delete(id);
+  }
   querySelectorAll() {
     return this.buttons;
   }
@@ -59,8 +64,12 @@ test('touch pages expose every card, clamp endpoints, suppress swipe clicks and 
   assert.equal(root.children.filter((e) => !e.hidden).length, 6);
   pointer('pointerdown', 300);
   pointer('pointermove', 200);
+  const cardLostCapture = Object.assign(new Event('lostpointercapture'), { pointerId: 1 });
+  Object.defineProperty(cardLostCapture, 'target', { value: new Element() });
+  root.dispatchEvent(cardLostCapture);
   pointer('pointerup', 100);
-  assert.equal(pager.page, 1);
+  assert.equal(pager.page, 1, 'implicit touch capture can transfer from a card to its paging surface');
+  assert.equal(root.captures.size, 0, 'completed swipes release capture');
   assert.equal(root.dispatchEvent(new Event('click', { cancelable: true })), false);
   pointer('pointerdown', 300);
   pointer('pointermove', 290, 200);
@@ -72,7 +81,19 @@ test('touch pages expose every card, clamp endpoints, suppress swipe clicks and 
   assert.ok(root.children.slice(12).every((e) => !e.hidden));
   pager.show(100);
   assert.equal(pager.page, 2);
+  for (const event of ['pointercancel', 'lostpointercapture']) {
+    pointer('pointerdown', 100);
+    pointer('pointermove', 200);
+    assert.equal(root.captures.size, 1);
+    pointer(event, 200);
+    assert.equal(root.captures.size, 0, `${event} releases capture`);
+    pointer('pointerup', 300);
+    assert.equal(pager.page, 2, 'interrupted gestures never navigate');
+  }
+  pointer('pointerdown', 100);
+  pointer('pointermove', 200);
   pager.dispose();
+  assert.equal(root.captures.size, 0, 'unmount during swipe releases capture');
   pointer('pointerdown', 100);
   pointer('pointermove', 200);
   pointer('pointerup', 300);

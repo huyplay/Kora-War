@@ -123,19 +123,6 @@
 .deck-slot .card-role {
   display: none;
 }
-.remove-card {
-  position: absolute;
-  right: -3px;
-  top: -3px;
-  border: 1px solid #ddb277;
-  color: #fff;
-  background: #7b2634;
-  width: 23px;
-  height: 23px;
-  border-radius: 50%;
-  font-size: 18px;
-  z-index: 3;
-}
 .empty-slot {
   border: 1px dashed #6f7f91;
   border-radius: 8px;

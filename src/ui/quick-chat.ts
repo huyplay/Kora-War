@@ -1,6 +1,7 @@
 import { communicationOf, type CommunicationConfig, type ReactionPacket } from '../data/communication';
 import type { ContentConfig } from '../data/content';
 import { escapeHTML } from './dom';
+import { icon } from './icons';
 import './styles/quick-chat.css';
 import { pageDeck } from './page-deck';
 
@@ -16,6 +17,7 @@ export class QuickChat {
   private timers: ReturnType<typeof setTimeout>[] = [];
   private generation = 0;
   private pageCleanup: (() => void)[] = [];
+  private cooldownTimer?: ReturnType<typeof setTimeout>;
   constructor(
     private context: {
       send: (id: string) => Promise<string | null>;
@@ -34,12 +36,13 @@ export class QuickChat {
     document.querySelector('#app main')!.append(this.root);
   }
   configure(content: ContentConfig) {
+    this.reset();
     this.config = communicationOf(content);
     this.render();
   }
   private render() {
     this.pageCleanup.splice(0).forEach((f) => f());
-    this.root.innerHTML = `<button class="quick-chat-toggle" aria-label="Chat nhanh" aria-expanded="false">•••</button><section class="quick-chat-panel" hidden aria-label="Emoji và chat nhanh"><div class="quick-chat-title"><strong>PHẢN HỒI NHANH</strong><button class="quick-chat-close" aria-label="Đóng chat nhanh">×</button></div><label class="quick-chat-mute"><input type="checkbox" ${this.muted ? 'checked' : ''}>Tắt phản hồi đối thủ</label><nav class="screen-tabs" aria-label="Loại phản hồi"><button data-chat-tab="phrase" class="active">Câu nhanh</button><button data-chat-tab="emoji">Emoji</button></nav><div class="quick-chat-content"><section class="chat-page" data-chat-page="phrase"><div class="quick-phrases">${this.config.reactions
+    this.root.innerHTML = `<button class="quick-chat-toggle" aria-label="Chat nhanh" aria-expanded="false">•••</button><button class="quick-chat-dismiss" hidden tabindex="-1" aria-label="Đóng chat nhanh bằng cách chạm ngoài"></button><section class="quick-chat-panel" hidden role="dialog" aria-modal="true" aria-label="Emoji và chat nhanh"><div class="quick-chat-bar"><nav class="screen-tabs" aria-label="Loại phản hồi"><button data-chat-tab="phrase" class="active" aria-pressed="true">Câu nhanh</button><button data-chat-tab="emoji" aria-pressed="false">Emoji</button></nav><button class="quick-chat-mute ${this.muted ? 'is-muted' : ''}" aria-label="Tắt phản hồi đối thủ" aria-pressed="${this.muted}">${icon('sound')}<span aria-hidden="true"></span></button><button class="quick-chat-close" aria-label="Đóng chat nhanh">${icon('close')}</button></div><div class="quick-chat-content"><section class="chat-page" data-chat-page="phrase"><div class="quick-phrases">${this.config.reactions
       .filter((r) => r.enabled && r.kind === 'phrase')
       .map((r) => `<button data-reaction="${escapeHTML(r.id)}">${escapeHTML(r.text)}</button>`)
       .join(
@@ -48,20 +51,21 @@ export class QuickChat {
       .filter((r) => r.enabled && r.kind === 'emoji')
       .map(
         (r) =>
-          `<button data-reaction="${escapeHTML(r.id)}" aria-label="${escapeHTML(r.label)}" title="${escapeHTML(r.label)}">${r.imageAssetId ? `<img src="/api/assets/${escapeHTML(r.imageAssetId)}" alt="${escapeHTML(r.label)}">` : `<span>${escapeHTML(r.text)}</span>`}</button>`,
+          `<button data-reaction="${escapeHTML(r.id)}" aria-label="${escapeHTML(r.label)}">${r.imageAssetId ? `<img src="/api/assets/${escapeHTML(r.imageAssetId)}" alt="" draggable="false">` : `<span>${escapeHTML(r.text)}</span>`}</button>`,
       )
       .join(
         '',
-      )}</div></section></div><small>${this.context.online() ? 'Phản hồi gửi tới đối thủ' : 'Phản hồi luyện tập · chỉ bạn thấy'}</small></section><div class="reaction-bubble own" hidden aria-live="polite"></div><div class="reaction-bubble opponent" hidden aria-live="polite"></div>`;
+      )}</div></section></div></section><div class="reaction-bubble own" hidden aria-live="polite"></div><div class="reaction-bubble opponent" hidden aria-live="polite"></div>`;
     this.root.querySelectorAll<HTMLElement>('[data-chat-tab]').forEach(
       (button) =>
         (button.onclick = () => {
           this.root
             .querySelectorAll<HTMLElement>('[data-chat-page]')
             .forEach((page) => (page.hidden = page.dataset.chatPage !== button.dataset.chatTab));
-          this.root
-            .querySelectorAll<HTMLElement>('[data-chat-tab]')
-            .forEach((tab) => tab.classList.toggle('active', tab === button));
+          this.root.querySelectorAll<HTMLElement>('[data-chat-tab]').forEach((tab) => {
+            tab.classList.toggle('active', tab === button);
+            tab.setAttribute('aria-pressed', String(tab === button));
+          });
         }),
     );
     for (const [selector, size, label] of [
@@ -71,23 +75,28 @@ export class QuickChat {
       this.pageCleanup.push(pageDeck(this.root.querySelector<HTMLElement>(selector)!, size, label).dispose);
     const toggle = this.root.querySelector<HTMLButtonElement>('.quick-chat-toggle')!,
       panel = this.root.querySelector<HTMLElement>('.quick-chat-panel')!;
-    const closePanel = (restoreFocus = true) => {
-      panel.hidden = true;
-      toggle.setAttribute('aria-expanded', 'false');
-      if (restoreFocus) toggle.focus({ preventScroll: true });
-    };
     toggle.setAttribute('aria-controls', 'quick-chat-panel');
     panel.id = 'quick-chat-panel';
     toggle.onclick = () => {
-      panel.hidden = !panel.hidden;
-      toggle.setAttribute('aria-expanded', String(!panel.hidden));
-      if (!panel.hidden)
-        panel.querySelector<HTMLButtonElement>('.quick-chat-close')!.focus({ preventScroll: true });
+      if (!panel.hidden) this.closePanel();
+      else {
+        panel.hidden = false;
+        this.root.querySelector<HTMLElement>('.quick-chat-dismiss')!.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+        panel.querySelector<HTMLButtonElement>('[data-chat-tab].active')!.focus({ preventScroll: true });
+      }
       this.context.sound();
     };
-    this.root.querySelector<HTMLButtonElement>('.quick-chat-close')!.onclick = () => closePanel();
-    this.root.querySelector<HTMLInputElement>('input')!.onchange = (e) => {
-      this.muted = (e.target as HTMLInputElement).checked;
+    this.root.querySelector<HTMLButtonElement>('.quick-chat-close')!.onclick = () => this.closePanel();
+    this.root.querySelector<HTMLButtonElement>('.quick-chat-dismiss')!.onclick = (e) => {
+      e.stopPropagation();
+      this.closePanel();
+    };
+    const mute = this.root.querySelector<HTMLButtonElement>('.quick-chat-mute')!;
+    mute.onclick = () => {
+      this.muted = !this.muted;
+      mute.setAttribute('aria-pressed', String(this.muted));
+      mute.classList.toggle('is-muted', this.muted);
       if (this.muted) this.root.querySelector<HTMLElement>('.opponent')!.hidden = true;
       try {
         localStorage.setItem('kora-mute-reactions', this.muted ? '1' : '0');
@@ -101,23 +110,46 @@ export class QuickChat {
     this.root.onkeydown = (e) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        closePanel();
+        this.closePanel();
+      } else if (e.key === 'Tab' && !panel.hidden) {
+        const controls = Array.from(
+          panel.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'),
+        ).filter((b) => b.getClientRects().length > 0);
+        const index = controls.indexOf(document.activeElement as HTMLButtonElement);
+        if (e.shiftKey && index <= 0) {
+          e.preventDefault();
+          controls.at(-1)?.focus({ preventScroll: true });
+        } else if (!e.shiftKey && (index < 0 || index === controls.length - 1)) {
+          e.preventDefault();
+          controls[0]?.focus({ preventScroll: true });
+        }
       }
       e.stopPropagation();
     };
   }
+  private closePanel(restoreFocus = true) {
+    this.root
+      .querySelectorAll<HTMLElement>('.quick-chat-panel,.quick-chat-dismiss')
+      .forEach((el) => (el.hidden = true));
+    const toggle = this.root.querySelector<HTMLButtonElement>('.quick-chat-toggle');
+    toggle?.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) toggle?.focus({ preventScroll: true });
+  }
+  private updateSendState() {
+    const cooling = performance.now() < this.nextSend;
+    this.root.classList.toggle('is-cooling', cooling);
+    this.root.classList.toggle('is-sending', this.sending);
+    this.root.querySelector('.quick-chat-toggle')?.setAttribute('aria-busy', String(this.sending || cooling));
+    this.root
+      .querySelectorAll<HTMLButtonElement>('[data-reaction]')
+      .forEach((button) => (button.disabled = this.sending || cooling));
+  }
   private async send(id: string) {
-    if (this.sending || performance.now() < this.nextSend) {
-      this.context.notify('Chờ một nhịp trước khi gửi tiếp.');
-      return;
-    }
+    if (this.sending || performance.now() < this.nextSend) return;
     const generation = this.generation;
     this.sending = true;
-    const panel = this.root.querySelector<HTMLElement>('.quick-chat-panel')!;
-    panel.hidden = true;
-    const toggle = this.root.querySelector<HTMLButtonElement>('.quick-chat-toggle')!;
-    toggle.setAttribute('aria-expanded', 'false');
-    toggle.focus({ preventScroll: true });
+    this.updateSendState();
+    this.closePanel();
     let error: string | null;
     try {
       error = this.context.online() ? await this.context.send(id) : null;
@@ -127,10 +159,18 @@ export class QuickChat {
     if (generation !== this.generation) return;
     this.sending = false;
     if (error) {
+      this.updateSendState();
       this.context.notify(error);
       return;
     }
     this.nextSend = performance.now() + this.config.cooldownSeconds * 1000;
+    this.root.style.setProperty('--reaction-cooldown', `${this.config.cooldownSeconds}s`);
+    this.updateSendState();
+    this.cooldownTimer = setTimeout(() => {
+      this.nextSend = 0;
+      this.cooldownTimer = undefined;
+      this.updateSendState();
+    }, this.config.cooldownSeconds * 1000);
     if (!this.context.online()) this.show(0, id, this.config.displaySeconds);
     this.context.sound();
   }
@@ -174,12 +214,13 @@ export class QuickChat {
     this.room = '';
     this.lastId = 0;
     this.nextSend = 0;
+    clearTimeout(this.cooldownTimer);
+    this.cooldownTimer = undefined;
+    this.updateSendState();
     this.timers.forEach(clearTimeout);
     this.timers = [];
-    this.root
-      .querySelectorAll<HTMLElement>('.reaction-bubble,.quick-chat-panel')
-      .forEach((e) => (e.hidden = true));
-    this.root.querySelector('.quick-chat-toggle')?.setAttribute('aria-expanded', 'false');
+    this.root.querySelectorAll<HTMLElement>('.reaction-bubble').forEach((e) => (e.hidden = true));
+    this.closePanel(false);
   }
   dispose() {
     this.pageCleanup.splice(0).forEach((f) => f());

@@ -18,6 +18,11 @@ export function pageDeck(root: HTMLElement, size: number, label: string) {
   let page = 0,
     drag: { id: number; x: number; y: number; active: boolean } | undefined,
     suppress = 0;
+  function releaseDrag() {
+    const id = drag?.id;
+    drag = undefined;
+    if (id !== undefined && root.hasPointerCapture(id)) root.releasePointerCapture(id);
+  }
   function show(value: number) {
     const range = pageWindow(items.length, size, value);
     page = range.page;
@@ -32,7 +37,7 @@ export function pageDeck(root: HTMLElement, size: number, label: string) {
   root.addEventListener(
     'pointerdown',
     (e) => {
-      if (e.isPrimary && e.button === 0)
+      if (!drag && e.isPrimary && e.button === 0)
         drag = { id: e.pointerId, x: e.clientX, y: e.clientY, active: false };
     },
     { signal: lifetime.signal },
@@ -44,8 +49,10 @@ export function pageDeck(root: HTMLElement, size: number, label: string) {
       const dx = e.clientX - drag.x,
         dy = e.clientY - drag.y;
       if (Math.abs(dx) > 24 && Math.abs(dx) > Math.abs(dy) * 1.4) {
-        drag.active = true;
-        root.setPointerCapture(e.pointerId);
+        if (!drag.active) {
+          drag.active = true;
+          root.setPointerCapture(e.pointerId);
+        }
         e.preventDefault();
       }
     },
@@ -56,16 +63,29 @@ export function pageDeck(root: HTMLElement, size: number, label: string) {
     (e) => {
       if (!drag || drag.id !== e.pointerId) return;
       const d = drag;
-      drag = undefined;
+      releaseDrag();
       if (d.active) {
         suppress = performance.now() + 400;
         if (Math.abs(e.clientX - d.x) > 48) show(page + (e.clientX < d.x ? 1 : -1));
-        if (root.hasPointerCapture(e.pointerId)) root.releasePointerCapture(e.pointerId);
       }
     },
     { signal: lifetime.signal },
   );
-  root.addEventListener('pointercancel', () => (drag = undefined), { signal: lifetime.signal });
+  const cancel = (e: PointerEvent) => {
+    if (!drag || drag.id !== e.pointerId) return;
+    if (drag.active) suppress = performance.now() + 400;
+    releaseDrag();
+  };
+  root.addEventListener('pointercancel', cancel, { signal: lifetime.signal });
+  root.addEventListener(
+    'lostpointercapture',
+    (e) => {
+      // Touch starts with implicit capture on the card. Transferring it to the
+      // paging surface bubbles the card's loss here; that is not a cancelled swipe.
+      if (e.target === root) cancel(e);
+    },
+    { signal: lifetime.signal },
+  );
   root.addEventListener(
     'click',
     (e) => {
@@ -84,6 +104,7 @@ export function pageDeck(root: HTMLElement, size: number, label: string) {
     },
     dispose: () => {
       lifetime.abort();
+      releaseDrag();
       nav.remove();
     },
   };

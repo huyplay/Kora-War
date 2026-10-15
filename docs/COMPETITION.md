@@ -6,8 +6,8 @@ Ngày 15/10/2026, người dùng chốt Elo và tách Thử thách khỏi map ch
 
 Sảnh → **Đấu trường · Hạng & thường**:
 
-- **Đấu hạng**: ghép người thật cùng revision, Elo gần nhau; khoảng Elo nới dần theo thời gian chờ. Chỉ mode này thay đổi điểm và số trận hạng.
-- **Đấu thường**: ghép người thật, map chuẩn, không tính Elo.
+- **Đấu hạng**: ưu tiên người thật cùng revision, Elo gần nhau; khoảng Elo nới dần theo thời gian chờ. Sau 60 giây chưa có đối thủ phù hợp, server ghép máy theo cấu hình database. Chỉ mode này thay đổi điểm và số trận hạng.
+- **Đấu thường**: ưu tiên người thật, có cùng dự phòng máy sau 60 giây, map chuẩn, không tính Elo. Hai loại đối thủ dùng cùng luồng màn hình trận.
 - **Thử thách — Dòng Aether**: cùng địa hình ba lane, hồi mana 2,1/giây và quá tải từ 90 giây theo preset khởi tạo. Không tính Elo. Đây là biến thể luật của map, chưa phải một bộ asset địa hình mới.
 - **Đấu bạn bè**: phòng mã mời riêng, không tính Elo. Luyện tập AI tiếp tục ở sảnh.
 
@@ -17,7 +17,7 @@ Giao diện mobile hiện dùng tab riêng cho bảng hạng/lịch sử và s�
 
 ## Admin và database
 
-Content Studio → **Đấu trường & hạng**: bật/tắt chế độ, đổi tên/mô tả, Elo khởi tạo/sàn/K/thang chênh lệch, thêm/bỏ/đổi ngưỡng bậc, khoảng ghép và thời hạn chờ, tên map Thử thách, hồi mana mỗi giây và thời điểm quá tải. Lưu nháp/phát hành theo revision như các module khác.
+Content Studio → **Đấu trường & hạng**: bật/tắt chế độ, đổi tên/mô tả, Elo khởi tạo/sàn/K/thang chênh lệch, thêm/bỏ/đổi ngưỡng bậc, khoảng ghép và thời hạn chờ, bật/tắt dự phòng máy, thời gian chờ và độ khó, tên map Thử thách, hồi mana mỗi giây và thời điểm quá tải. Lưu nháp/phát hành theo revision như các module khác.
 
 `competition` là module thứ 18. Migration chỉ bổ sung từ bộ đầy đủ 15 hoặc 17 module, không dùng preset để che một store thiếu dữ liệu. Revision lịch sử không viết lại. Snapshot trong `pvp_matches` giữ content, revision, mode, seed, loadout và kết quả; `pvp_members` lập chỉ mục lịch sử; `ratings` lưu Elo.
 
@@ -27,7 +27,7 @@ Mỗi trận dùng thông số Elo đã khóa lúc ghép. Publish không sửa t
 
 ## Giới hạn vận hành
 
-Một tiến trình server sở hữu mô phỏng và hàng chờ; chưa hỗ trợ nhiều worker chia sẻ phòng. Khi khởi động lại, trận đang chạy được ghi hủy với `server-restart`, không thay Elo; không thể tiếp tục mô phỏng từ tick cũ. Điểm và lịch sử vẫn tồn tại qua restart. Không có reset mùa, phần thưởng rank, bot giả người hoặc đăng nhập liên thiết bị trong đợt này. Hồ sơ hiện gắn cookie của trình duyệt như hệ thống player sẵn có.
+Một tiến trình server sở hữu mô phỏng và hàng chờ; chưa hỗ trợ nhiều worker chia sẻ phòng. Khi khởi động lại, trận đang chạy được ghi hủy với `server-restart`, không thay Elo; không thể tiếp tục mô phỏng từ tick cũ. Điểm và lịch sử vẫn tồn tại qua restart. Không có reset mùa, phần thưởng rank hoặc đăng nhập liên thiết bị trong đợt này. Hồ sơ hiện gắn cookie của trình duyệt như hệ thống player sẵn có. Quyết định bổ sung dự phòng máy, dữ liệu admin và QA: [QUEUE-FALLBACK.md](QUEUE-FALLBACK.md).
 
 ## QA local
 

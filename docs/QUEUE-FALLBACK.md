@@ -1,0 +1,17 @@
+# Dự phòng đối thủ sau 60 giây
+
+Issue #35, quyết định người dùng 15/10/2026. Áp dụng đấu hạng và đấu thường, không áp dụng bạn bè hoặc Thử thách. Màn hình người chơi chuyển từ tìm trận sang đổi bài/combat như trận online hiện tại, không thêm thông báo hoặc nhãn máy.
+
+`competition.queue.fallback` lưu `enabled`, `afterSeconds` (mặc định 60), `difficulty` (`story/normal/hard`). Admin lưu nháp/phát hành qua module `competition` schema 2. Khi bật, mốc dự phòng phải nhỏ hơn hạn tìm trận. Deck máy lấy `gameplay.deck.aiCards`, quyết định AI và nhịp chơi lấy module AI đã khóa; không thêm bộ cân bằng trong server/UI. Migration chỉ thêm policy vào content draft/published hiện hành và tạo revision mới; giữ các revision/trận cũ nguyên vẹn. Hạn tìm trận hiện hữu ≤60 giây được giữ nguyên và policy khởi tạo tắt, chờ admin chỉnh. Snapshot không có policy vẫn chỉ ghép người thật.
+
+Heartbeat server dọn queue hết hạn/mất kết nối/bị khóa, thử ghép toàn bộ cặp người tương thích trước rồi mới tạo máy cho queue đủ thời gian. Queue khác mode/revision/content không ghép nhau. Hủy trước khi ghép không tạo trận; rời sau khi đã ghép xử lý đầu hàng như hiện tại. Queue đang tồn tại giữ content snapshot, publish chỉ ảnh hưởng queue mới.
+
+Máy luôn là phe 1, dùng cùng Battle xác định, giới hạn tiền tuyến, bài/mana/chỉ số chuẩn hóa. Máy giữ bài mở đầu; người chơi vẫn đổi tối đa hai thẻ hoặc chờ tự giữ bài. Không có heartbeat mạng cho máy: chỉ người thật chịu deadline reconnect. Seed, tay/chồng rút đối phương và metadata máy không xuất hiện trong packet người chơi. Không tự gửi emoji hay giả chat người thật.
+
+`pvp_automation` lưu metadata bất biến theo ID trận: phe, Elo đối chiếu, độ khó và thời gian đã chờ. ID nội bộ `automated-<matchId>` không có bản ghi players/session/ratings hoặc vị trí bảng hạng; `pvp_members` chỉ chứa người thật. Đấu hạng tính Elo người thật theo Elo của chính họ lúc ghép với máy, dùng K/sàn/thang điểm đã khóa. Đấu thường không đổi Elo. Settlement hai outcome giữ định dạng hiện tại nhưng chỉ ghi rating người thật. Không thêm thưởng PvP.
+
+Admin lịch sử PvP hiển thị đối thủ dự phòng và metadata trong JSON xuất hồ sơ. Nhật ký giữ lệnh người thật, auto-keep và tổng kết; quyết định máy chạy theo seed/AI policy trong snapshot, không được trình bày như lệnh mạng của người thật. Hủy thủ công hoàn tác đúng phần Elo người thật, giữ kết quả gốc; không cho khóa ID máy. Restart hủy trận đang chạy, không tính Elo, giống trận hai người. Không có API client chọn máy hoặc nộp kết quả.
+
+QA: boundary 59.999/60 giây; ưu tiên người thật ở deadline; queue hủy/stale/ban, policy thiếu/tắt và mode ngoài phạm vi; seed determinism, AI đánh thực, mở đầu, reconnect/disconnect; settlement/void/restart; migration lịch sử; admin và HTTP privacy/forged inputs. Chạy `npm run check`, `npm run smoke` và kiểm tra trình duyệt mobile ngang trên database QA riêng trước tích hợp. CI/CD giữ tắt.
+
+QA local 15/10: `npm run check` đạt 255/255 (kiến trúc, typecheck server/client, test và build), `npm run smoke` đạt. Edge 844×390, database riêng với 65 asset: đấu thường ghép sau 60,065s và đấu hạng sau 60,217s; đổi bài → combat online, AI triển khai/đánh/kết thúc tự nhiên. Kết quả rank -16 Elo, thường delta 0; không thấy nhãn/thông báo riêng cho máy. Admin kiểm tra bật/tắt, 60s và độ khó, danh sách lịch sử có metadata máy. Console game/admin không lỗi/cảnh báo. Ảnh kết quả ở `.data/qa-queue/ranked-result-844.png` trong checkout chính, không đưa vào Git. Đây là QA trình duyệt trên Windows, không phải benchmark hoặc thử trên điện thoại thật.

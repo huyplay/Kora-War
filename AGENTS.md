@@ -74,6 +74,8 @@ Xem [kiến trúc](docs/ARCHITECTURE.md) và [quyết định](docs/DECISIONS.md
 - Người dùng chọn Elo: điểm tăng/giảm theo đối thủ, bậc hạng do admin cấu hình. Đấu thường không đổi điểm, cả hai dùng map chuẩn và chỉ số chuẩn hóa.
 - Thêm Thử thách riêng với hồi mana nhanh và quá tải sớm, thông số do admin cấu hình. Không đưa cơ chế đặc biệt này vào đấu hạng/thường.
 - Module database `competition` quản lý chế độ, Elo, bậc hạng, ghép trận và Thử thách. Kết quả và điểm do server xác nhận, lưu SQLite; snapshot luật theo trận.
+- Người dùng yêu cầu hàng chờ đấu hạng/thường sau 60 giây chưa có đối thủ phù hợp tự ghép máy; giao diện người chơi dùng luồng online thông thường, không thông báo/nhãn riêng cho máy. Ưu tiên ghép người thật trước khi xét máy ở cùng nhịp. Không áp dụng phòng bạn bè/Thử thách.
+- `competition` schema 2 lưu `queue.fallback` (bật/tắt, thời gian chờ, độ khó); deck/chính sách AI dùng module đã khóa. Giữ luật Elo hiện tại cho người chơi; máy dùng Elo đối chiếu bằng Elo người chơi lúc ghép, không có tài khoản hoặc bảng hạng riêng. Admin xem metadata máy và xử lý/hoàn tác như trận thường. Snapshot cũ thiếu policy giữ hàng chờ người thật; migration chỉ nâng content hiện hành và giữ hạn chờ ngắn do admin cấu hình.
 
 ## Kiểm duyệt trận — quyết định 15/10/2026
 

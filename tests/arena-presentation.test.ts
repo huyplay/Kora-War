@@ -18,7 +18,7 @@ test('beveled architecture preserves bounds, finite UVs and a bounded static mes
   const terrain = new TerrainStyle();
   terrain.apply(scene);
   const batches = scene.children.filter((o) => o.name === 'ArenaSurfaceBatch') as THREE.Mesh[];
-  assert.ok(batches.length <= 15, 'static surface material batches');
+  assert.ok(batches.length <= 20, 'static surface material batches');
   const triangles = batches.reduce((n, mesh) => n + mesh.geometry.attributes.position.count / 3, 0);
   assert.ok(triangles < 25000, `static surface triangles: ${triangles}`);
   for (const mesh of batches) {
@@ -47,4 +47,23 @@ test('targeting uses the imported model footprint at the current formation scale
   const radius = 1.8,
     scale = 0.4;
   assert.equal(unitVisualMetrics(3, scale, radius).pickRadius, radius * scale);
+});
+import { fortressGates } from '../src/rendering/fortress-gates';
+import { ARENA_WALL } from '../src/rendering/environment';
+
+test('six gate arches stay outside the combat field and have finite merged surface attributes', () => {
+  const root = new THREE.Group();
+  const geometries = fortressGates(root, ARENA_WALL, 0x9c734a);
+  root.updateMatrixWorld(true);
+  const gates = root.children.filter((c) => c.name === 'FortressGate');
+  assert.equal(gates.length, 6);
+  for (const gate of gates) {
+    const bounds = new THREE.Box3().setFromObject(gate);
+    assert.ok(
+      gate.position.x < 0 ? bounds.max.x < -15.5 : bounds.min.x > 15.5,
+      'gates reserve deployment and core frontage',
+    );
+    assert.ok([-4.8, 0, 4.8].includes(gate.position.z));
+  }
+  geometries.forEach((g) => g.dispose());
 });

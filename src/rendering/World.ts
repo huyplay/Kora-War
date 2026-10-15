@@ -74,7 +74,7 @@ export class World {
   private structures = new StructureAnimator();
   private formation = new FormationLayout();
   scene = new THREE.Scene();
-  camera: THREE.OrthographicCamera;
+  camera: THREE.PerspectiveCamera;
   private arenaCamera: ArenaCamera;
   renderer: THREE.WebGLRenderer;
   canvas: HTMLCanvasElement;
@@ -122,9 +122,9 @@ export class World {
     container.appendChild(this.canvas);
     this.scene.background = new THREE.Color(0x142c31);
     this.scene.fog = new THREE.FogExp2(0x142c31, 0.011);
-    this.camera = new THREE.OrthographicCamera(-20, 20, 12, -12, 0.1, 150);
-    this.camera.position.set(0, 24, 30);
-    this.camera.lookAt(0, 0.5, 0);
+    this.camera = new THREE.PerspectiveCamera(30, 1, 0.1, 180);
+    this.camera.position.set(0, 29, 35.2);
+    this.camera.lookAt(0, 0.5, 1.2);
     this.arenaCamera = new ArenaCamera(this.camera);
     this.scene.add(new THREE.HemisphereLight(0xb6cee8, 0x272330, 2.2));
     const sun = new THREE.DirectionalLight(0xffd6a0, 3);
@@ -193,11 +193,11 @@ export class World {
     if (!w || !h) return;
     this.renderer.setSize(w, h, false);
     const aspect = w / h;
-    const width = Math.max(36, 18 * aspect);
-    this.camera.left = -width / 2;
-    this.camera.right = width / 2;
-    this.camera.top = width / aspect / 2;
-    this.camera.bottom = -width / aspect / 2;
+    this.camera.aspect = aspect;
+    // Reserve a little foreground for the card hand; perspective keeps rear lanes narrower.
+    const distance = Math.hypot(29 - 0.5, 34);
+    const frameHeight = Math.max(18, 43 / aspect);
+    this.camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(frameHeight / (2 * distance)));
     this.camera.updateProjectionMatrix();
   }
   buildEnvironment() {

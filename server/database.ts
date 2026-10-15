@@ -220,6 +220,11 @@ export class GameDatabase {
         )
           throw new Error('Sprite sheet không chia hết cho số cột/hàng.');
       }
+      if (
+        current.draft.map.backdropAssetId &&
+        this.asset(current.draft.map.backdropAssetId)?.kind !== 'image'
+      )
+        throw new Error('Hậu cảnh map phải là ảnh.');
       for (const binding of Object.values(current.draft.map.textures || {}))
         for (const id of [binding.assetId, binding.normalAssetId, binding.roughnessAssetId].filter(
           (id): id is string => !!id,

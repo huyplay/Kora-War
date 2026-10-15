@@ -1,0 +1,11 @@
+# Elyndra valley background v1
+
+Original AI-generated matte painting for Kora War, created with the built-in `image_gen` tool on 15 October 2026. No external game artwork is included. Generated PNG retained in the local project source-art cache; runtime file is `public/design/arena/elyndra-valley-v1.webp` (2172×724, WebP quality 88, 331,736 bytes). Conversion only changes encoding, not composition or dimensions.
+
+The matte is distant scenery. Combat paving, fortresses, props, lighting, health bars and camera zoom remain real-time 3D. The admin selects its database image binding at Map → Môi trường → Hậu cảnh Thung lũng. Night mode grades the image along with the existing moonlight/torch profile. If no image is selected or loading fails, the configured sky/fog remains.
+
+## Generation prompt
+
+Use case: stylized-concept. Create one original production game background matte painting for Kora War, the high fantasy valley of Elyndra. Output very wide landscape 3072 x 1024. This is distant scenery behind a separate real-time 3D stone castle arena, NOT a screenshot or a mockup. View from a high fortress terrace looking across a deep forested mountain valley: monumental stratified slate cliffs on the outer left and right, layers of blue-green pine-covered ridges receding into pale atmospheric mist, a winding turquoise river far below in the lower center, faint distant ancient spires integrated with the cliffs. Warm clear daylight from upper left, soft cool shadows, bright blue grey sky with thin clouds in the upper third. Hand-painted AAA stylized fantasy environment, richly detailed natural rock textures, restrained shapes, coherent atmospheric perspective; colors compatible with warm sandstone fortress paving and blue/red team banners. Center is broad and open with distant low contrast ridges, edges have taller mountains. The bottom third is valley depth and mist, NOT a flat ground plane. Keep every subject distant and give generous breathing room. No arena, foreground platform, troops, characters, creatures, lettering, UI, borders, logos, or watermark. This art must read as original world scenery rather than another game's recognizable arena.
+
+Requested dimensions are part of the prompt; the actual generated and shipped dimensions are 2172×724.

@@ -222,6 +222,26 @@ export class ModelInstance {
       }
     });
   }
+  tint(color: string) {
+    const tint = new THREE.Color(color),
+      variants = new Map<THREE.Material, THREE.Material>();
+    this.model.traverse((object) => {
+      if (!(object instanceof THREE.Mesh)) return;
+      const convert = (source: THREE.Material) => {
+        let material = variants.get(source);
+        if (!material) {
+          material = source.clone();
+          if ('color' in material && material.color instanceof THREE.Color) material.color.multiply(tint);
+          variants.set(source, material);
+          this.ownedMaterials.push(material);
+        }
+        return material;
+      };
+      object.material = Array.isArray(object.material)
+        ? object.material.map(convert)
+        : convert(object.material);
+    });
+  }
   dispose() {
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.model);

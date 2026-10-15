@@ -1,0 +1,13 @@
+{
+  "name": "Elyndra Valley v1 · original backdrop",
+  "file": "public/design/arena/elyndra-valley-v1.webp",
+  "sha256": "9bf7fd37293bab4ed76c1a54651824682a900cd0242c55845d3ebb41ff56222f",
+  "bytes": 331736,
+  "width": 2172,
+  "height": 724,
+  "author": "Kora War / Codex (AI-generated)",
+  "sourceUrl": "https://github.com/huyplay/Kora-War/blob/main/assets/design/arena/README.md",
+  "license": "Original AI-generated artwork commissioned for Kora War; no third-party pack license claimed.",
+  "generator": "Built-in image_gen",
+  "promptFile": "assets/design/arena/README.md"
+}

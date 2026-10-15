@@ -988,7 +988,9 @@ preview();
 updateHud();
 pvp.onError = toast;
 pvp.onConnectionChange = (connected) => {
-  $('#connection-status').hidden = connected || mode !== 'battle';
+  const status = $('#connection-status');
+  status.hidden = connected || (mode !== 'battle' && !pvp.restoring);
+  status.textContent = pvp.restoring ? 'Đang nối lại phiên đấu…' : 'Đang nối lại… Trận đấu vẫn tiếp tục.';
   if (!connected && mode === 'battle') $('#combat-message').classList.remove('show');
 };
 pvp.onClosed = () => {

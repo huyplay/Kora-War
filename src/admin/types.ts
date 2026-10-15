@@ -33,6 +33,7 @@ export const sections = [
   ['competition', '♜', 'Đấu trường & hạng'],
   ['communication', '☏', 'Chat & đội hình'],
   ['assets', '⬡', 'Thư viện asset'],
+  ['arena', '☀', 'Ánh sáng & công trình'],
   ['map', '▧', 'Màn chơi'],
   ['vfx', '✧', 'Hiệu ứng'],
   ['audio', '♫', 'Âm thanh'],

@@ -30,6 +30,7 @@ Backend kiểm thử draft/publish/version conflict, auth/origin/cookie, ví/led
 - Gameplay: deck/tay bài/đổi bài, mana/trụ/lõi/quá tải, tám phép và chuỗi hiệu ứng, hệ/tộc, cộng hưởng, AI, vùng triển khai, thời hạn PvP và bộ sưu tập. Form đọc từ database; không cần sửa TypeScript để cân bằng các giá trị này. Xem [schema, giới hạn và QA](GAMEPLAY-CONFIG.md).
 - Module rule: trong Gameplay mở bảng schema/version nháp/live và trạng thái của 15 module. Dữ liệu lưu riêng từng module, lịch sử theo revision; API admin hỗ trợ sửa một module. Xem [module và migration](RULE-MODULES.md).
 - Chat & đội hình: câu/emoji, hình phản hồi, bật/tắt/nhịp gửi/thời gian hiển thị và packing renderer. Hai module mới nâng tổng lên 17; xem [giao chiến và QA](BATTLE-PRESENTATION.md).
+- Ánh sáng & công trình: chọn ban ngày/mặt trời hoặc ban đêm/trăng/đuốc, cường độ sáng/exposure, chiều cao trụ/lõi, quy mô thành và hiển thị phạm vi/đạn trụ. Lưu trong module `presentation` schema 2 của SQLite; nháp/phát hành như gameplay, áp dụng cho trận mới. Xem [cấu hình và QA](ARENA-LIGHTING-QA.md).
 - Asset: upload GLB/ảnh, xem 3D và từng clip, ghi provenance. Ẩn/khôi phục là thao tác có thể đảo ngược; không được ẩn asset đang được draft hoặc published sử dụng.
 - Màn chơi: chọn prefab trụ/lõi, đặt prop theo tọa độ, màu sương/exposure. Luật trụ/mana/quá tải cũng có trong Gameplay. Một màn ba lane hiện được hỗ trợ, chưa có campaign nhiều chương hoặc chỉnh địa hình bằng kéo đỉnh mesh.
 - Hiệu ứng: palette hai phe/hồi máu, kích thước, sprite/atlas và số cột/hàng.

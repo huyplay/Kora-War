@@ -89,6 +89,10 @@ export class ArenaAtmosphere {
     this.embers.frustumCulled = false;
     this.root.add(this.embers);
   }
+  setNight(night: boolean) {
+    for (const flame of this.flames) flame.material.opacity = night ? 1 : 0.55;
+    this.embers.material.opacity = night ? 1 : 0.45;
+  }
   private seal() {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = 256;

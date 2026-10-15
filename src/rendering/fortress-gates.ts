@@ -6,20 +6,24 @@ import { LANES } from '../data/map';
 export function fortressGates(stage: THREE.Group, stone: number[], bronze: number, make: typeof part = part) {
   const geometry: THREE.BufferGeometry[] = [];
   for (const sign of [-1, 1]) {
+    const side = new THREE.Group();
+    side.userData.sign = sign;
+    side.name = 'FortressSideSource';
+    stage.add(side);
     for (const z of [-7.35, -2.4, 2.4, 7.35]) {
-      make(stage, 'box', stone[0], sign * 16.95, 1.8, z, 1.4, 4.1, 0.84);
-      make(stage, 'box', stone[2], sign * 16.2, 0.45, z, 1.6, 0.9, 1.2);
-      const brace = make(stage, 'box', stone[1], sign * 16.46, 1.7, z, 0.6, 2.6, 0.92);
+      make(side, 'box', stone[0], sign * 16.95, 1.8, z, 1.4, 4.1, 0.84);
+      make(side, 'box', stone[2], sign * 16.2, 0.45, z, 1.6, 0.9, 1.2);
+      const brace = make(side, 'box', stone[1], sign * 16.46, 1.7, z, 0.6, 2.6, 0.92);
       brace.rotation.z = -sign * 0.14;
-      make(stage, 'box', stone[2], sign * 16.9, 3.95, z, 1.6, 0.16, 1.04);
-      make(stage, 'cone', stone[1], sign * 16.95, 4.3, z, 0.85, 0.55, 0.74);
+      make(side, 'box', stone[2], sign * 16.9, 3.95, z, 1.6, 0.16, 1.04);
+      make(side, 'cone', stone[1], sign * 16.95, 4.3, z, 0.85, 0.55, 0.74);
     }
     for (const lane of LANES) {
       const gate = new THREE.Group();
       gate.name = 'FortressGate';
       gate.position.set(sign * 16.8, 0, lane);
       gate.userData.side = sign < 0 ? 0 : 1;
-      stage.add(gate);
+      side.add(gate);
       // Open arch above each lane. No visual structure enters the deployment bounds.
       for (let i = 0; i < 9; i++) {
         const a = (i / 9) * Math.PI,

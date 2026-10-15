@@ -1,3 +1,4 @@
+import { defaultArenaPresentation } from './arena-presentation';
 import { defaultCompetition, validateCompetition, type CompetitionConfig } from './competition';
 import { ABILITIES, DEFAULT_ENGAGE, type AbilityDefinition } from './abilities';
 import { HEROES } from './heroes';
@@ -122,6 +123,7 @@ export function upgradeContent(input: ContentConfig): ContentConfig {
   c.gameplay.board.quickSpawnX ??= defaultGameplay().board.quickSpawnX;
   c.communication ??= defaultCommunication();
   c.presentation ??= defaultPresentation();
+  c.presentation.arena ??= defaultArenaPresentation();
   c.competition ??= defaultCompetition();
   return c;
 }

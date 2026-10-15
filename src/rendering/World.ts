@@ -1,3 +1,5 @@
+import { ArenaLighting } from './arena-lighting';
+import { TowerEffects } from './vfx/tower-effects';
 import * as THREE from 'three';
 import type { Battle, GameEvent, Unit } from '../core/index';
 import { pickDeployment } from '../core/physics/lane-space';
@@ -72,6 +74,10 @@ export class World {
   private contactShadows = new ContactShadows();
   private numbers = new FloatingNumbers();
   private structures = new StructureAnimator();
+  private lighting = new ArenaLighting();
+  private towerEffects = new TowerEffects();
+  private fortressSides: THREE.Group[] = [];
+  private structureShadows = new ContactShadows();
   private formation = new FormationLayout();
   scene = new THREE.Scene();
   camera: THREE.PerspectiveCamera;
@@ -126,20 +132,8 @@ export class World {
     this.camera.position.set(0, 29, 35.2);
     this.camera.lookAt(0, 0.5, 1.2);
     this.arenaCamera = new ArenaCamera(this.camera);
-    this.scene.add(new THREE.HemisphereLight(0xb6cee8, 0x272330, 2.2));
-    const sun = new THREE.DirectionalLight(0xffd6a0, 3);
-    sun.position.set(-12, 24, 6);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024);
-    sun.shadow.camera.left = -23;
-    sun.shadow.camera.right = 23;
-    sun.shadow.camera.top = 19;
-    sun.shadow.camera.bottom = -19;
-    sun.shadow.normalBias = 0.06;
-    this.scene.add(sun);
-    const rim = new THREE.DirectionalLight(0x89b5ff, 1.15);
-    rim.position.set(6, 10, -14);
-    this.scene.add(rim);
+    this.scene.add(this.lighting.root, this.towerEffects.root, this.structureShadows.root);
+    this.lighting.configure(presentationOf({}).arena.lighting);
     this.buildEnvironment();
     this.terrain.apply(this.scene);
     this.scene.add(this.sprites.root);
@@ -201,7 +195,7 @@ export class World {
     this.camera.updateProjectionMatrix();
   }
   buildEnvironment() {
-    buildEnvironment(this);
+    this.fortressSides = buildEnvironment(this).fortresses;
   }
   zoomBy(factor: number, x?: number, y?: number) {
     let anchor: THREE.Vector3 | undefined;
@@ -218,14 +212,28 @@ export class World {
   }
   async prepareContent(content: ContentConfig) {
     this.content = content;
+    const arena = presentationOf(content).arena;
+    this.lighting.configure(arena.lighting);
+    this.atmosphere.setNight(arena.lighting.mode === 'night');
+    for (const group of this.fortressSides)
+      group.scale.set(arena.structures.wallThicknessScale, arena.structures.wallHeightScale, 1);
+    for (const tower of this.towerMeshes.values()) {
+      const body = tower.getObjectByName('TowerBody')!;
+      body.scale.setScalar(arena.structures.towerHeight / 2.37);
+    }
+
     const board = gameplayOf(content).board;
     for (const zone of this.deployZone.children) {
       zone.position.x = -(board.spawnMin + board.spawnMax) / 2;
       zone.scale.set((board.spawnMax - board.spawnMin) / 7.7, (board.halfWidth * 2) / 2.9, 1);
     }
-    this.scene.background = new THREE.Color(content.map.background);
-    this.scene.fog = new THREE.FogExp2(content.map.background, 0.011);
-    this.renderer.toneMappingExposure = content.map.exposure;
+    const skyColor = new THREE.Color(content.map.background).lerp(
+      new THREE.Color(arena.lighting.mode === 'day' ? 0x8b9dad : 0x0e1b38),
+      arena.lighting.mode === 'day' ? 0.35 : 0.3,
+    );
+    this.scene.background = skyColor;
+    this.scene.fog = new THREE.FogExp2(skyColor, 0.009);
+    this.renderer.toneMappingExposure = content.map.exposure * arena.lighting.exposure;
     await this.models.supportTextures(this.renderer);
     this.sprites.configure(content.vfx);
     await this.spellEffects.configure(content.vfx);
@@ -259,13 +267,18 @@ export class World {
         try {
           const instance = await this.models.instance({
             assetId: content.map.towerAssetId,
-            height: 2.4,
+            height: arena.structures.towerHeight,
             yaw: 0,
             clips: {},
           });
           instance.teamPalette(Number(id[0]));
-          tower.clear();
-          tower.add(instance.root);
+          const body = tower.getObjectByName('TowerBody')!;
+          body.clear();
+          body.scale.setScalar(1);
+          body.add(instance.root);
+          instance.root.traverse((o) => {
+            if (o instanceof THREE.Mesh) o.castShadow = true;
+          });
           this.mapInstances.push(instance);
         } catch (e) {
           console.warn('Tower fallback:', e);
@@ -277,21 +290,27 @@ export class World {
         try {
           const instance = await this.models.instance({
             assetId: content.map.coreAssetId,
-            height: 3.5,
+            height: arena.structures.coreHeight,
             yaw: side === 0 ? 90 : -90,
             clips: {},
           });
           instance.teamPalette(side);
-          instance.root.position.set(side === 0 ? -15 : 15, 0, 0);
+          instance.root.position.set(side === 0 ? -15 : 15, 0.65, 0);
+          instance.root.traverse((o) => {
+            if (o instanceof THREE.Mesh) o.castShadow = true;
+          });
           this.scene.add(instance.root);
           this.coreModels.push(instance);
           this.coreCrystals[side].visible = false;
-          this.baseGroups[side].visible = false;
+          this.baseGroups[side].visible = true;
+          for (const child of this.baseGroups[side].children)
+            if (child.position.y > 0.7) child.visible = false;
         } catch (e) {
           console.warn('Core fallback:', e);
           break;
         }
       }
+    this.renderer.shadowMap.needsUpdate = true;
   }
   portrait(h: Hero) {
     const scene = new THREE.Scene();
@@ -406,6 +425,7 @@ export class World {
     this.numbers.reset();
     this.contactShadows.begin();
     this.structures.reset(this.towerMeshes);
+    this.towerEffects.reset();
     this.corpses.forEach((c) => c.model.dispose());
     this.corpses = [];
     this.sprites.reset();
@@ -454,6 +474,9 @@ export class World {
     this.numbers.dispose();
     this.contactShadows.dispose();
     this.structures.dispose();
+    this.towerEffects.dispose();
+    this.lighting.dispose();
+    this.structureShadows.dispose();
     this.mapInstances.forEach((m) => m.dispose());
     this.coreModels.forEach((m) => m.dispose());
     this.templates.forEach((m) => m.dispose());
@@ -573,6 +596,19 @@ export class World {
         ? closest(e.x, e.side, e.heroId)
         : undefined;
     const target = e.type === 'projectile' ? closest(e.toX ?? e.x, 1 - e.side) : undefined;
+    if (e.type === 'projectile' && !e.heroId) {
+      const arena = presentationOf(this.content ?? {}).arena;
+      const source = new THREE.Vector3(e.x, 0.48 + arena.structures.towerHeight * 0.85, LANES[e.lane]);
+      const destination = new THREE.Vector3(target?.x ?? e.toX ?? e.x, 1.1, target?.z ?? LANES[e.lane]);
+      this.towerEffects.emit(
+        `${e.side}-${e.lane}`,
+        source,
+        destination,
+        e.side,
+        arena.towers.projectileSeconds,
+      );
+      return;
+    }
     this.sprites.emit(e, point, target);
     this.accents.emit(e, point);
     const color = e.type === 'heal' ? 0x83ffc2 : e.side === 0 ? 0xb4ffde : 0xffb4a0;
@@ -691,6 +727,24 @@ export class World {
     );
     for (const tower of battle.towers) this.towerMeshes.get(tower.id)?.position.setX(tower.x);
     this.contactShadows.end();
+    this.structureShadows.begin();
+    for (const t of battle.towers)
+      this.structureShadows.add(new THREE.Vector3(t.x, 0, LANES[t.lane]), 2.9, t.hp > 0 ? 1 : 0.65);
+    for (const side of [0, 1])
+      this.structureShadows.add(
+        new THREE.Vector3((side ? 1 : -1) * (battle.gameplay.board.coreX + 1), 0, 0),
+        4.2,
+        battle.cores[side] > 0 ? 1 : 0.4,
+      );
+    this.structureShadows.end();
+    this.towerEffects.update(
+      battle.towers,
+      battle.content.rules.towerRange,
+      battle.gameplay.board.halfWidth,
+      presentationOf(battle.content).arena.towers,
+      animationDt,
+      this.camera,
+    );
     this.numbers.update(animationDt, this.camera);
     this.structures.update(battle.towers, this.towerMeshes, animationDt);
     this.coreCrystals.forEach((c, i) => {

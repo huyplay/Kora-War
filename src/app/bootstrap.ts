@@ -44,6 +44,7 @@ import '../ui/styles/battle-hud.css';
 import '../ui/styles/energy-cards.css';
 import '../ui/styles/touch-screens.css';
 import '../ui/styles/mobile-hand.css';
+import '../ui/styles/roster.css';
 const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
 lifetime.defer(() => inputLifetime.abort());

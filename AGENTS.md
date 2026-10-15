@@ -48,7 +48,14 @@ Xem [kiến trúc](docs/ARCHITECTURE.md) và [quyết định](docs/DECISIONS.md
 - Mobile-first, chỉ chơi ở màn hình ngang; thao tác chạm/kéo thả, ít chữ.
 - Commit từng task đã kiểm thử và push lên origin hiện có theo yêu cầu người dùng.
 
-## Codex lead và Gemini design
+## Codex phụ trách toàn bộ dự án — quyết định 15/10/2026
+
+- Người dùng đã dừng phân công Gemini: Codex trực tiếp quản lý, thiết kế, lập trình, QA và tích hợp. Quyết định này thay thế các mục phân công Gemini bên dưới (giữ để tra cứu lịch sử).
+- Không giao task mới cho Gemini hoặc phát triển cầu nối Codex–Gemini. Issue #8 đóng vì không còn cần; bản nháp chưa merge được giữ trong worktree riêng.
+- Task #4 (arena) và #5 (HUD) chuyển sang Codex. Giữ các asset Gemini đã được nghiệm thu trong main; không xóa hay sửa checkout của phiên ngoài.
+- Tiếp tục GitHub issue, nhánh task và PR; Codex QA local rồi merge đúng commit đã kiểm tra. CI/CD vẫn tắt.
+
+### Phân công trước ngày 15/10 (lịch sử)
 
 - Codex quản lý backend/gameplay/kiến trúc/tích hợp/QA; Gemini nhận task hình ảnh có phạm vi riêng. Cùng tài khoản `huyplay`, phân biệt bằng issue label, nhánh và PR body.
 - Mỗi task có GitHub issue và worktree riêng: `codex/<issue>-<task>` hoặc `gemini/<issue>-<task>`. Không cùng sửa một working tree/file; xem `docs/TEAM-WORKFLOW.md` và scope issue.

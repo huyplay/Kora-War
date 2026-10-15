@@ -36,6 +36,7 @@ import '../ui/styles/cycle.css';
 import { FixedStepRunner } from './fixed-step-runner';
 import { ArenaGestures } from './arena-gestures';
 import { QuickChat } from '../ui/quick-chat';
+import '../ui/styles/battle-hud.css';
 const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
 lifetime.defer(() => inputLifetime.abort());

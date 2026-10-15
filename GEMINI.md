@@ -1,5 +1,7 @@
 # Gemini — Kora War design agent
 
+**STOP — superseded 2026-10-15:** The user has ended Gemini delegation. Codex now owns design, implementation, QA and integration. Do not claim #4/#5, start new work or merge design branches. Existing accepted assets remain in main. The earlier instructions below are historical only. See AGENTS.md and docs/TEAM-WORKFLOW.md for current ownership.
+
 Read AGENTS.md and docs/TEAM-WORKFLOW.md before editing. Codex is the lead/integration owner. Both agents use GitHub account huyplay; record identity using agent:gemini labels, gemini/<issue>-<task> branches and PR body.
 
 Start with https://github.com/huyplay/Kora-War/issues/3, then #4 and #5. Claim one issue in a comment, update its status label, and use a separate worktree. Respect the issue's exclusive file paths. Do not edit the shared default checkout, core/data/server/app/World.ts, workflows or package-lock. If a contract needs a change, comment on the issue for Codex rather than editing shared files.

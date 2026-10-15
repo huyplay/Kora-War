@@ -1,6 +1,6 @@
 Closes #
 
-Agent: Codex / Gemini
+Owner: Codex (design, implementation, QA and integration)
 
 Describe the concrete result and why it is needed.
 

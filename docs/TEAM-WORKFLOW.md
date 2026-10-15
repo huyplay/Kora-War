@@ -1,4 +1,14 @@
-# Codex lead và Gemini design
+# Codex quản lý và triển khai Kora War
+
+## Quy trình hiện hành — 15/10/2026
+
+Người dùng giao Codex phụ trách toàn bộ dự án và không dùng Gemini nữa. Codex trực tiếp làm thiết kế, backend/gameplay, tích hợp và QA. Issue #4 (arena) và #5 (HUD) chuyển sang `agent:codex`. Issue #8 (cầu nối hai máy) đóng với lý do không còn cần; prototype chưa merge vẫn giữ ở worktree riêng, không thêm MCP dependencies vào main.
+
+Mỗi task dùng nhánh/worktree riêng, QA local theo AGENTS.md rồi tạo PR và merge đúng HEAD đã kiểm tra. CI/CD tiếp tục tắt; không chờ Billing/Actions. Không force push main, không ghi đè checkout đang dùng bên ngoài. Giữ reaction art đã nghiệm thu ở PR #7. Task đồ họa cần kiểm tra trình duyệt ở desktop và mobile ngang; ghi rõ giới hạn thực tế.
+
+## Lịch sử phân công trước 15/10/2026
+
+Các mục bên dưới ghi lại cơ chế phối hợp cũ và kết quả kiểm tra trước đây; không tiếp tục giao việc Gemini.
 
 Người dùng giao Codex quản lý kiến trúc/backend/gameplay/tích hợp/QA và giao Gemini thiết kế đồ họa. Cả hai dùng tài khoản GitHub `huyplay`, nên người thực hiện được ghi bằng nhãn issue `agent:codex`/`agent:gemini`, nhánh, PR body và commit; tên tài khoản không phân biệt được agent.
 

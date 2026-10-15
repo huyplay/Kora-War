@@ -50,8 +50,8 @@ export class CombatAccents {
     }
   }
   emit(event: GameEvent, position?: { x: number; z: number }) {
-    if (event.type !== 'hit' || (event.value ?? 0) <= 0) return;
-    for (let i = 0; i < 4 && this.particles.length < 128; i++)
+    if (!['hit', 'core'].includes(event.type) || (event.value ?? 0) <= 0) return;
+    for (let i = 0; i < (event.type === 'core' ? 8 : 4) && this.particles.length < 128; i++)
       this.particles.push({
         x: position?.x ?? event.x,
         z: position?.z ?? LANES[event.lane],

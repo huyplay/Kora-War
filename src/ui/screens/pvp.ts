@@ -2,7 +2,8 @@ import { $, escapeHTML } from '../dom';
 import { competitionOf, type QueueMode, type CompetitionOverview } from '../../data/competition';
 import { gameSession } from '../../services/game-session';
 import { api } from '../../services/api';
-import { modal, closeModal } from '../modal';
+import { modal, closeModal, ownModal } from '../modal';
+import { pageDeck } from '../page-deck';
 import type { PvpSession } from '../../services/pvp-session';
 import type { SpellId } from '../../data/spells';
 import '../styles/competition.css';
@@ -103,5 +104,8 @@ function leaderboard(data: CompetitionOverview, back: () => void) {
     <p class="competition-profile">${esc(data.self.name)} · ${esc(data.self.tier)} · ${data.self.rating} Elo · ${data.self.rank ? `Hạng #${data.self.rank}` : 'Chưa có trận hạng'}</p>
     <div class="ranking-columns"><section><h3>Người Kết Nối</h3><div class="ranking-list">${data.leaderboard.length ? data.leaderboard.map((r) => `<div class="ranking-row ${r.self ? 'is-self' : ''}"><b>#${r.rank}</b><span>${esc(r.name)}<small>${esc(r.tier)} · ${r.wins}/${r.games} thắng</small></span><strong>${r.rating}</strong></div>`).join('') : '<p class="ranking-empty">Chưa có kết quả đấu hạng.<br>Hoàn thành trận đầu để xuất hiện tại đây.</p>'}</div></section>
     <section><h3>20 trận gần nhất</h3><div class="ranking-list">${data.history.length ? data.history.map((h) => `<div class="history-row"><b class="history-${h.result}">${h.corrected ? 'Đã hủy' : resultLabels[h.result]}</b><span>${esc(h.map)}<small>${h.mode === 'ranked' ? 'Đấu hạng' : h.mode === 'challenge' ? 'Thử thách' : h.mode === 'casual' ? 'Đấu thường' : 'Bạn bè'} · ${esc(new Date(h.ended).toLocaleString('vi-VN'))}${h.reason === 'server-restart' ? ' · server khởi động lại' : ''}</small></span><strong>${h.corrected ? 'Hoàn tác' : h.mode === 'ranked' ? `${h.delta >= 0 ? '+' : ''}${h.delta}` : '—'}</strong></div>`).join('') : '<p class="ranking-empty">Kết quả trận sẽ được lưu tại đây.</p>'}</div></section></div></div>`);
+  document
+    .querySelectorAll<HTMLElement>('.ranking-list')
+    .forEach((list, i) => ownModal(pageDeck(list, 4, i ? 'Lịch sử trận' : 'Xếp hạng').dispose));
   $('#ranking-back').onclick = back;
 }

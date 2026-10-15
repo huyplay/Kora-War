@@ -1,6 +1,7 @@
 import { gameSession } from '../../services/game-session';
 import { $ } from '../dom';
-import { closeModal, modal } from '../modal';
+import { closeModal, modal, ownModal } from '../modal';
+import { pageDeck } from '../page-deck';
 import type { ScreenContext } from '../screen-context';
 export function economy(ctx: ScreenContext, tab: 'shop' | 'forge' | 'chest' = 'shop') {
   const wallet = gameSession.wallet;
@@ -34,6 +35,8 @@ export function economy(ctx: ScreenContext, tab: 'shop' | 'forge' | 'chest' = 's
     }</div>`,
     true,
   );
+  const grid = document.querySelector<HTMLElement>('.economy-grid');
+  if (grid) ownModal(pageDeck(grid, 5, 'Kho Aether').dispose);
   $('#economy-close').onclick = closeModal;
   document
     .querySelectorAll<HTMLButtonElement>('[data-tab]')

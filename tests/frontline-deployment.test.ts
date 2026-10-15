@@ -91,13 +91,19 @@ test('the nearest living intruder defines each symmetric frontline; dead units a
 });
 test('an overwhelmed lane opens only its rear defense strip and quick buttons choose a legal position', () => {
   const b = ready();
-  intruder(b, 1, -13.3, 0);
+  const enemy = intruder(b, 1, -13.3, 0),
+    original = structuredClone(b.units);
   assert.deepEqual(deploymentRange(b, 0, 0), { minX: -13.5, maxX: -12.3, rearDefense: true, valid: true });
   assert.equal(quickDeploymentX(b, 0, 0), -12.3);
   const card = hero(b);
   assert.match(b.canPlay(0, card.id, 0, -11, card.uid)!, /sau quân địch/);
   assert.equal(b.play(0, card.id, 0, undefined, card.uid), null);
   assert.equal(b.units.at(-1)!.x, -12.3);
+  assert.deepEqual(
+    b.units.filter((u) => u.id === enemy.id),
+    original,
+    'rear summoning never pushes or alters the invader',
+  );
   b.units.push({ ...b.units[0], id: 88, side: 0, lane: 2, x: 13.3 });
   assert.deepEqual(deploymentRange(b, 1, 2), { minX: 12.3, maxX: 13.5, rearDefense: true, valid: true });
 });
@@ -113,6 +119,20 @@ test('AI uses the shared legal frontline instead of deploying behind a pushing o
     const r = deploymentRange(b, 1, u.lane);
     assert.ok(u.x >= r.minX && u.x <= r.maxX);
   }
+});
+
+test('attacking any lane gate damages the same existing core after that lane tower falls', () => {
+  const b = ready(),
+    first = intruder(b, 1, -13.2, 0);
+  b.units = [0, 1, 2].map((lane) => ({ ...first, id: lane + 1, lane, range: 1, attackCd: 0, skillCd: 999 }));
+  b.towers.filter((t) => t.side === 0).forEach((t) => (t.hp = 0));
+  const hp = b.cores[0];
+  b.step();
+  assert.ok(b.cores[0] < hp);
+  assert.equal(b.cores[1], hp);
+  const strikes = b.events.filter((e) => e.type === 'core');
+  assert.deepEqual(strikes.map((e) => e.lane).sort(), [0, 1, 2]);
+  assert.ok(strikes.every((e) => e.x === -b.gameplay.board.coreX && e.side === 0));
 });
 test('historical cycle snapshots without deployment policy and legacy combat keep their old rules', () => {
   const c = defaultContent();

@@ -1,0 +1,629 @@
+/* Game screens use pages and swipe gestures, never document scrolling. */
+html,
+body,
+#app {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: clip;
+  overscroll-behavior: none;
+}
+body {
+  touch-action: none;
+}
+.home-screen {
+  overflow: clip;
+}
+.home-footer {
+  pointer-events: none;
+}
+.modal-backdrop {
+  padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  overflow: hidden;
+}
+.modal,
+.modal.wide {
+  max-height: calc(100dvh - 20px);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.screen-tabs {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.screen-tabs button {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid #6b8097;
+  border-radius: 7px;
+  background: #142337;
+  color: #b7cbd9;
+  font-size: 13px;
+  font-weight: 700;
+}
+.screen-tabs button.active {
+  color: #102332;
+  background: linear-gradient(#e8d49b, #b99a5d);
+  border-color: #ffe8ad;
+}
+.paged-content {
+  overflow: hidden !important;
+  touch-action: none;
+}
+.page-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.page-controls button {
+  width: 48px;
+  height: 44px;
+  border: 1px solid #7e96aa;
+  border-radius: 7px;
+  background: #172c3e;
+  color: #e6f5ff;
+  font-size: 25px;
+}
+.page-controls span {
+  color: #bdd3de;
+  font-size: 12px;
+  min-width: 50px;
+  text-align: center;
+}
+.page-controls button:disabled {
+  opacity: 0.3;
+}
+.modal:has(.deck-builder) {
+  width: min(1000px, 96vw);
+}
+.deck-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.deck-builder .screen-tabs {
+  margin-bottom: 3px;
+}
+.deck-slots {
+  min-height: 0;
+}
+.deck-builder #roster-grid.card-collection {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  overflow: hidden;
+  scroll-snap-type: none;
+}
+.deck-builder #roster-grid.card-collection .hero-card {
+  width: 100%;
+  height: 128px;
+  min-width: 0;
+}
+.deck-builder .roster-footer {
+  position: static;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  flex-shrink: 0;
+  background: none;
+}
+.deck-builder .roster-footer p {
+  margin: 0;
+  flex: 1;
+}
+.deck-builder .roster-footer button {
+  min-height: 44px;
+}
+#hero-detail.deck-detail span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+#hero-detail.deck-detail button {
+  min-width: 105px;
+  min-height: 44px;
+}
+.remove-card {
+  width: 44px;
+  height: 44px;
+  right: -3px;
+  top: -3px;
+  background: #722736cc;
+}
+.deck-slot .hero-card img,
+.deck-builder .hero-card img {
+  object-fit: contain;
+  object-position: center top;
+  transform: none;
+}
+.opening-hand,
+.hand.large-hand {
+  overflow: hidden;
+}
+.hand.large-hand {
+  display: grid;
+  grid-template-columns: repeat(var(--hand-columns), minmax(44px, 1fr));
+  padding-top: 0;
+}
+.hand.large-hand .hero-card {
+  width: 100%;
+  min-width: 0;
+}
+.opening-hand {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+}
+.opening-hand > div {
+  min-width: 0;
+}
+.opening-hand .hero-card {
+  width: 100%;
+  min-width: 0;
+}
+.economy-grid {
+  overflow: hidden;
+  max-height: none;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.ranking-list {
+  max-height: none;
+  overflow: hidden;
+}
+.competition-screen:has(.friend-room[open]) .mode-grid {
+  display: none;
+}
+.quick-chat-panel {
+  top: 10px;
+  bottom: 10px;
+  max-height: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.quick-chat-content {
+  display: block;
+  flex: 1;
+  min-height: 0;
+}
+.quick-chat-content .chat-page {
+  height: 100%;
+}
+.quick-phrases {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.quick-emojis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.quick-chat-mute {
+  min-height: 30px;
+  padding: 0;
+}
+.quick-emojis button {
+  min-height: 56px;
+}
+.quick-chat-panel .page-controls {
+  height: 36px;
+}
+.quick-chat-panel .page-controls button {
+  height: 36px;
+}
+.quick-chat-panel .screen-tabs button {
+  min-height: 40px;
+}
+.story-modal #story-pages {
+  min-height: 72px;
+}
+.story-modal #story-pages > p {
+  margin-top: 4px;
+}
+.story-modal .modal-back {
+  min-height: 44px;
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .modal:has(.deck-builder) {
+    height: calc(100dvh - 20px);
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-top {
+    padding: 0 16px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+  .modal-top h2 {
+    font-size: 23px;
+    margin: 0;
+  }
+  .modal-top p,
+  .modal-top .eyebrow {
+    display: none;
+  }
+  .deck-builder {
+    min-height: 0;
+    flex: 1;
+    padding: 0 14px 10px;
+    gap: 3px;
+  }
+  .deck-builder-title,
+  .collection-title {
+    margin: 3px 0;
+    font-size: 11px;
+  }
+  .deck-slots {
+    padding: 5px;
+    gap: 5px;
+  }
+  .deck-slot {
+    height: clamp(49px, 17vh, 76px);
+  }
+  .deck-slot .card-name {
+    bottom: 3px;
+    font-size: 10px;
+  }
+  .deck-slot .card-cost {
+    top: 1px;
+    left: 1px;
+    font-size: 15px;
+    width: 22px;
+    height: 24px;
+  }
+  .remove-card {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+  .deck-builder #roster-grid.card-collection {
+    gap: 8px;
+    padding: 4px 0;
+  }
+  .deck-builder #roster-grid.card-collection .hero-card {
+    height: clamp(70px, 24vh, 108px);
+  }
+  #hero-detail.deck-detail {
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+    gap: 8px;
+  }
+  #hero-detail.deck-detail strong {
+    font-size: 12px;
+  }
+  #hero-detail.deck-detail span {
+    font-size: 10px;
+    line-height: 1.3;
+    margin-top: 2px;
+    -webkit-line-clamp: 1;
+  }
+  .deck-builder .roster-footer p {
+    font-size: 10px;
+  }
+  .deck-builder .roster-footer button {
+    padding: 8px 20px;
+  }
+  .page-controls {
+    height: 40px;
+  }
+  .page-controls button {
+    height: 40px;
+  }
+  .economy-header {
+    padding: 8px 16px;
+    gap: 10px;
+  }
+  .economy-header h2 {
+    font-size: 22px;
+    margin: 0;
+  }
+  .economy-header small {
+    display: none;
+  }
+  .economy-tabs {
+    padding: 5px 16px;
+    gap: 6px;
+  }
+  .economy-tabs button {
+    min-height: 40px;
+    padding: 5px 15px;
+  }
+  .economy-note {
+    margin: 2px 16px;
+    font-size: 10px;
+  }
+  .economy-screen:has(.chest-rewards) .chest-view {
+    display: block;
+    padding: 0 16px 8px;
+  }
+  .economy-screen:has(.chest-rewards) .chest-view > :not(button) {
+    display: none;
+  }
+  .economy-grid {
+    padding: 4px 16px;
+    gap: 8px;
+  }
+  .economy-item {
+    padding: 5px;
+    gap: 3px;
+  }
+  .economy-item > .hero-card {
+    width: 100%;
+    height: clamp(60px, 22vh, 100px);
+  }
+  .economy-item > button {
+    min-height: 44px;
+    padding: 5px 10px;
+  }
+  .economy-item > b,
+  .economy-item > span {
+    font-size: 10px;
+  }
+  .competition-screen {
+    padding: 10px 16px !important;
+  }
+  .competition-heading h2 {
+    font-size: 23px;
+    margin: 0;
+  }
+  .competition-profile {
+    padding: 5px 8px;
+    margin: 4px 0;
+    font-size: 11px;
+  }
+  .mode-card {
+    min-height: 130px;
+    padding: 8px;
+    gap: 4px;
+  }
+  .mode-card small {
+    font-size: 10px;
+  }
+  .mode-card em {
+    font-size: 9px;
+  }
+  .mode-symbol {
+    font-size: 23px;
+  }
+  .ranking-columns {
+    gap: 12px;
+  }
+  .ranking-columns h3 {
+    margin: 3px 0;
+    font-size: 13px;
+  }
+  .ranking-row,
+  .history-row {
+    min-height: 40px;
+    padding: 4px;
+    font-size: 11px;
+    gap: 8px;
+  }
+  .ranking-row small,
+  .history-row small {
+    font-size: 9px;
+    margin: 1px 0;
+  }
+  .story-modal .chapter-art {
+    display: none;
+  }
+  .story-modal .modal-content {
+    padding: 12px 20px;
+  }
+  .story-modal h2 {
+    font-size: 25px;
+    margin: 4px 0;
+  }
+  .story-modal .modal-content > p {
+    margin: 3px 0;
+  }
+  .story-modal .modal-actions {
+    margin-top: 6px;
+  }
+  .story-modal .mission-box {
+    margin: 4px 0;
+    padding: 6px;
+  }
+  .story-modal .modal-back {
+    position: absolute;
+    right: 12px;
+    top: 8px;
+    margin: 0;
+    padding: 4px 8px;
+  }
+  .modal-content:has(#settings-done) {
+    padding: 12px 20px;
+  }
+  .modal-content:has(#settings-done) > h2 {
+    margin: 2px 0;
+  }
+  .setting-row {
+    padding: 6px 0;
+    min-height: 44px;
+  }
+  .controls-help {
+    display: none;
+  }
+  .quick-chat-panel {
+    left: 8px;
+    width: min(490px, calc(100vw - 16px));
+    padding: 9px 12px;
+  }
+  .quick-chat-title {
+    min-height: 36px;
+  }
+  .quick-chat-close {
+    height: 36px;
+    width: 44px;
+  }
+  .quick-chat-panel > small {
+    font-size: 10px;
+  }
+  .result-content {
+    padding: 10px 20px;
+  }
+  .result-content > h2 {
+    font-size: 25px;
+    margin: 5px 0;
+  }
+  .result-content > p {
+    display: none;
+  }
+  .result-emblem {
+    display: none;
+  }
+  .result-stats {
+    margin: 6px 0;
+    padding: 6px 0;
+  }
+  .result-content > button {
+    min-height: 44px;
+    padding: 7px 14px;
+    margin-top: 5px;
+  }
+}
+@media (orientation: landscape) and (max-height: 350px) {
+  .home-screen {
+    padding-top: 46px;
+    padding-bottom: 8px;
+  }
+  .home-footer {
+    display: none;
+  }
+  .home-vault {
+    gap: 6px;
+  }
+  .home-wallet,
+  .home-forge {
+    min-height: 44px;
+    padding: 4px 7px;
+  }
+  .chest-tile,
+  .deck-tile {
+    min-height: 76px;
+    padding: 5px;
+    gap: 3px;
+  }
+  .home-vault .tile-note {
+    display: none;
+  }
+  .home-vault .home-tile strong {
+    font-size: 12px;
+  }
+  .chest-art {
+    height: 28px;
+    width: 44px;
+  }
+  .chest-art i {
+    line-height: 28px;
+    font-size: 20px;
+  }
+  .deck-art {
+    width: 30px;
+    height: 30px;
+  }
+  .aether-crest {
+    height: 70px;
+  }
+  .home-center h1 {
+    font-size: 22px;
+    margin: 0 0 3px;
+  }
+  .home-center > p {
+    margin-bottom: 6px;
+  }
+  .home-actions {
+    gap: 5px;
+  }
+  .home-actions > button {
+    min-height: 44px;
+  }
+  .home-battle {
+    font-size: 15px;
+  }
+  .competition-heading .eyebrow,
+  .mode-card em {
+    display: none;
+  }
+  .mode-grid {
+    margin: 6px 0;
+  }
+  .mode-card {
+    min-height: 112px;
+  }
+  .mode-card strong {
+    font-size: 17px;
+  }
+  .mode-card small {
+    font-size: 9px;
+  }
+  .mode-symbol {
+    font-size: 20px;
+  }
+  #pvp-status:empty {
+    display: none;
+  }
+  .ranking-row,
+  .history-row {
+    min-height: 36px;
+    padding: 3px;
+    font-size: 10px;
+  }
+  .story-modal #story-pages {
+    min-height: 48px;
+  }
+  .story-modal h2 {
+    font-size: 22px;
+  }
+  .quick-chat-panel {
+    gap: 3px;
+  }
+  .quick-chat-title {
+    min-height: 30px;
+  }
+  .quick-chat-close {
+    height: 30px;
+  }
+  .quick-chat-mute {
+    min-height: 26px;
+  }
+  .quick-chat-panel .screen-tabs button {
+    min-height: 36px;
+  }
+  .quick-chat-panel > small {
+    display: none;
+  }
+  .deck-slot {
+    height: 45px;
+  }
+  .deck-builder .screen-tabs button {
+    min-height: 36px;
+  }
+  #hero-detail.deck-detail {
+    min-height: 36px;
+  }
+  .deck-builder .roster-footer button {
+    min-height: 36px;
+  }
+  .deck-builder #roster-grid.card-collection .hero-card {
+    height: 65px;
+  }
+  .economy-note {
+    display: none;
+  }
+  .economy-item > .hero-card {
+    height: 54px;
+  }
+  .quick-emojis button {
+    min-height: 48px;
+  }
+  .quick-emojis img {
+    width: 42px;
+    height: 42px;
+  }
+}

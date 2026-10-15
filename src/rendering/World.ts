@@ -28,6 +28,7 @@ import { SpellEffects } from './vfx/spell-effects';
 import { ArenaCamera } from './arena-camera';
 import { ArenaAtmosphere } from './arena-atmosphere';
 import { CombatAccents } from './vfx/combat-accents';
+import { alignFortressFrontages } from './fortress-gates';
 import { ContactShadows } from './vfx/contact-shadows';
 import { FloatingNumbers } from './vfx/floating-numbers';
 import { StructureAnimator } from './animation/structure-animator';
@@ -80,6 +81,7 @@ export class World {
   private lighting = new ArenaLighting();
   private towerEffects = new TowerEffects();
   private fortressSides: THREE.Group[] = [];
+  private gateFrontages: THREE.Group[] = [];
   private structureShadows = new ContactShadows();
   private formation = new FormationLayout();
   scene = new THREE.Scene();
@@ -177,7 +179,9 @@ export class World {
     this.camera.updateProjectionMatrix();
   }
   buildEnvironment() {
-    this.fortressSides = buildEnvironment(this).fortresses;
+    const environment = buildEnvironment(this);
+    this.fortressSides = environment.fortresses;
+    this.gateFrontages = environment.gateFrontages;
   }
   zoomBy(factor: number, x?: number, y?: number) {
     let anchor: THREE.Vector3 | undefined;
@@ -199,6 +203,12 @@ export class World {
     this.atmosphere.setNight(arena.lighting.mode === 'night');
     for (const group of this.fortressSides)
       group.scale.set(arena.structures.wallThicknessScale, arena.structures.wallHeightScale, 1);
+    alignFortressFrontages(
+      this.gateFrontages,
+      gameplayOf(content).board.coreX,
+      arena.structures.wallHeightScale,
+      arena.structures.wallThicknessScale,
+    );
     for (const tower of this.towerMeshes.values()) {
       const body = tower.getObjectByName('TowerBody')!;
       body.scale.setScalar(arena.structures.towerHeight / 2.37);

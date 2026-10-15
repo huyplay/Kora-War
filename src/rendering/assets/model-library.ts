@@ -5,6 +5,7 @@ import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import type { Phase, Unit } from '../../core/types';
 import type { ModelBinding } from '../../data/content';
 import { animationState } from '../animation/unit-animator';
+import { selectModelLod } from './model-lod';
 export class ModelLibrary {
   private loaded = new Map<string, GLTF>();
   private pending = new Map<string, Promise<GLTF>>();
@@ -82,6 +83,7 @@ export class ModelInstance {
     readonly binding: ModelBinding,
   ) {
     this.model = clone(source);
+    selectModelLod(this.model);
     this.clips = clips;
     this.mixer = new THREE.AnimationMixer(this.model);
     this.play('idle');

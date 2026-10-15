@@ -59,6 +59,22 @@ test('touching a tall enemy model targets its actual lane instead of the ground 
   assert.equal(point.x, enemy.x);
 });
 
+test('small packed units do not capture a spell intended for their visual neighbour', () => {
+  const { enemy, world, group, screen } = scene();
+  group.scale.setScalar(0.25);
+  const neighbour = { ...enemy, id: enemy.id + 1, x: 2 };
+  const otherGroup = new THREE.Group();
+  otherGroup.position.copy(group.position).add(new THREE.Vector3(0.5, 0, 0));
+  otherGroup.scale.setScalar(0.25);
+  world.units.set(neighbour.id, { ...world.units.get(enemy.id)!, group: otherGroup, unit: neighbour });
+  const before = structuredClone([enemy, neighbour]);
+  const [x, y] = screen(otherGroup.position.x, 0.5, otherGroup.position.z);
+  const pick = world.pick(x, y, true)!;
+  assert.equal(pick.spellValid, true);
+  assert.equal(pick.x, neighbour.x, 'cast still uses logical combat coordinates');
+  assert.deepEqual([enemy, neighbour], before);
+});
+
 test('spell touches on every lane work with mirrored PvP units and interpolated visuals', () => {
   const { enemy, world, group, screen } = scene();
   for (let lane = 0; lane < LANES.length; lane++) {

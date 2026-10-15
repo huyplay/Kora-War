@@ -23,9 +23,9 @@ export class TerrainStyle {
       let material = converted.get(original);
       if (!material) {
         material = new THREE.MeshStandardMaterial({
-          color: metal ? 0xc7a16b : original.color,
-          roughness: metal ? 0.4 : 0.88,
-          metalness: metal ? 0.3 : 0.04,
+          color: metal ? 0x80664c : original.color,
+          roughness: metal ? 0.62 : 0.88,
+          metalness: metal ? 0.45 : 0.04,
         });
         converted.set(original, material);
         material.userData.stoneShade = kind === 'stone' ? 0.88 + ARENA_STONE.indexOf(hex) * 0.08 : 1;

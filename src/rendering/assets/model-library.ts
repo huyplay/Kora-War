@@ -64,6 +64,7 @@ export class ModelLibrary {
 }
 export class ModelInstance {
   readonly root = new THREE.Group();
+  readonly footprintRadius: number;
   readonly mixer: THREE.AnimationMixer;
   readonly model: THREE.Object3D;
   private action?: THREE.AnimationAction;
@@ -90,6 +91,7 @@ export class ModelInstance {
       size = box.getSize(new THREE.Vector3()),
       center = box.getCenter(new THREE.Vector3());
     const scale = binding.height / Math.max(0.001, size.y);
+    this.footprintRadius = (Math.max(size.x, size.z) * scale) / 2;
     const normalizer = new THREE.Group();
     normalizer.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
     normalizer.scale.setScalar(scale);

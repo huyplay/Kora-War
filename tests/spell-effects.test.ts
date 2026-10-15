@@ -103,6 +103,9 @@ test('ice visuals persist after the instant spell zone disappears, expire with t
   effects.update([], targets, 0.4, 1);
   const status = effects.root.getObjectByName(`spell-status-${enemy.id}`)!;
   assert.equal(status.getObjectByName('frost')!.visible, true);
+  assert.equal(status.getObjectByName('FreezeShell')!.visible, false);
+  assert.equal(status.getObjectByName('FreezeShards')!.visible, false);
+  assert.equal(status.getObjectByName('ChillRing')!.visible, true);
   assert.equal(status.getObjectByName('burn')!.visible, false);
   effects.update([], targets, 2.39, 2);
   assert.equal(effects.root.children.length, 1);
@@ -140,16 +143,24 @@ test('freeze, haste and weaken visuals expire independently without mutating com
     targets = units(),
     target = targets[1];
   target.frozenUntil = 2;
+  target.slowUntil = 2.5;
+  target.slowFactor = 0.6;
   target.hasteUntil = 3;
   target.weakenUntil = 4;
   const before = structuredClone(targets);
   effects.update([], targets, 1, 1);
   const status = effects.root.getObjectByName(`spell-status-${target.id}`)!;
   assert.equal(status.getObjectByName('frost')!.visible, true);
+  assert.equal(status.getObjectByName('FreezeShell')!.visible, true);
+  assert.equal(status.getObjectByName('FreezeShards')!.visible, true);
+  assert.equal(status.getObjectByName('ChillRing')!.visible, false);
   assert.equal(status.getObjectByName('haste')!.visible, true);
   assert.equal(status.getObjectByName('weaken')!.visible, true);
   effects.update([], targets, 2, 2);
-  assert.equal(status.getObjectByName('frost')!.visible, false);
+  assert.equal(status.getObjectByName('frost')!.visible, true);
+  assert.equal(status.getObjectByName('FreezeShell')!.visible, false);
+  assert.equal(status.getObjectByName('FreezeShards')!.visible, false);
+  assert.equal(status.getObjectByName('ChillRing')!.visible, true);
   assert.equal(status.getObjectByName('haste')!.visible, true);
   effects.update([], targets, 3, 3);
   assert.equal(status.getObjectByName('haste')!.visible, false);

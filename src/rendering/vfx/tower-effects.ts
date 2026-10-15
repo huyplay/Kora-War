@@ -8,6 +8,7 @@ interface Shot {
   side: Side;
   age: number;
   duration: number;
+  targetId?: number;
 }
 const colors = [0x55caff, 0xff6a4d];
 export function towerRangeBounds(x: number, z: number, range: number, halfWidth: number) {
@@ -66,13 +67,25 @@ export class TowerEffects {
     }),
     32,
   );
+  private targetMarker = new THREE.InstancedMesh(
+    new THREE.RingGeometry(0.78, 1, 32),
+    new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0.8,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+    }),
+    32,
+  );
   private dummy = new THREE.Object3D();
   private direction = new THREE.Vector3();
   private up = new THREE.Vector3(0, 1, 0);
   private color = new THREE.Color();
   constructor() {
     this.root.name = 'TowerRangeAndProjectiles';
-    for (const mesh of [this.bolt, this.trail, this.impact, this.glow]) {
+    this.targetMarker.name = 'TowerTargetMarkers';
+    for (const mesh of [this.bolt, this.trail, this.impact, this.glow, this.targetMarker]) {
       mesh.setColorAt(0, new THREE.Color(0xffffff));
       mesh.count = 0;
       mesh.frustumCulled = false;
@@ -80,9 +93,16 @@ export class TowerEffects {
       this.root.add(mesh);
     }
   }
-  emit(id: string, from: THREE.Vector3, target: THREE.Vector3, side: Side, duration: number) {
+  emit(
+    id: string,
+    from: THREE.Vector3,
+    target: THREE.Vector3,
+    side: Side,
+    duration: number,
+    targetId?: number,
+  ) {
     if (this.shots.length >= 32) this.shots.shift();
-    this.shots.push({ source: from.clone(), target: target.clone(), side, age: 0, duration });
+    this.shots.push({ source: from.clone(), target: target.clone(), side, age: 0, duration, targetId });
     const zone = this.zones.get(id);
     if (zone) zone.flash = 1;
   }
@@ -93,6 +113,7 @@ export class TowerEffects {
     config: ArenaPresentation['towers'],
     dt: number,
     camera: THREE.Camera,
+    targetPosition?: (id: number) => THREE.Vector3 | undefined,
   ) {
     for (const tower of towers) {
       let zone = this.zones.get(tower.id);
@@ -137,7 +158,7 @@ export class TowerEffects {
       zone.mesh.material.opacity = opacity * 0.2;
       (zone.edge.material as THREE.LineBasicMaterial).opacity = opacity;
     }
-    this.bolt.count = this.trail.count = this.impact.count = this.glow.count = 0;
+    this.bolt.count = this.trail.count = this.impact.count = this.glow.count = this.targetMarker.count = 0;
     for (let i = this.shots.length - 1; i >= 0; i--) {
       const shot = this.shots[i];
       shot.age += dt;
@@ -148,6 +169,17 @@ export class TowerEffects {
       }
       this.color.setHex(colors[shot.side]);
       if (p < 1) {
+        const position = shot.targetId !== undefined ? targetPosition?.(shot.targetId) : undefined;
+        if (position) {
+          shot.target.x = position.x;
+          shot.target.z = position.z;
+        }
+        this.dummy.position.set(shot.target.x, 0.29, shot.target.z);
+        this.dummy.rotation.set(-Math.PI / 2, 0, 0);
+        this.dummy.scale.setScalar(0.65 + 0.12 * Math.sin(p * Math.PI));
+        this.dummy.updateMatrix();
+        this.targetMarker.setColorAt(this.targetMarker.count, this.color);
+        this.targetMarker.setMatrixAt(this.targetMarker.count++, this.dummy.matrix);
         const head = shot.source.clone().lerp(shot.target, p);
         head.y += Math.sin(p * Math.PI) * 0.5;
         const back = shot.source.clone().lerp(shot.target, Math.max(0, p - 0.4));
@@ -187,7 +219,7 @@ export class TowerEffects {
         this.impact.setMatrixAt(this.impact.count++, this.dummy.matrix);
       }
     }
-    for (const mesh of [this.bolt, this.trail, this.impact, this.glow]) {
+    for (const mesh of [this.bolt, this.trail, this.impact, this.glow, this.targetMarker]) {
       mesh.instanceMatrix.needsUpdate = true;
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     }
@@ -195,7 +227,7 @@ export class TowerEffects {
   reset() {
     this.shots = [];
     for (const z of this.zones.values()) z.flash = 0;
-    this.bolt.count = this.trail.count = this.impact.count = this.glow.count = 0;
+    this.bolt.count = this.trail.count = this.impact.count = this.glow.count = this.targetMarker.count = 0;
   }
   dispose() {
     this.root.removeFromParent();
@@ -205,7 +237,7 @@ export class TowerEffects {
       z.edge.geometry.dispose();
       (z.edge.material as THREE.Material).dispose();
     }
-    for (const m of [this.bolt, this.trail, this.impact, this.glow]) {
+    for (const m of [this.bolt, this.trail, this.impact, this.glow, this.targetMarker]) {
       m.geometry.dispose();
       m.material.dispose();
       m.dispose();

@@ -1,6 +1,7 @@
 import { ArenaLighting } from './arena-lighting';
 import { TowerEffects } from './vfx/tower-effects';
 import { TowerHealthBars } from './tower-health';
+import { UnitOverlays } from './unit-overlays';
 import { ArenaBackdrop } from './arena-backdrop';
 import { DeploymentGuidance } from './deployment-guidance';
 import { portraitCamera } from './portrait-camera';
@@ -14,14 +15,7 @@ import { animateUnit } from './animation/unit-animator';
 import { createHeroPrefabs } from './assets/hero-prefabs';
 import { ModelLibrary, type ModelInstance } from './assets/model-library';
 import { buildEnvironment } from './environment';
-import {
-  disposeSharedResources,
-  healthGeometry,
-  healthMaterial,
-  geo,
-  teamRings,
-  unitRingGeometry,
-} from './resources';
+import { disposeSharedResources, geo, teamRings, unitRingGeometry } from './resources';
 import { TerrainStyle } from './terrain-style';
 import { SpriteEffects } from './vfx/sprite-effects';
 import { type SpellId } from '../data/spells';
@@ -40,10 +34,6 @@ import { presentationOf } from '../data/presentation';
 import { unitVisualMetrics } from './unit-visual-metrics';
 interface Visual {
   group: THREE.Group;
-  bar: THREE.Mesh;
-  shield: THREE.Mesh;
-  barBack: THREE.Mesh;
-  barTrail: THREE.Mesh;
   feedback: UnitFeedback;
   unit: Unit;
   imported?: ModelInstance;
@@ -83,6 +73,7 @@ export class World {
   private lighting = new ArenaLighting();
   private towerEffects = new TowerEffects();
   private towerHealth = new TowerHealthBars();
+  private unitOverlays = new UnitOverlays();
   private backdrop = new ArenaBackdrop();
   private fortressSides: THREE.Group[] = [];
   private gateFrontages: THREE.Group[] = [];
@@ -148,6 +139,7 @@ export class World {
       this.towerEffects.root,
       this.structureShadows.root,
       this.towerHealth.root,
+      this.unitOverlays.root,
       this.backdrop.root,
     );
     this.lighting.configure(presentationOf({}).arena.lighting);
@@ -444,6 +436,7 @@ export class World {
     this.structures.reset(this.towerMeshes);
     this.towerEffects.reset();
     this.towerHealth.reset();
+    this.unitOverlays.reset();
     this.corpses.forEach((c) => c.model.dispose());
     this.corpses = [];
     this.sprites.reset();
@@ -456,7 +449,7 @@ export class World {
       batch.mesh.visible = false;
     }
     for (const v of this.units.values()) {
-      this.scene.remove(v.group, v.bar, v.shield);
+      this.scene.remove(v.group);
       this.disposeUnit(v);
     }
     this.units.clear();
@@ -494,6 +487,7 @@ export class World {
     this.structures.dispose();
     this.towerEffects.dispose();
     this.towerHealth.dispose();
+    this.unitOverlays.dispose();
     this.backdrop.dispose();
     this.deploymentGuidance.dispose();
     this.lighting.dispose();
@@ -527,15 +521,7 @@ export class World {
   addUnit(u: Unit) {
     const group = this.prefabs.get(u.heroId)(u.side);
     group.rotation.y = u.side === 0 ? Math.PI / 2 : -Math.PI / 2;
-    const bar = new THREE.Mesh(healthGeometry, healthMaterial);
-    bar.position.set(0, 2.6, 0);
-    bar.quaternion.copy(this.camera.quaternion);
-    bar.scale.set(0.94, 0.085, 1);
-    const shield = new THREE.Mesh(healthGeometry, healthMaterial);
-    shield.scale.set(0.94, 0.038, 1);
-    const barBack = new THREE.Mesh(healthGeometry, healthMaterial);
-    const barTrail = new THREE.Mesh(healthGeometry, healthMaterial);
-    const v: Visual = { group, bar, shield, barBack, barTrail, feedback: new UnitFeedback(u), unit: u };
+    const v: Visual = { group, feedback: new UnitFeedback(u), unit: u };
     this.units.set(u.id, v);
     const binding = this.content?.models[u.heroId];
     if (binding && this.templates.has(u.heroId))
@@ -586,16 +572,6 @@ export class World {
         v.group.traverse((o) => {
           if (o instanceof THREE.Mesh && o.visible) this.batchUnitMesh(o);
         });
-      v.bar.updateMatrixWorld(true);
-      v.barBack.updateMatrixWorld(true);
-      v.barTrail.updateMatrixWorld(true);
-      this.batchUnitMesh(v.barBack, 0x15222e);
-      this.batchUnitMesh(v.barTrail, 0xe5ad66);
-      this.batchUnitMesh(v.bar, v.unit.side === 0 ? 0x26cfe8 : 0xff5959);
-      if (v.shield.visible) {
-        v.shield.updateMatrixWorld(true);
-        this.batchUnitMesh(v.shield, 0xffe4a3);
-      }
     }
     for (const b of this.unitBatches.values()) {
       b.mesh.count = b.count;
@@ -610,13 +586,14 @@ export class World {
         .filter(
           (v) => v.unit.lane === e.lane && v.unit.side === side && (!heroId || v.unit.heroId === heroId),
         )
-        .sort((a, b) => Math.abs(a.unit.x - x) - Math.abs(b.unit.x - x))[0]?.group.position;
+        .sort((a, b) => Math.abs(a.unit.x - x) - Math.abs(b.unit.x - x))[0];
     const point = e.targetId
       ? this.units.get(e.targetId)?.group.position
       : e.heroId
-        ? closest(e.x, e.side, e.heroId)
+        ? closest(e.x, e.side, e.heroId)?.group.position
         : undefined;
-    const target = e.type === 'projectile' ? closest(e.toX ?? e.x, 1 - e.side) : undefined;
+    const targetVisual = e.type === 'projectile' ? closest(e.toX ?? e.x, 1 - e.side) : undefined;
+    const target = targetVisual?.group.position;
     if (e.type === 'projectile' && !e.heroId) {
       const arena = presentationOf(this.content ?? {}).arena;
       const source = new THREE.Vector3(e.x, 0.48 + arena.structures.towerHeight * 0.85, LANES[e.lane]);
@@ -627,6 +604,7 @@ export class World {
         destination,
         e.side,
         arena.towers.projectileSeconds,
+        targetVisual?.unit.id,
       );
       return;
     }
@@ -680,13 +658,12 @@ export class World {
     const ids = new Set(battle.units.map((u) => u.id));
     for (const [id, v] of this.units)
       if (!ids.has(id)) {
-        this.scene.remove(v.group, v.bar, v.shield);
+        this.scene.remove(v.group);
         this.disposeUnit(v, true);
         this.units.delete(id);
       }
     this.contactShadows.begin();
-    const barRight = new THREE.Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
-    const barForward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.camera.quaternion);
+    this.unitOverlays.begin();
     const formation = presentationOf(battle.content).formation;
     const positions = this.formation.update(
       battle.units,
@@ -720,24 +697,17 @@ export class World {
       if (v.imported) v.imported.update(u, battle.time, battle.phase, animationDt);
       else animateUnit(v.group, u, battle.time, this.clock, battle.phase);
       v.imported?.setHitFlash(v.feedback.flash);
-      v.bar.position.set(v.group.position.x, metrics.barY, z);
-      v.bar.quaternion.copy(this.camera.quaternion);
-      const barWidth = 0.94 * metrics.barScale;
-      v.bar.scale.set(barWidth * Math.max(0.001, u.hp / u.maxHp), 0.085, 1);
-      v.barBack.position.copy(v.bar.position).addScaledVector(barForward, -0.018);
-      v.barBack.quaternion.copy(this.camera.quaternion);
-      v.barBack.scale.set(metrics.barScale, 0.13, 1);
-      v.barTrail.position.copy(v.bar.position).addScaledVector(barForward, -0.009);
-      v.barTrail.quaternion.copy(this.camera.quaternion);
-      v.barTrail.scale.set(barWidth * Math.max(0.001, v.feedback.trailHp / u.maxHp), 0.085, 1);
-      v.barTrail.position.addScaledVector(barRight, (v.barTrail.scale.x - barWidth) / 2);
-      v.bar.position.addScaledVector(barRight, (v.bar.scale.x - barWidth) / 2);
-      v.shield.position.set(v.group.position.x, v.bar.position.y + 0.13, z);
-      v.shield.quaternion.copy(this.camera.quaternion);
-      v.shield.scale.x = barWidth * Math.min(1, u.shield / 200);
-      v.shield.position.addScaledVector(barRight, (v.shield.scale.x - barWidth) / 2);
-      v.shield.visible = u.shield > 0;
+      this.unitOverlays.add(
+        u,
+        v.group.position,
+        metrics.barY,
+        v.feedback.trailHp,
+        battle.time,
+        this.camera,
+        this.canvas.clientHeight,
+      );
     }
+    this.unitOverlays.end();
     this.spellEffects.setConfig(battle.gameplay);
     this.spellEffects.update(
       battle.spellZones,
@@ -768,6 +738,7 @@ export class World {
       presentationOf(battle.content).arena.towers,
       animationDt,
       this.camera,
+      (id) => this.units.get(id)?.group.position,
     );
     this.numbers.update(animationDt, this.camera);
     this.towerHealth.update(

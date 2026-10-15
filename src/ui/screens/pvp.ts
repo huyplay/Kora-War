@@ -48,7 +48,7 @@ export function pvpScreen(
         ? `<div class="queue-display"><div class="queue-emblem" aria-hidden="true">${queued ? symbols[mode] : '◈'}</div>
       <h3>${queued ? 'Đang tìm đối thủ' : 'Mã phòng'}</h3>
       ${queued ? `<div class="queue-clock"><strong id="pvp-queue-time" role="timer" aria-label="Thời gian tìm trận">${packet.queueSeconds ?? 0}s</strong><span>/ ${config.queue.timeoutSeconds}s</span></div>` : `<strong class="room-code" aria-label="Mã phòng ${esc(code)}">${esc(code)}</strong>`}
-      <p id="pvp-status" role="status"></p><button class="secondary" id="pvp-leave">${queued ? 'Hủy tìm trận' : 'Rời phòng'}</button></div>`
+      <p id="pvp-status" role="status">${session.connected ? '' : 'Đang nối lại…'}</p><button class="secondary" id="pvp-leave">${queued ? 'Hủy tìm trận' : 'Rời phòng'}</button></div>`
         : view === 'friends'
           ? `<div class="friend-content"><div class="friend-create"><span aria-hidden="true">◈</span><button class="primary" id="pvp-create" ${config.modes.friendly.enabled ? '' : 'disabled'}>Tạo phòng</button></div>
       <form class="friend-join" id="pvp-join-form"><label for="pvp-code">Mã phòng</label><input id="pvp-code" aria-label="Mã phòng bạn bè" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" placeholder="12 ký tự" ${config.modes.friendly.enabled ? '' : 'disabled'}><button class="secondary" id="pvp-join" ${config.modes.friendly.enabled ? '' : 'disabled'}>Vào phòng</button></form></div><p id="pvp-status" role="status">${config.modes.friendly.enabled ? '' : 'Chế độ đang tạm đóng.'}</p>`

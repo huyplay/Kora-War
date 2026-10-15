@@ -225,15 +225,42 @@ export class PvpSession {
     // In-flight polls/commands must not replace the menu or start a result while leaving.
     this.dispose();
     const generation = this.generation;
+    const signal = this.requests.signal;
     // Store the pending operation before it can finish, including an empty local session.
     this.leaving = Promise.resolve().then(async () => {
-      // Local navigation must still work if the room/server has disappeared.
+      let confirmed = !code,
+        retried = false;
       try {
-        if (code) await api('/api/pvp/leave', 'POST', { code });
-      } catch (e) {
-        if (generation === this.generation) this.onError(e instanceof Error ? e.message : String(e));
+        if (code) {
+          try {
+            await api('/api/pvp/leave', 'POST', { code }, signal);
+          } catch (error) {
+            if (signal.aborted || generation !== this.generation || !this.transient(error)) throw error;
+            // The first request may have canceled the room already. Repeating the same
+            // token can only leave that room; it must never cancel a newer membership.
+            retried = true;
+            await api('/api/pvp/leave', 'POST', { code }, signal);
+          }
+          confirmed = true;
+        }
+      } catch (error) {
+        if (generation !== this.generation || signal.aborted) return;
+        if (error instanceof ApiError && [400, 401, 404].includes(error.status)) {
+          // Expired/deleted rooms and expired authentication cannot retain membership.
+          confirmed = true;
+          if (!retried || error.status === 401) this.onError(error.message);
+        } else {
+          this.setConnected(false);
+          throw new Error('Chưa rời được phòng. Thử lại.');
+        }
       } finally {
-        if (generation === this.generation) this.forget();
+        if (generation === this.generation) {
+          this.leaving = undefined;
+          if (confirmed) this.forget();
+          // Keep the packet/token until cancellation is known. The waiting screen
+          // stays open, its retry button unlocks, and authoritative polling resumes.
+          else if (!signal.aborted && this.packet) this.poll();
+        }
       }
     });
     return this.leaving;

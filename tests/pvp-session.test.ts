@@ -116,15 +116,16 @@ test('a fresh tab restores the authenticated current room without a stored code'
   assert.equal(session.restoring, false);
 });
 
-test('pending leave blocks new commands, room opens and restores even if leaving later fails offline', async (t) => {
+test('failed leave blocks overlapping requests and retains membership so cancellation can be retried', async (t) => {
   let rejectLeave!: (error: Error) => void;
   const paths: string[] = [];
   t.mock.method(globalThis, 'fetch', async (path: string) => {
     paths.push(path);
-    if (path.endsWith('/leave'))
+    if (path.endsWith('/leave') && paths.filter((p) => p.endsWith('/leave')).length === 1)
       return new Promise<Response>((_, reject) => {
         rejectLeave = reject;
       });
+    if (path.endsWith('/leave')) throw new TypeError('offline during retry');
     return Response.json(packet());
   });
   const session = new PvpSession();
@@ -139,9 +140,15 @@ test('pending leave blocks new commands, room opens and restores even if leaving
   await session.restore();
   assert.deepEqual(paths, ['/api/pvp/create', '/api/pvp/leave']);
   rejectLeave(new TypeError('offline during leave'));
-  await leaving;
+  await assert.rejects(leaving, /Thử lại/);
+  assert.equal(session.active, true);
+  assert.equal(session.connected, false);
+  assert.equal(session.packet?.code, packet().code);
+  assert.equal(paths.filter((p) => p.endsWith('/leave')).length, 2);
+  assert.deepEqual(errors, [], 'the caller presents the actionable failure once');
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true }));
+  await session.leave();
   assert.equal(session.active, false);
-  assert.deepEqual(errors, ['offline during leave']);
 });
 
 test('repeated leave calls share one request while it is pending', async (t) => {
@@ -192,4 +199,70 @@ test('an old leave finishing after dispose cannot clear or report an error over 
   assert.equal(session.active, true);
   assert.equal(session.packet?.code, '123456ABCDEF');
   assert.deepEqual(errors, []);
+});
+
+test('a transient leave failure retries the same room once and then clears membership on success', async (t) => {
+  const requests: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (path: string, options?: RequestInit) => {
+    if (!path.endsWith('/leave')) return Response.json(packet());
+    requests.push(options!.body as string);
+    if (requests.length === 1) throw new TypeError('connection interrupted before request arrived');
+    return Response.json({ ok: true });
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  await session.open(DEFAULT_DECK, DEFAULT_SPELLS);
+  await session.leave();
+  assert.deepEqual(requests, [
+    JSON.stringify({ code: packet().code }),
+    JSON.stringify({ code: packet().code }),
+  ]);
+  assert.equal(session.active, false);
+  assert.equal(session.connected, true);
+});
+
+test('failed cancellation resumes polling and can discover that the original room is gone', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const paths: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    paths.push(path);
+    if (path.endsWith('/leave')) return Response.json({ error: 'temporary outage' }, { status: 503 });
+    if (path.startsWith('/api/pvp/state'))
+      return Response.json({ error: 'Phòng đã hết hạn.' }, { status: 400 });
+    return Response.json(packet());
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  let closed = 0;
+  session.onClosed = () => closed++;
+  await session.open(DEFAULT_DECK, DEFAULT_SPELLS);
+  await assert.rejects(session.leave(), /Thử lại/);
+  assert.equal(session.active, true);
+  t.mock.timers.tick(1500);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(session.active, false);
+  assert.equal(closed, 1);
+  assert.equal(paths.filter((path) => path.endsWith('/leave')).length, 2);
+});
+
+test('disposing aborts a pending leave request and prevents a retry over the next session', async (t) => {
+  let signal: AbortSignal | undefined;
+  let leaves = 0;
+  t.mock.method(globalThis, 'fetch', async (path: string, options?: RequestInit) => {
+    if (!path.endsWith('/leave')) return Response.json(packet());
+    leaves++;
+    const requestSignal = options!.signal as AbortSignal;
+    signal = requestSignal;
+    return new Promise<Response>((_, reject) => {
+      requestSignal.addEventListener('abort', () => reject(requestSignal.reason), { once: true });
+    });
+  });
+  const session = new PvpSession();
+  await session.open(DEFAULT_DECK, DEFAULT_SPELLS);
+  const leaving = session.leave();
+  await new Promise((resolve) => setImmediate(resolve));
+  session.dispose();
+  assert.equal(signal?.aborted, true);
+  await leaving;
+  assert.equal(leaves, 1);
 });

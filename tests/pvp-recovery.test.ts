@@ -317,3 +317,60 @@ test('poll recovery notifies connection loss and restoration without losing memb
   assert.equal(session.connected, true);
   assert.deepEqual(changes, [false, true]);
 });
+
+test('a lost successful leave response clears the deleted server room without a false failure', async (t) => {
+  const values = storage(t),
+    rooms = new PvpRooms(() => 1000),
+    loadout = { deck: DEFAULT_DECK, spells: DEFAULT_SPELLS },
+    errors: string[] = [];
+  let leaves = 0;
+  t.mock.method(globalThis, 'fetch', async (path: string, options?: RequestInit) => {
+    if (path.endsWith('/create')) return Response.json(rooms.create('alice', loadout, defaultContent()));
+    const data = JSON.parse(options!.body as string);
+    leaves++;
+    try {
+      rooms.leave('alice', data.code);
+    } catch (error) {
+      return Response.json({ error: String(error) }, { status: 400 });
+    }
+    throw new TypeError('response lost after leave reached server');
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  session.onError = (message) => errors.push(message);
+  await session.open(DEFAULT_DECK, DEFAULT_SPELLS);
+  assert.equal(values.size, 1);
+  await session.leave();
+  assert.equal(leaves, 2);
+  assert.equal(rooms.current('alice'), null);
+  assert.equal(session.active, false);
+  assert.equal(values.size, 0);
+  assert.deepEqual(errors, []);
+});
+
+test('an unconfirmed leave retains its stored room and accepts the same room on resumed polling', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const values = storage(t);
+  let leaves = 0;
+  t.mock.method(globalThis, 'fetch', async (path: string) => {
+    if (path.endsWith('/leave')) {
+      leaves++;
+      throw new TypeError('offline');
+    }
+    return Response.json(packet(undefined, 2));
+  });
+  const session = new PvpSession();
+  t.after(() => session.dispose());
+  await session.open(DEFAULT_DECK, DEFAULT_SPELLS);
+  await assert.rejects(session.leave(), /Thử lại/);
+  assert.equal(leaves, 2);
+  assert.equal(values.get('kora-pvp-room'), packet().code);
+  assert.equal(session.active, true);
+  assert.equal(session.connected, false);
+  t.mock.timers.tick(1500);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(session.connected, true);
+  assert.equal(session.packet?.code, packet().code);
+  assert.equal(values.get('kora-pvp-room'), packet().code);
+  assert.equal(leaves, 2, 'resumed polling must not surrender a room by itself');
+});

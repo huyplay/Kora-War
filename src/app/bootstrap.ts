@@ -991,6 +991,8 @@ pvp.onConnectionChange = (connected) => {
   const status = $('#connection-status');
   status.hidden = connected || (mode !== 'battle' && !pvp.restoring);
   status.textContent = pvp.restoring ? 'Đang nối lại phiên đấu…' : 'Đang nối lại… Trận đấu vẫn tiếp tục.';
+  const waitingStatus = document.querySelector('#pvp-status');
+  if (pvp.packet?.waiting && waitingStatus) waitingStatus.textContent = connected ? '' : 'Đang nối lại…';
   if (!connected && mode === 'battle') $('#combat-message').classList.remove('show');
 };
 pvp.onClosed = () => {
@@ -1115,7 +1117,11 @@ function loop(now: number) {
       !!selected && isSpell(selected),
       pvp.active ? 1 : speed,
     );
-  defenseFeedback.update(battle, dt, mode === 'battle' && !landscape.blocked && !document.hidden && pvp.connected);
+  defenseFeedback.update(
+    battle,
+    dt,
+    mode === 'battle' && !landscape.blocked && !document.hidden && pvp.connected,
+  );
   if (now - lastUi > 160) {
     updateHud();
     lastUi = now;

@@ -28,7 +28,12 @@ export class TerrainStyle {
           metalness: metal ? 0.45 : 0.04,
         });
         converted.set(original, material);
-        material.userData.stoneShade = kind === 'stone' ? 0.88 + ARENA_STONE.indexOf(hex) * 0.08 : 1;
+        material.userData.stoneShade =
+          kind === 'stone'
+            ? 0.88 + ARENA_STONE.indexOf(hex) * 0.08
+            : kind === 'wall'
+              ? 1.6 + ARENA_WALL.indexOf(hex) * 0.16
+              : 1;
         if (kind) this.materials[kind].push(material);
       }
       object.material = material;

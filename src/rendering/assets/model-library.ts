@@ -200,11 +200,16 @@ export class ModelInstance {
           let material = variants.get(source);
           if (material) return material;
           material = source.clone();
-          material.customProgramCacheKey = () => 'kora-enemy-blue-to-red-v1';
+          material.customProgramCacheKey = () => 'kora-enemy-blue-to-red-v2';
           material.onBeforeCompile = (shader) => {
             shader.fragmentShader = shader.fragmentShader.replace(
               '#include <map_fragment>',
-              '#include <map_fragment>\nif(diffuseColor.b>diffuseColor.r*1.25 && diffuseColor.b>diffuseColor.g*1.05){diffuseColor.rgb=vec3(diffuseColor.b,diffuseColor.r,diffuseColor.g*0.55);}',
+              '#include <map_fragment>\nif(diffuseColor.b>diffuseColor.r*1.25 && diffuseColor.b>diffuseColor.g*0.95){diffuseColor.rgb=vec3(diffuseColor.b,diffuseColor.r*0.7,diffuseColor.g*0.12);}',
+            );
+            // Emissive crystal maps must use the same faction hue as the diffuse texture.
+            shader.fragmentShader = shader.fragmentShader.replace(
+              '#include <emissivemap_fragment>',
+              '#include <emissivemap_fragment>\nif(totalEmissiveRadiance.b>totalEmissiveRadiance.r*1.25 && totalEmissiveRadiance.b>totalEmissiveRadiance.g*0.95){totalEmissiveRadiance.rgb=vec3(totalEmissiveRadiance.b,totalEmissiveRadiance.r*0.7,totalEmissiveRadiance.g*0.12);}',
             );
           };
           variants.set(source, material);

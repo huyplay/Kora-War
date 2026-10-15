@@ -16,7 +16,7 @@ function scene() {
   const enemy = b.units[0];
   enemy.x = 6;
   const world = Object.create(World.prototype) as World;
-  world.camera = new THREE.OrthographicCamera(-18, 18, 9, -9, 0.1, 150);
+  world.camera = new THREE.PerspectiveCamera(40, 2, 0.1, 150);
   world.camera.position.set(0, 28, 25);
   world.camera.lookAt(0, 0, 0);
   world.camera.updateMatrixWorld(true);

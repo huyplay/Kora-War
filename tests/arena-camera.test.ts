@@ -40,3 +40,29 @@ test('ray picking remains aligned with all three lanes after anchored zoom', () 
     assert.ok(hit.distanceTo(ground) < 1e-9);
   }
 });
+
+test('perspective arena narrows distant lanes and keeps ray selection aligned at maximum zoom', () => {
+  const camera = new THREE.PerspectiveCamera(30, 844 / 390, 0.1, 180);
+  camera.position.set(0, 29, 35.2);
+  camera.lookAt(0, 0.5, 1.2);
+  camera.updateMatrixWorld();
+  const rig = new ArenaCamera(camera),
+    tilt = camera.quaternion.clone();
+  const span = (z: number) =>
+    new THREE.Vector3(13, 0, z).project(camera).x - new THREE.Vector3(-13, 0, z).project(camera).x;
+  assert.ok(span(4.8) > span(-4.8), 'near lane has natural perspective depth');
+  rig.zoomBy(1.85, new THREE.Vector3(4, 0, 0));
+  rig.update(2);
+  const ray = new THREE.Raycaster();
+  for (const z of [-4.8, 0, 4.8]) {
+    const ground = new THREE.Vector3(4, 0, z),
+      screen = ground.clone().project(camera);
+    ray.setFromCamera(new THREE.Vector2(screen.x, screen.y), camera);
+    const hit = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3())!;
+    assert.ok(hit.distanceTo(ground) < 1e-8);
+  }
+  rig.reset();
+  rig.update(2);
+  assert.ok(camera.position.distanceTo(new THREE.Vector3(0, 29, 35.2)) < 1e-8);
+  assert.ok(camera.quaternion.equals(tilt));
+});

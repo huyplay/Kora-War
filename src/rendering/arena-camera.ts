@@ -6,7 +6,10 @@ export class ArenaCamera {
   readonly max = 1.85;
   private targetZoom = 1;
   private focus = new THREE.Vector2();
-  constructor(readonly camera: THREE.OrthographicCamera) {}
+  private home: THREE.Vector3;
+  constructor(readonly camera: THREE.OrthographicCamera | THREE.PerspectiveCamera) {
+    this.home = camera.position.clone();
+  }
   get zoom() {
     return this.targetZoom;
   }
@@ -30,7 +33,7 @@ export class ArenaCamera {
     const blend = 1 - Math.exp(-14 * Math.max(0, dt));
     this.camera.zoom = THREE.MathUtils.lerp(this.camera.zoom, this.targetZoom, blend);
     this.camera.position.x = THREE.MathUtils.lerp(this.camera.position.x, this.focus.x, blend);
-    this.camera.position.z = THREE.MathUtils.lerp(this.camera.position.z, 30 + this.focus.y, blend);
+    this.camera.position.z = THREE.MathUtils.lerp(this.camera.position.z, this.home.z + this.focus.y, blend);
     this.camera.updateProjectionMatrix();
     this.camera.updateMatrixWorld();
   }

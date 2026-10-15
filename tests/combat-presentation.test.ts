@@ -76,7 +76,7 @@ test('contact shadows follow interpolated positions, stay bounded, and clear for
   assert.equal(shadows.root.count, 0);
   shadows.dispose();
 });
-test('tower collapse animates once, freezes while paused and restores all transforms on restart', () => {
+test('tower collapse animates once, freezes while paused, retains rubble and restores on restart', () => {
   const animator = new StructureAnimator(),
     tower: Tower = { id: '0-1', side: 0, lane: 1, x: -9, hp: 400, maxHp: 400, cooldown: 0 };
   const mesh = new THREE.Group();
@@ -97,8 +97,9 @@ test('tower collapse animates once, freezes while paused and restores all transf
   assert.equal(animator.root.count, 12);
   animator.update([destroyed], meshes, 1);
   assert.ok(Math.abs(mesh.scale.y - 0.22) < 0.00001);
-  assert.equal(animator.root.count, 0);
+  assert.equal(animator.root.count, 12);
   animator.reset(meshes);
+  assert.equal(animator.root.count, 0);
   assert.equal(mesh.scale.y, 1);
   assert.equal(mesh.rotation.z, 0);
   assert.equal(tower.hp, 400);

@@ -28,6 +28,7 @@ import { alignFortressFrontages } from './fortress-gates';
 import { ContactShadows } from './vfx/contact-shadows';
 import { FloatingNumbers } from './vfx/floating-numbers';
 import { StructureAnimator } from './animation/structure-animator';
+import { StructureShadowRefresh } from './animation/structure-shadow-refresh';
 import { UnitFeedback } from './animation/unit-feedback';
 import { FormationLayout } from './formation-layout';
 import { presentationOf } from '../data/presentation';
@@ -70,6 +71,8 @@ export class World {
   private contactShadows = new ContactShadows();
   private numbers = new FloatingNumbers();
   private structures = new StructureAnimator();
+  private structureShadowRefresh = new StructureShadowRefresh();
+  private coreShadowAlive: boolean[] = [];
   private lighting = new ArenaLighting();
   private towerEffects = new TowerEffects();
   private towerHealth = new TowerHealthBars();
@@ -423,6 +426,7 @@ export class World {
     this.renderer.setPixelRatio(Math.max(1, Math.min(devicePixelRatio, q === 'high' ? 2 : 1)));
     this.renderer.shadowMap.enabled = q === 'high';
     this.renderer.shadowMap.needsUpdate = true;
+    this.structureShadowRefresh.reset();
   }
   reset() {
     this.placementState = undefined;
@@ -434,6 +438,8 @@ export class World {
     this.numbers.reset();
     this.contactShadows.begin();
     this.structures.reset(this.towerMeshes);
+    this.structureShadowRefresh.reset();
+    this.coreShadowAlive = [];
     this.towerEffects.reset();
     this.towerHealth.reset();
     this.unitOverlays.reset();
@@ -719,7 +725,14 @@ export class World {
         return group ? { x: group.position.x, z: group.position.z, scale: group.scale.x } : undefined;
       },
     );
-    for (const tower of battle.towers) this.towerMeshes.get(tower.id)?.position.setX(tower.x);
+    let structureChanged = false;
+    for (const tower of battle.towers) {
+      const mesh = this.towerMeshes.get(tower.id);
+      if (mesh && mesh.position.x !== tower.x) {
+        mesh.position.x = tower.x;
+        structureChanged = true;
+      }
+    }
     this.contactShadows.end();
     this.structureShadows.begin();
     for (const t of battle.towers)
@@ -748,7 +761,12 @@ export class World {
       this.camera,
       this.canvas.clientHeight,
     );
-    this.structures.update(battle.towers, this.towerMeshes, animationDt);
+    structureChanged = this.structures.update(battle.towers, this.towerMeshes, animationDt) || structureChanged;
+    for (const side of [0, 1]) {
+      const alive = battle.cores[side] > 0;
+      structureChanged ||= this.coreShadowAlive[side] !== alive;
+      this.coreShadowAlive[side] = alive;
+    }
     this.coreCrystals.forEach((c, i) => {
       c.rotation.y = this.clock * 0.35 * (i === 0 ? 1 : -1);
       c.position.y = 2.25 + Math.sin(this.clock * 1.7 + i) * 0.1;
@@ -798,6 +816,8 @@ export class World {
     });
     this.mapInstances.forEach((model) => model.tick(animationDt));
     this.syncUnitBatches();
+    if (this.structureShadowRefresh.update(structureChanged, animationDt, this.quality === 'high'))
+      this.renderer.shadowMap.needsUpdate = true;
     this.renderer.render(this.scene, this.camera);
     const info = this.renderer.info;
     this.stats = {

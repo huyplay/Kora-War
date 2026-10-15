@@ -1,0 +1,89 @@
+.defense-feedback {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  pointer-events: none;
+}
+.defense-feedback,
+.defense-feedback * {
+  pointer-events: none;
+}
+.defense-edges {
+  position: absolute;
+  inset: 0;
+  opacity: 0.65;
+  animation: fortress-warning 1.2s ease-in-out infinite;
+}
+.defense-edges::before,
+.defense-edges::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(48px, 15vw, 160px);
+}
+.defense-edges::before {
+  left: 0;
+  background: linear-gradient(90deg, #f32127b8, #a3092250 42%, transparent);
+}
+.defense-edges::after {
+  right: 0;
+  background: linear-gradient(270deg, #f32127b8, #a3092250 42%, transparent);
+}
+.defense-message {
+  position: absolute;
+  top: max(78px, calc(env(safe-area-inset-top) + 60px));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 76vw;
+  padding: 7px 12px;
+  border: 1px solid #f2b478;
+  border-radius: 8px;
+  background: linear-gradient(#543019f2, #291c1df5);
+  box-shadow: 0 3px 12px #0008;
+  color: #ffe2b8;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+.defense-message[data-kind='core'] {
+  border-color: #ff9292;
+  background: linear-gradient(#6b1821f2, #30111bf5);
+  color: #fff0ed;
+}
+.defense-message svg {
+  width: 17px;
+  height: 17px;
+}
+.defense-warning-active #combat-message {
+  visibility: hidden;
+}
+.base-health.ally.core-under-attack {
+  border-color: #ff7a79;
+  box-shadow: 0 0 14px #fa293e85;
+}
+@keyframes fortress-warning {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+@media (max-height: 600px) {
+  .defense-message {
+    top: max(62px, calc(env(safe-area-inset-top) + 52px));
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .defense-edges {
+    animation: none;
+    opacity: 0.42;
+  }
+}

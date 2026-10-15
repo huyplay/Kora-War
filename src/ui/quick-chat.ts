@@ -50,16 +50,21 @@ export class QuickChat {
       )}</div></div><small>${this.context.online() ? 'Phản hồi gửi tới đối thủ' : 'Phản hồi luyện tập · chỉ bạn thấy'}</small></section><div class="reaction-bubble own" hidden aria-live="polite"></div><div class="reaction-bubble opponent" hidden aria-live="polite"></div>`;
     const toggle = this.root.querySelector<HTMLButtonElement>('.quick-chat-toggle')!,
       panel = this.root.querySelector<HTMLElement>('.quick-chat-panel')!;
+    const closePanel = (restoreFocus = true) => {
+      panel.hidden = true;
+      toggle.setAttribute('aria-expanded', 'false');
+      if (restoreFocus) toggle.focus({ preventScroll: true });
+    };
+    toggle.setAttribute('aria-controls', 'quick-chat-panel');
+    panel.id = 'quick-chat-panel';
     toggle.onclick = () => {
       panel.hidden = !panel.hidden;
       toggle.setAttribute('aria-expanded', String(!panel.hidden));
+      if (!panel.hidden)
+        panel.querySelector<HTMLButtonElement>('.quick-chat-close')!.focus({ preventScroll: true });
       this.context.sound();
     };
-    this.root.querySelector<HTMLButtonElement>('.quick-chat-close')!.onclick = () => {
-      panel.hidden = true;
-      toggle.setAttribute('aria-expanded', 'false');
-      toggle.focus();
-    };
+    this.root.querySelector<HTMLButtonElement>('.quick-chat-close')!.onclick = () => closePanel();
     this.root.querySelector<HTMLInputElement>('input')!.onchange = (e) => {
       this.muted = (e.target as HTMLInputElement).checked;
       if (this.muted) this.root.querySelector<HTMLElement>('.opponent')!.hidden = true;
@@ -74,8 +79,8 @@ export class QuickChat {
       .forEach((b) => (b.onclick = () => void this.send(b.dataset.reaction!)));
     this.root.onkeydown = (e) => {
       if (e.key === 'Escape') {
-        panel.hidden = true;
-        toggle.setAttribute('aria-expanded', 'false');
+        e.preventDefault();
+        closePanel();
       }
       e.stopPropagation();
     };
@@ -89,8 +94,15 @@ export class QuickChat {
     this.sending = true;
     const panel = this.root.querySelector<HTMLElement>('.quick-chat-panel')!;
     panel.hidden = true;
-    this.root.querySelector('.quick-chat-toggle')!.setAttribute('aria-expanded', 'false');
-    const error = this.context.online() ? await this.context.send(id) : null;
+    const toggle = this.root.querySelector<HTMLButtonElement>('.quick-chat-toggle')!;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.focus({ preventScroll: true });
+    let error: string | null;
+    try {
+      error = this.context.online() ? await this.context.send(id) : null;
+    } catch {
+      error = 'Chưa gửi được phản hồi. Hãy thử lại.';
+    }
     if (generation !== this.generation) return;
     this.sending = false;
     if (error) {

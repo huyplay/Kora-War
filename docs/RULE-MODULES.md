@@ -21,7 +21,7 @@ Gameplay đã chốt không thay đổi. Cấu trúc mới tách dữ liệu rul
 
 ## Database
 
-17 module hiện có: `rules`, `mana`, `deck`, `board`, `combat`, `resonance`, `spells`, `synergies`, `ai`, `match`, `collection`, `heroes`, `abilities`, `economy`, `items`, `communication`, `presentation`. Hai module cuối được migration có chủ đích từ release 15 module; giữ nguyên content lịch sử.
+18 module hiện có: `rules`, `mana`, `deck`, `board`, `combat`, `resonance`, `spells`, `synergies`, `ai`, `match`, `collection`, `heroes`, `abilities`, `economy`, `items`, `communication`, `presentation`, `competition`. Các module bổ sung được migration có chủ đích từ các release trước; giữ nguyên content lịch sử.
 
 `rule_modules` là nguồn dữ liệu live: mỗi dòng có `scope` (draft/published), `module_id`, `schema_version`, `data_version`, `payload` JSON. Khóa chính `(scope,module_id)`. `schema_version` mô tả cấu trúc; `data_version` tăng riêng trong từng scope khi payload/schema thay đổi. Hai bộ đếm draft/published không cần bằng nhau; trạng thái “Có thay đổi” so sánh payload. Thứ tự khóa JSON không được coi là thay đổi cân bằng.
 
@@ -33,7 +33,7 @@ Migration ban đầu từ storage JSON tạo 30 dòng draft/published và 15 dò
 
 ## Admin và API
 
-Trong **Gameplay**, mở **17 module rule · phiên bản và trạng thái** để xem schema, version nháp/live và module đang thay đổi. Các form hiện có tiếp tục lưu vào đúng module thông qua service database; nhóm **Chat & đội hình** sửa hai module mới. Sau khi lưu, trạng thái cập nhật ngay; phát hành và khôi phục vẫn dùng luồng revision hiện tại.
+Trong **Gameplay**, mở **18 module rule · phiên bản và trạng thái** để xem schema, version nháp/live và module đang thay đổi. Các form hiện có tiếp tục lưu vào đúng module thông qua service database; nhóm **Chat & đội hình** sửa hai module tương ứng. Sau khi lưu, trạng thái cập nhật ngay; phát hành và khôi phục vẫn dùng luồng revision hiện tại.
 
 API chỉ dành cho admin đã đăng nhập, cùng chính sách cookie/origin/header:
 

@@ -1,5 +1,6 @@
 import type { ContentConfig } from '../data/content';
 import { gameplayOf } from '../data/gameplay';
+import { defaultDeploymentRule } from '../data/deployment';
 import { ORIGINS, ROLES } from '../data/traits';
 import { esc, input } from './html';
 import type { RuleModuleStatus } from '../data/rule-modules';
@@ -145,6 +146,7 @@ export function gameplayEditor(c: ContentConfig, modules: RuleModuleStatus[] = [
   <article class="panel"><h3>Cộng hưởng lõi</h3>${check('gameplay.resonance.enabled', 'Bật cộng hưởng lõi', g.resonance.enabled)}${numeric('gameplay.resonance', g.resonance)}</article>
   <article class="panel" id="config-ai"><h3>AI · nhịp quyết định và chiến thuật</h3>${numeric('gameplay.ai', g.ai)}${check('gameplay.ai.cycleEmptySpells', 'Dùng phép vùng trống khi tay toàn phép', g.ai.cycleEmptySpells)}</article>
   <article class="panel" id="config-match"><h3>Trận đấu & PvP</h3>${numeric('gameplay.match', g.match)}${selectField('gameplay.match.tieBreak', 'Khi lõi/sát thương bằng nhau', g.match.tieBreak, { 'damage-seeded': 'Sát thương, sau đó PRNG theo seed', 'damage-player0': 'Sát thương, sau đó phe 0' })}</article>
+  <article class="panel"><h3>Tiền tuyến & vùng thủ cuối lane</h3>${check('gameplay.board.deployment.enabled', 'Chặn thả tướng sau quân địch cùng lane', g.board.deployment?.enabled ?? true)}<div class="form-grid">${input('gameplay.board.deployment.clearance', 'Khoảng cách trước địch (m)', (g.board.deployment ?? defaultDeploymentRule()).clearance)}${input('gameplay.board.deployment.rearDefenseWidth', 'Bề rộng vùng thủ cuối lane (m)', (g.board.deployment ?? defaultDeploymentRule()).rearDefenseWidth)}</div><p>Chỉ xét quân địch còn sống cùng lane. Khi địch ép hết vùng triển khai, tự mở vùng thủ cuối sân để bảo vệ lõi. Chỉ phép được miễn giới hạn tiền tuyến; chưa có tướng ngoại lệ.</p></article>
   <article class="panel"><h3>Vùng triển khai & combat</h3>${numeric('gameplay.board', g.board)}${numeric('gameplay.combat', g.combat)}</article>
   <article class="panel"><h3>Bộ sưu tập & rương</h3>${numeric('gameplay.collection', g.collection)}<p class="muted">Trận cycle/PvP vẫn chuẩn hóa cấp tướng. Giá vàng/phần thưởng ở Vật phẩm & tiền.</p></article>`;
 }

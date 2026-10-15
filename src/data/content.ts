@@ -24,6 +24,7 @@ export interface ModelBinding {
   assetId: string;
   height: number;
   yaw: number;
+  portraitYaw?: number;
   clips: Partial<Record<'idle' | 'walk' | 'attack' | 'cast' | 'stunned' | 'spawn' | 'death', string>>;
   animationAssetId?: string;
 }
@@ -121,6 +122,7 @@ export function upgradeContent(input: ContentConfig): ContentConfig {
       nyx.description = 'Ám Kích ưu tiên hậu tuyến theo cấu hình áp sát của kỹ năng.';
   }
   c.gameplay.board.quickSpawnX ??= defaultGameplay().board.quickSpawnX;
+  c.gameplay.board.deployment ??= defaultGameplay().board.deployment;
   c.communication ??= defaultCommunication();
   c.presentation ??= defaultPresentation();
   c.presentation.arena ??= defaultArenaPresentation();
@@ -238,6 +240,7 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
       !asset(m.assetId) ||
       !num(m.height, 0.2, 5) ||
       !num(m.yaw, -360, 360) ||
+      (m.portraitYaw !== undefined && !num(m.portraitYaw, -360, 360)) ||
       !m.clips ||
       (m.animationAssetId && !asset(m.animationAssetId))
     )

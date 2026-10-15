@@ -62,9 +62,9 @@ export function renderStudioPage(state: State, section: string, hero: string, se
     );
   }
   function bindingForm(binding: ModelBinding | undefined) {
-    const b = binding || { assetId: '', height: 2.2, yaw: 0, clips: {} };
+    const b: ModelBinding = binding || { assetId: '', height: 2.2, yaw: 0, clips: {} };
     const clips = state.assets.find((a) => a.id === (b.animationAssetId || b.assetId))?.metadata.clips || [];
-    return `<div class="form-grid"><label>Model GLB<select id="model-binding">${options(undefined, b.assetId)}</select></label><label>Animation GLB (cùng rig)<select id="animation-binding">${options(undefined, b.animationAssetId)}</select></label>${input(`models.${hero}.height`, 'Chiều cao', b.height)}${input(`models.${hero}.yaw`, 'Hướng model', b.yaw)}</div><div class="clip-grid">${['idle', 'walk', 'attack', 'cast', 'stunned', 'spawn', 'death'].map((s) => `<label>${labels[s === 'attack' ? 'attackClip' : s]}<select data-path="models.${hero}.clips.${s}"><option value="">Dùng idle</option>${clips.map((c) => `<option ${b.clips[s as keyof typeof b.clips] === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>`).join('')}</div>`;
+    return `<div class="form-grid"><label>Model GLB<select id="model-binding">${options(undefined, b.assetId)}</select></label><label>Animation GLB (cùng rig)<select id="animation-binding">${options(undefined, b.animationAssetId)}</select></label>${input(`models.${hero}.height`, 'Chiều cao', b.height)}${input(`models.${hero}.yaw`, 'Hướng model', b.yaw)}${input(`models.${hero}.portraitYaw`, 'Hướng chân dung (độ)', b.portraitYaw ?? 0)}</div><div class="clip-grid">${['idle', 'walk', 'attack', 'cast', 'stunned', 'spawn', 'death'].map((s) => `<label>${labels[s === 'attack' ? 'attackClip' : s]}<select data-path="models.${hero}.clips.${s}"><option value="">Dùng idle</option>${clips.map((c) => `<option ${b.clips[s as keyof typeof b.clips] === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>`).join('')}</div>`;
   }
   function content(): string {
     const c = state.draft;

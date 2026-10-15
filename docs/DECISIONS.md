@@ -1,5 +1,9 @@
 # Các quyết định đang áp dụng
 
+## 15/10/2026 — Tiền tuyến và phòng thủ cuối lane
+
+Người dùng xác nhận tướng chỉ triển khai trước quân địch gần căn cứ mình nhất trong cùng lane; chỉ phép miễn giới hạn, tướng đặc biệt sẽ xét ở đợt sau. Nếu địch ép hết vùng triển khai để đánh lõi, mở vùng thủ cuối lane để gọi quân phòng thủ. Module `board` schema 2 lưu policy, khóa theo trận; thiếu policy trong snapshot lịch sử vẫn dùng luật cũ. Bổ sung vùng báo xanh/đỏ/vàng, mũi tên triển khai, chân dung cận cảnh và mana tinh thể. Xem [triển khai và QA](FRONTLINE-CARDS-QA.md).
+
 ## 15/10/2026 — Ánh sáng, thành và hiệu ứng trụ
 
 Người dùng yêu cầu tăng độ sáng, mặt trời ban ngày/đuốc ban đêm, thành hai đầu lớn và cao hơn, trụ cao hơn tướng, công trình gắn với nền và trụ bắn rõ phạm vi/hiệu ứng. Triển khai ở presentation: mặc định ban ngày, admin chọn ngày/đêm cố định theo snapshot trận và chỉnh quy mô/ánh sáng/VFX trong database. Phạm vi trụ phản ánh tầm đánh cùng lane đã có; không thêm đánh xuyên lane hay thời gian đạn gây sát thương mới. Module presentation nâng schema 1 lên 2, giữ replay/revision cũ. Xem [nghiệm thu](ARENA-LIGHTING-QA.md).

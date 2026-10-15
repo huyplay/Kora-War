@@ -1,4 +1,5 @@
 import { HEROES } from '../heroes';
+import { defaultDeploymentRule } from '../deployment';
 import { SPELLS, type SpellId } from '../spells';
 import type { GameplayConfig, SpellConfig, SpellEffect } from './types';
 
@@ -54,6 +55,7 @@ export function defaultGameplay(): GameplayConfig {
       ],
     },
     board: {
+      deployment: defaultDeploymentRule(),
       minX: -14,
       maxX: 14,
       spawnMin: 5.8,
@@ -136,6 +138,8 @@ export function defaultGameplay(): GameplayConfig {
 }
 export const COMPAT_GAMEPLAY = defaultGameplay();
 export const LEGACY_GAMEPLAY = defaultGameplay();
+delete COMPAT_GAMEPLAY.board.deployment;
+delete LEGACY_GAMEPLAY.board.deployment;
 LEGACY_GAMEPLAY.spells.ice.effects = [
   { kind: 'damage', amount: 35 },
   { kind: 'slow', amount: 0.6, duration: 2 },

@@ -1,4 +1,5 @@
 import { defaultArenaPresentation } from './arena-presentation';
+import { defaultDeploymentRule } from './deployment';
 import { competitionOf } from './competition';
 import type { ContentConfig } from './content';
 import { gameplayOf } from './gameplay/defaults';
@@ -18,7 +19,14 @@ export const RULE_MODULES: readonly RuleModuleDefinition[] = Object.freeze([
   define('rules', 'Luật nền: mana, trụ, lõi, quá tải'),
   define('mana', 'Mana đầu trận'),
   define('deck', 'Deck, tay bài và đổi bài'),
-  define('board', 'Vùng triển khai'),
+  Object.freeze({
+    id: 'board',
+    name: 'Vùng triển khai & tiền tuyến',
+    schemaVersion: 2,
+    migrations: Object.freeze({
+      1: (data: unknown) => ({ ...(data as object), deployment: defaultDeploymentRule() }),
+    }),
+  }),
   define('combat', 'Combat và tìm mục tiêu'),
   define('resonance', 'Cộng hưởng lõi'),
   define('spells', 'Phép và chuỗi hiệu ứng'),

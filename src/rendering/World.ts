@@ -1,10 +1,13 @@
 import { ArenaLighting } from './arena-lighting';
 import { TowerEffects } from './vfx/tower-effects';
+import { DeploymentGuidance } from './deployment-guidance';
+import { portraitCamera } from './portrait-camera';
+import { canDeployInRange } from '../core/physics/deployment-range';
 import * as THREE from 'three';
 import type { Battle, GameEvent, Unit } from '../core/index';
 import { pickDeployment } from '../core/physics/lane-space';
 import type { ContentConfig } from '../data/content';
-import { HERO_MAP, LANES, type Hero } from '../data/index';
+import { HERO_MAP, LANES, ORIGINS, type Hero } from '../data/index';
 import { animateUnit } from './animation/unit-animator';
 import { createHeroPrefabs } from './assets/hero-prefabs';
 import { ModelLibrary, type ModelInstance } from './assets/model-library';
@@ -103,7 +106,9 @@ export class World {
     }
   >();
   instanceColor = new THREE.Color();
-  deployZone = new THREE.Group();
+  private deploymentGuidance = new DeploymentGuidance();
+  private placementState?: Battle;
+  deployZone = this.deploymentGuidance.root;
   hoverRing: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
   selected = false;
   selectedLane = -1;
@@ -140,29 +145,6 @@ export class World {
     this.scene.add(this.spellEffects.root);
     this.scene.add(this.atmosphere.root, this.accents.root);
     this.scene.add(this.contactShadows.root, this.numbers.root, this.structures.root);
-    for (let lane = 0; lane < 3; lane++) {
-      const zone = new THREE.Mesh(
-        new THREE.PlaneGeometry(7.7, 2.9),
-        new THREE.MeshBasicMaterial({
-          color: 0x77e9c4,
-          transparent: true,
-          opacity: 0.15,
-          side: THREE.DoubleSide,
-          depthWrite: false,
-        }),
-      );
-      zone.rotation.x = -Math.PI / 2;
-      // Lane tiles top out at y=0.06; keep placement feedback above the stone surface.
-      zone.position.set(-9.65, 0.1, LANES[lane]);
-      this.deployZone.add(zone);
-      const edge = new THREE.LineSegments(
-        new THREE.EdgesGeometry(new THREE.PlaneGeometry(7.7, 2.9)),
-        new THREE.LineBasicMaterial({ color: 0x99f6cc, transparent: true, opacity: 0.75 }),
-      );
-      edge.rotation.x = -Math.PI / 2;
-      edge.position.copy(zone.position).add(new THREE.Vector3(0, 0.01, 0));
-      this.deployZone.add(edge);
-    }
     this.scene.add(this.deployZone);
     this.deployZone.visible = false;
     this.hoverRing = new THREE.Mesh(
@@ -222,11 +204,6 @@ export class World {
       body.scale.setScalar(arena.structures.towerHeight / 2.37);
     }
 
-    const board = gameplayOf(content).board;
-    for (const zone of this.deployZone.children) {
-      zone.position.x = -(board.spawnMin + board.spawnMax) / 2;
-      zone.scale.set((board.spawnMax - board.spawnMin) / 7.7, (board.halfWidth * 2) / 2.9, 1);
-    }
     const skyColor = new THREE.Color(content.map.background).lerp(
       new THREE.Color(arena.lighting.mode === 'day' ? 0x8b9dad : 0x0e1b38),
       arena.lighting.mode === 'day' ? 0.35 : 0.3,
@@ -314,26 +291,35 @@ export class World {
   }
   portrait(h: Hero) {
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1b343b);
-    const model = this.templates.get(h.id)?.root || this.prefabs.get(h.id)();
-    model.rotation.y = -0.3;
+    scene.background = new THREE.Color(ORIGINS[h.origin].color).multiplyScalar(0.12);
+    const template = this.templates.get(h.id);
+    const model = template?.root || this.prefabs.get(h.id)();
+    const originalParent = model.parent,
+      originalRotation = model.rotation.clone();
+    // Portrait orientation is independent of combat yaw and configurable for each source model.
+    model.rotation.y = template
+      ? (((template.binding.portraitYaw ?? 0) - template.binding.yaw) * Math.PI) / 180 - 0.3
+      : -0.3;
     scene.add(model);
     scene.add(new THREE.HemisphereLight(0xe3ffff, 0x3a4045, 3));
     const sun = new THREE.DirectionalLight(0xffe8c2, 4);
     sun.position.set(-3, 6, 5);
     scene.add(sun);
-    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 20);
-    camera.position.set(2, 2.25, 4.1);
-    camera.lookAt(0, 1.15, 0);
+    const rim = new THREE.DirectionalLight(ORIGINS[h.origin].color, 3);
+    rim.position.set(-4, 3, -2);
+    scene.add(rim);
+    const camera = portraitCamera(model);
     const oldSize = this.renderer.getSize(new THREE.Vector2()),
       ratio = this.renderer.getPixelRatio();
     this.renderer.setPixelRatio(1);
-    this.renderer.setSize(256, 256, false);
+    this.renderer.setSize(256, 352, false);
     this.renderer.render(scene, camera);
     const url = this.canvas.toDataURL('image/webp');
     this.renderer.setPixelRatio(ratio);
     this.renderer.setSize(oldSize.x, oldSize.y, false);
     model.removeFromParent();
+    model.rotation.copy(originalRotation);
+    if (originalParent) originalParent.add(model);
     return url;
   }
   pick(clientX: number, clientY: number, spellTarget = false, friendly: boolean | 'all' = false) {
@@ -380,6 +366,9 @@ export class World {
     const point = pickDeployment(hit.x, hit.z, 0, board);
     return {
       ...point,
+      valid:
+        point.valid &&
+        (!this.placementState || canDeployInRange(this.placementState, 0, point.lane, point.x)),
       spellValid:
         hit.x >= board.minX && hit.x <= board.maxX && Math.abs(hit.z - LANES[point.lane]) < board.halfWidth,
     };
@@ -398,14 +387,14 @@ export class World {
     const spell = spellId
       ? (this.content ? gameplayOf(this.content) : COMPAT_GAMEPLAY).spells[spellId]
       : undefined;
-    this.hoverRing.visible = !!p && (ability || spell ? p.spellValid : p.valid);
+    this.hoverRing.visible = !!p && p.spellValid;
     if (p) {
       this.hoverRing.position.set(p.x, 0.27, LANES[p.lane]);
       if (spell) {
         const outerRadius = this.hoverRing.geometry.parameters.outerRadius;
         this.hoverRing.scale.set(spell.radius / outerRadius, 1.35 / outerRadius, 1);
       } else this.hoverRing.scale.setScalar(ability ? 3 : 1);
-      this.hoverRing.material.color.set(spell?.color || 0xa2ffdd);
+      this.hoverRing.material.color.set(spell?.color || (ability || p.valid ? 0xa2ffdd : 0xff536a));
       this.selectedLane = p.lane;
     }
     return p;
@@ -417,6 +406,7 @@ export class World {
     this.renderer.shadowMap.needsUpdate = true;
   }
   reset() {
+    this.placementState = undefined;
     this.formation.reset();
     this.renderer.shadowMap.needsUpdate = true;
     this.arenaCamera.reset();
@@ -475,6 +465,7 @@ export class World {
     this.contactShadows.dispose();
     this.structures.dispose();
     this.towerEffects.dispose();
+    this.deploymentGuidance.dispose();
     this.lighting.dispose();
     this.structureShadows.dispose();
     this.mapInstances.forEach((m) => m.dispose());
@@ -646,12 +637,14 @@ export class World {
     });
   }
   render(battle: Battle, dt: number, selected: boolean, spellTarget = false, animationRate = 1) {
+    this.placementState = battle;
     this.arenaCamera.update(dt);
     // Smooth render-frame motion, independent of the simulation's 20 Hz snapshots.
     const animationDt = battle.phase === 'playing' ? dt * animationRate : 0;
     this.clock += animationDt;
     this.atmosphere.update(this.clock, this.camera, this.quality === 'low');
     this.deployZone.visible = selected && !spellTarget && battle.phase === 'playing';
+    if (this.deployZone.visible) this.deploymentGuidance.update(battle, this.clock);
     if (!selected) this.hoverRing.visible = false;
     const ids = new Set(battle.units.map((u) => u.id));
     for (const [id, v] of this.units)

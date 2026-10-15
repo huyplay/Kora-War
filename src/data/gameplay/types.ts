@@ -1,5 +1,6 @@
 import type { SpellId } from '../spells';
 import type { Origin, Role } from '../types';
+import type { DeploymentRule } from '../deployment';
 
 export type EffectKind =
   'damage' | 'heal' | 'shield' | 'slow' | 'stun' | 'freeze' | 'push' | 'weaken' | 'haste';
@@ -49,6 +50,8 @@ export interface GameplayConfig {
     aiCards: string[];
   };
   board: {
+    /** Absent in immutable historical snapshots: original deployment rules. */
+    deployment?: DeploymentRule;
     minX: number;
     maxX: number;
     spawnMin: number;

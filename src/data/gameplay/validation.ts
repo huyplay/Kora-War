@@ -1,4 +1,5 @@
 import { SPELLS, type SpellId } from '../spells';
+import { validateDeploymentRule } from '../deployment';
 import { defaultGameplay } from './defaults';
 import { deckError } from './deck';
 import type { GameplayConfig, TraitId } from './types';
@@ -52,6 +53,7 @@ export function validateGameplay(value: unknown, maxMana: number) {
     fail('deck composition');
   if (d.minHeroes < 1 || d.minSpells < 1) fail('deck opening minimum');
   const b = g.board;
+  if (b.deployment !== undefined) validateDeploymentRule(b.deployment, b.spawnMax - b.spawnMin);
   if (
     b.minX !== -b.maxX ||
     b.maxX < 7 ||

@@ -2,6 +2,8 @@ import { modeContent, competitionOf } from '../data/competition';
 import { type Difficulty } from '../core/index';
 import { tacticalBattle } from '../core/tactical';
 import { cycleBattle } from '../core/cycle-battle';
+import { quickDeploymentX } from '../core/physics/deployment-range';
+import { ManaDisplay } from '../ui/mana-display';
 import { gameplayOf, fitDeck, synergyDescription, type TraitId } from '../data/gameplay';
 import { spellCard } from '../ui/spell-card';
 import { openingHand } from '../ui/screens/opening-hand';
@@ -38,6 +40,7 @@ import { FixedStepRunner } from './fixed-step-runner';
 import { ArenaGestures } from './arena-gestures';
 import { QuickChat } from '../ui/quick-chat';
 import '../ui/styles/battle-hud.css';
+import '../ui/styles/energy-cards.css';
 const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
 lifetime.defer(() => inputLifetime.abort());
@@ -115,6 +118,7 @@ function persist() {
   }
 }
 $('#app').innerHTML = renderShell();
+const manaDisplay = new ManaDisplay($('.mana-panel'), $('#mana-track'), $('#mana'));
 $('#home-roster .tile-note').textContent = `${GAMEPLAY.deck.size} thẻ · tay ${GAMEPLAY.deck.handSize} thẻ`;
 if (!gameSession.wallet) {
   const pvpButton = $<HTMLButtonElement>('#pvp-open');
@@ -244,7 +248,7 @@ function updateSelection() {
   $('#selection-hint').innerHTML = skillSelected
     ? 'Chọn chiến tuyến để gây sát thương và hồi máu đồng minh.'
     : selected
-      ? `<b>${escapeHTML(cardInfo(selected).name)}</b> · ${isSpell(selected) ? 'Chạm vị trí bất kỳ trên lane để dùng phép.' : 'Chạm vùng sáng hoặc chọn đường để thả quân.'}`
+      ? `<b>${escapeHTML(cardInfo(selected).name)}</b> · ${isSpell(selected) ? 'Chạm vị trí bất kỳ trên lane để dùng phép.' : 'Vùng xanh: trước địch · Vùng vàng: thủ cuối lane.'}`
       : `Chọn thẻ 1–${activeGameplay().deck.handSize} · tướng bên trái, phép trên chiến trường.`;
   $('.lane-shortcuts').hidden = mode !== 'battle' || (!selected && !skillSelected);
 }
@@ -275,7 +279,7 @@ function selectCard(id: string, uid?: number) {
 }
 async function deploy(
   lane: number,
-  x = selected && isSpell(selected) ? 0 : -battle.gameplay.board.quickSpawnX,
+  x = selected && isSpell(selected) ? 0 : quickDeploymentX(battle, 0, lane),
 ) {
   if (mode !== 'battle' || landscape.blocked) return;
   sound.unlock();
@@ -554,11 +558,7 @@ function updateHud() {
       $(`#${label}-towers`).textContent =
         `${battle.towers.filter((t) => t.side === side && t.hp > 0).length} trụ`;
     }
-    $('#mana').textContent = Math.floor(battle.mana[0]).toString();
-    $('#mana-track').innerHTML = Array.from(
-      { length: battle.content.rules.maxMana },
-      (_, i) => `<span><i style="width:${Math.max(0, Math.min(1, battle.mana[0] - i)) * 100}%"></i></span>`,
-    ).join('');
+    manaDisplay.update(battle.mana[0], battle.content.rules.maxMana);
     $('#mana-regen').textContent =
       `+${(battle.content.rules.manaPerSecond * battle.buff(0, undefined, 'mana', 1)).toLocaleString('vi', { maximumFractionDigits: 2 })} / giây`;
     document.querySelectorAll<HTMLElement>('#hand .hero-card').forEach((el) => {
@@ -690,7 +690,7 @@ const gestures = lifetime.own(
       mode === 'battle' &&
       battle.phase === 'playing' &&
       !landscape.blocked &&
-      !(isSpell(id) ? battle.canCast(0, id, 1, 0) : battle.canPlay(0, id, 1)),
+      !(isSpell(id) ? battle.canCast(0, id, 1, 0) : [0, 1, 2].every((lane) => !!battle.canPlay(0, id, lane))),
     move: (id, x, y) => {
       if (selected !== id || skillSelected) selectionRevision++;
       selected = id;
@@ -719,7 +719,7 @@ const gestures = lifetime.own(
         selectionRevision++;
         deploy(point.lane, point.x);
       } else {
-        toast('Thả quân vào vùng sáng');
+        toast('Thả vào vùng xanh trước địch; khi bị ép sân, dùng vùng thủ cuối lane.');
         feedback(document.querySelector(`[data-hero="${id}"]`), 'invalid');
         clearSelection();
       }
@@ -792,7 +792,7 @@ world.canvas.addEventListener(
     if (skillSelected) deploy(p.lane);
     else if (selected) {
       if (isSpell(selected) ? p.spellValid : p.valid) deploy(p.lane, p.x);
-      else toast('Triển khai quân ở vùng sáng bên trái.');
+      else toast('Chọn vùng xanh trước quân địch hoặc vùng thủ cuối lane.');
     }
   },
   { signal: inputLifetime.signal },

@@ -1,5 +1,6 @@
 import type { Battle } from '../Battle';
 import { canDeployAt, isLane } from '../physics/lane-space';
+import { canDeployInRange } from '../physics/deployment-range';
 import type { Side, Unit } from '../types';
 export function validateDeployment(
   battle: Battle,
@@ -13,6 +14,8 @@ export function validateDeployment(
   if (battle.phase !== 'playing') return 'Trận đấu chưa sẵn sàng.';
   if (!isLane(lane) || !Number.isFinite(x)) return 'Vị trí không hợp lệ.';
   if (!canDeployAt(side, x, battle.gameplay.board)) return 'Triển khai trong vùng sáng bên mình.';
+  if (!canDeployInRange(battle, side, lane, x))
+    return 'Không thể thả sau quân địch. Chọn vùng triển khai phía căn cứ.';
   const h = battle.heroes[heroId];
   if (!h || !battle.decks[side].includes(heroId)) return 'Tướng không nằm trong đội hình.';
   if (!battle.held(side, heroId, uid)) return 'Thẻ không còn trên tay.';

@@ -1,5 +1,11 @@
 # Quy tắc triển khai Kora War
 
+## Tiền tuyến triển khai — quyết định 15/10/2026
+
+- Người dùng yêu cầu tướng chỉ được thả phía căn cứ mình, trước quân địch còn sống gần căn cứ nhất trong cùng lane. Chỉ phép được miễn giới hạn tiền tuyến; chưa có tướng/thẻ vật phẩm ngoại lệ.
+- Khi quân địch ép hết vùng triển khai để đánh lõi, tự mở vùng thủ ở cuối lane đó để vẫn gọi được tướng phòng thủ. Hai phe áp dụng đối xứng; quân chết hoặc lane khác không chặn vùng thả.
+- `gameplay.board.deployment` trong module `board` schema 2 lưu bật/tắt, khoảng cách trước địch và bề rộng vùng thủ; admin lưu nháp/phát hành. Server, AI, quick deploy và renderer dùng chung hàm thuần. Snapshot cycle cũ thiếu policy giữ luật cũ, không backfill trận/replay lịch sử.
+
 ## Các quyết định mới đã chốt ngày 14/10/2026
 
 - Người dùng chọn giữ gameplay đã chốt và ưu tiên cấu hình đầy đủ từ database. `ContentConfig.gameplay` trong SQLite là nguồn luật cho trận `cycle-v1` mới; admin lưu nháp/phát hành revision. Không thêm cơ chế mới ngoài phạm vi đã xác nhận.

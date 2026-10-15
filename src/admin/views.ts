@@ -1,3 +1,4 @@
+import { matchReviewPage } from './match-review';
 import { competitionEditor } from './competition-editor';
 import type { ModelBinding } from '../data/content';
 import { abilityEditor } from './ability-editor';
@@ -8,6 +9,7 @@ import { eventVfxEditor } from './vfx-editor';
 import { gameplayEditor } from './gameplay-editor';
 import { communicationEditor } from './communication-editor';
 export function renderStudioPage(state: State, section: string, hero: string, selectedAsset: string): string {
+  if (section === 'matches') return matchReviewPage();
   if (section === 'audio') return audioEditor(state);
   if (section === 'gameplay') return gameplayEditor(state.draft, state.ruleModules);
   if (section === 'competition') return competitionEditor(state.draft);

@@ -116,3 +116,7 @@ Các geometry/material dùng chung thuộc World, không bị hủy khi một un
 `data/competition.ts` định nghĩa schema/preset, tính Elo và áp dụng biến thể Thử thách trên bản sao content. Module `competition` là module rule thứ 18. `server/competition-store.ts` lưu trận, thành viên, kết quả và rating bằng transaction; `server/pvp.ts` ghép hàng chờ theo mode/revision, tiến mô phỏng bằng heartbeat và gọi settlement idempotent. `ui/screens/pvp.ts` hiển thị chế độ, bảng hạng và lịch sử; admin có `competition-editor.ts`. Xem [quy tắc và QA](COMPETITION.md).
 
 Kết quả PvP nay persist; state mô phỏng/phòng vẫn trong bộ nhớ một tiến trình. Restart ghi hủy trận còn active, không đổi Elo; chưa khôi phục trận đang chơi từ database. Các mô tả “chưa persistent ranked/rewards” ở tài liệu lịch sử không áp dụng cho Elo mới; chưa thêm thưởng tiền/vật phẩm PvP.
+
+## Admin match review
+
+`server/fair-play-store.ts` quản lý dữ liệu vận hành kiểm duyệt (policy versioned riêng, command evidence, moderation actions, bans và Elo corrections). `PvpRooms` ghi bằng chứng tại command boundary, tự giữ bài và kết thúc trận; không gửi seed/log đối thủ qua snapshot người chơi. Admin API có cùng session/origin protection với Content Studio. Xem [FAIR-PLAY.md](FAIR-PLAY.md) về giới hạn bằng chứng và tác động xử lý.

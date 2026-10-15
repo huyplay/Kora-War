@@ -122,3 +122,7 @@ Người dùng yêu cầu không cần CI/CD, giao Codex tự QA và merge main;
 ## 15/10/2026 — Đấu thường, Elo và Thử thách
 
 Người dùng chốt Elo và admin cấu hình bậc hạng; đấu thường/hạng dùng map chuẩn, chỉ số chuẩn hóa. Chế độ Thử thách riêng dùng hồi mana nhanh và quá tải sớm. Module `competition` và kết quả trận lưu SQLite, khóa cấu hình khi ghép trận; không reset mùa hoặc thưởng rank trong đợt này. Chi tiết: [Đấu trường](COMPETITION.md).
+
+## 15/10/2026 — Admin kiểm duyệt thủ công
+
+Người dùng chọn admin hủy kết quả, hoàn tác phần Elo của trận và khóa PvP có thời hạn, bắt buộc lý do; cảnh báo không tự động phạt. Kết quả gốc giữ nguyên, correction/action/audit lưu riêng. Xem [kiểm duyệt](FAIR-PLAY.md).

@@ -1,3 +1,4 @@
+import { wireMatchReview } from './match-review';
 import { validateContent } from '../data/content';
 import { DEFAULT_ENGAGE } from '../data/abilities';
 import { api } from '../services/api';
@@ -203,6 +204,7 @@ async function save() {
   notice('Đã lưu bản nháp.');
 }
 function wire() {
+  wireMatchReview(root);
   const addTier = document.querySelector<HTMLButtonElement>('#add-rank-tier');
   if (addTier)
     addTier.onclick = () => {

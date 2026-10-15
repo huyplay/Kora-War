@@ -967,3 +967,75 @@ main > header {
 .gameplay-nav a {
   color: #9be3dc;
 }
+.review-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.review-table td,
+.review-table th {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid #34404d;
+}
+.review-table code {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.review-table small,
+.review-evidence small {
+  display: block;
+  color: #99a9b9;
+  font-size: 11px;
+}
+.review-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+.review-detail pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 300px;
+  overflow: auto;
+  background: #0c1722;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 12px;
+}
+.review-detail details {
+  margin: 18px 0;
+}
+.review-alerts {
+  border-left: 3px solid #c4a56a;
+  padding: 4px 14px;
+  margin: 16px 0;
+  background: #8c681b12;
+}
+.review-evidence {
+  max-height: 340px;
+  overflow: auto;
+}
+.review-evidence table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.review-evidence td {
+  padding: 10px;
+  border-bottom: 1px solid #35424b;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.review-action {
+  border-top: 1px solid #45525b;
+  padding: 14px 0;
+}
+.review-detail h4 {
+  margin: 20px 0 10px;
+}
+#moderation-form {
+  border: 1px solid #ab8646;
+  padding: 18px;
+  border-radius: 8px;
+  margin: 20px 0;
+}

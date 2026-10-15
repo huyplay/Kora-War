@@ -144,6 +144,30 @@ test('display rows survive spawns/deaths and reflected views have mirrored posit
   const later = layout.update(input.slice(1), f, board, 1 / 60);
   for (const u of input.slice(1)) assert.equal(initial.get(u.id)!.z, later.get(u.id)!.z);
 });
+test('mixed model footprints reserve actual body widths while keeping simulation coordinates unchanged', () => {
+  for (const count of [18, 100]) {
+    const input = units(count),
+      before = structuredClone(input),
+      f = content.presentation!.formation;
+    const radius = (u: Unit) => (u.id % 3 === 0 ? 1.8 : 0.7);
+    const points = new FormationLayout().update(input, f, content.gameplay!.board, 1 / 60, radius);
+    for (const u of input) {
+      const p = points.get(u.id)!,
+        r = (radius(u) * p.scale) / f.modelScale;
+      assert.ok(p.x - r >= content.gameplay!.board.minX && p.x + r <= content.gameplay!.board.maxX);
+    }
+    for (const u of input)
+      for (const v of input) {
+        if (u.id >= v.id) continue;
+        const a = points.get(u.id)!,
+          b = points.get(v.id)!;
+        const gap = ((radius(u) + radius(v) + f.spacing) * Math.min(a.scale, b.scale)) / f.modelScale;
+        assert.ok(Math.hypot(a.x - b.x, a.z - b.z) >= gap - 1e-6);
+      }
+    assert.deepEqual(input, before);
+  }
+});
+
 test('the complete previous module release upgrades communication/presentation once and preserves history', (t) => {
   const dir = mkdtempSync(join(tmpdir(), 'kora-social-migration-'));
   let db = new GameDatabase(dir, 'test-password');

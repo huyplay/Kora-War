@@ -29,6 +29,7 @@ import { StructureAnimator } from './animation/structure-animator';
 import { UnitFeedback } from './animation/unit-feedback';
 import { FormationLayout } from './formation-layout';
 import { presentationOf } from '../data/presentation';
+import { unitVisualMetrics } from './unit-visual-metrics';
 interface Visual {
   group: THREE.Group;
   bar: THREE.Mesh;
@@ -157,7 +158,8 @@ export class World {
         }),
       );
       zone.rotation.x = -Math.PI / 2;
-      zone.position.set(-9.65, 0.05, LANES[lane]);
+      // Lane tiles top out at y=0.06; keep placement feedback above the stone surface.
+      zone.position.set(-9.65, 0.1, LANES[lane]);
       this.deployZone.add(zone);
       const edge = new THREE.LineSegments(
         new THREE.EdgesGeometry(new THREE.PlaneGeometry(7.7, 2.9)),
@@ -330,9 +332,17 @@ export class World {
         const unit = visual.unit;
         if ((friendly !== 'all' && unit.side !== (friendly ? 0 : 1)) || unit.hp <= 0) continue;
         const position = visual.group.position;
-        const height = (this.content?.models[unit.heroId]?.height ?? 2.65) * visual.group.scale.y;
-        box.min.set(position.x - 0.7, position.y, position.z - 0.7);
-        box.max.set(position.x + 0.7, position.y + height, position.z + 0.7);
+        const metrics = unitVisualMetrics(
+          this.content?.models[unit.heroId]?.height ?? 2.65,
+          visual.group.scale.y,
+          visual.imported?.footprintRadius,
+        );
+        box.min.set(position.x - metrics.pickRadius, position.y, position.z - metrics.pickRadius);
+        box.max.set(
+          position.x + metrics.pickRadius,
+          position.y + metrics.bodyHeight,
+          position.z + metrics.pickRadius,
+        );
         if (!this.ray.ray.intersectBox(box, hit)) continue;
         const nextDistance = hit.distanceToSquared(this.ray.ray.origin);
         if (nextDistance < distance) {
@@ -617,11 +627,13 @@ export class World {
     this.contactShadows.begin();
     const barRight = new THREE.Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
     const barForward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.camera.quaternion);
+    const formation = presentationOf(battle.content).formation;
     const positions = this.formation.update(
       battle.units,
-      presentationOf(battle.content).formation,
+      formation,
       battle.gameplay.board,
       animationDt,
+      (unit) => (this.templates.get(unit.heroId)?.footprintRadius ?? 0) * formation.modelScale,
     );
     for (const u of battle.units) {
       const v = this.units.get(u.id) || this.addUnit(u);
@@ -632,6 +644,7 @@ export class World {
       v.group.position.z = z;
       const born = Math.min(1, (battle.time - u.born) * 3 + 0.15);
       v.group.scale.setScalar(born * point.scale);
+      const metrics = unitVisualMetrics(this.content?.models[u.heroId]?.height ?? 2.4, v.group.scale.y);
       this.contactShadows.add(
         v.group.position,
         Math.min(2, (this.content?.models[u.heroId]?.height ?? 2.4) * 0.65) * point.scale,
@@ -640,32 +653,29 @@ export class World {
       const change = v.feedback.update(u, animationDt);
       if (change) {
         const point = v.group.position.clone();
-        point.y = Math.max(2.8, (this.content?.models[u.heroId]?.height ?? 2.4) + 0.35);
+        point.y = metrics.barY + 0.15;
         this.numbers.emit(change.damage, point);
         this.numbers.emit(change.healing, point, true);
       }
       if (v.imported) v.imported.update(u, battle.time, battle.phase, animationDt);
       else animateUnit(v.group, u, battle.time, this.clock, battle.phase);
       v.imported?.setHitFlash(v.feedback.flash);
-      v.bar.position.set(
-        v.group.position.x,
-        Math.max(2.6, (this.content?.models[u.heroId]?.height ?? 2.4) + 0.2),
-        z,
-      );
+      v.bar.position.set(v.group.position.x, metrics.barY, z);
       v.bar.quaternion.copy(this.camera.quaternion);
-      v.bar.scale.x = 0.94 * Math.max(0.001, u.hp / u.maxHp);
+      const barWidth = 0.94 * metrics.barScale;
+      v.bar.scale.set(barWidth * Math.max(0.001, u.hp / u.maxHp), 0.085, 1);
       v.barBack.position.copy(v.bar.position).addScaledVector(barForward, -0.018);
       v.barBack.quaternion.copy(this.camera.quaternion);
-      v.barBack.scale.set(1, 0.13, 1);
+      v.barBack.scale.set(metrics.barScale, 0.13, 1);
       v.barTrail.position.copy(v.bar.position).addScaledVector(barForward, -0.009);
       v.barTrail.quaternion.copy(this.camera.quaternion);
-      v.barTrail.scale.set(0.94 * Math.max(0.001, v.feedback.trailHp / u.maxHp), 0.085, 1);
-      v.barTrail.position.addScaledVector(barRight, (v.barTrail.scale.x - 0.94) / 2);
-      v.bar.position.addScaledVector(barRight, (v.bar.scale.x - 0.94) / 2);
+      v.barTrail.scale.set(barWidth * Math.max(0.001, v.feedback.trailHp / u.maxHp), 0.085, 1);
+      v.barTrail.position.addScaledVector(barRight, (v.barTrail.scale.x - barWidth) / 2);
+      v.bar.position.addScaledVector(barRight, (v.bar.scale.x - barWidth) / 2);
       v.shield.position.set(v.group.position.x, v.bar.position.y + 0.13, z);
       v.shield.quaternion.copy(this.camera.quaternion);
-      v.shield.scale.x = 0.94 * Math.min(1, u.shield / 200);
-      v.shield.position.addScaledVector(barRight, (v.shield.scale.x - 0.94) / 2);
+      v.shield.scale.x = barWidth * Math.min(1, u.shield / 200);
+      v.shield.position.addScaledVector(barRight, (v.shield.scale.x - barWidth) / 2);
       v.shield.visible = u.shield > 0;
     }
     this.spellEffects.setConfig(battle.gameplay);
@@ -674,7 +684,10 @@ export class World {
       battle.tactical ? battle.units : [],
       battle.time,
       this.clock,
-      (id) => this.units.get(id)?.group.position,
+      (id) => {
+        const group = this.units.get(id)?.group;
+        return group ? { x: group.position.x, z: group.position.z, scale: group.scale.x } : undefined;
+      },
     );
     for (const tower of battle.towers) this.towerMeshes.get(tower.id)?.position.setX(tower.x);
     this.contactShadows.end();

@@ -20,6 +20,7 @@ export class FormationLayout {
     f: PresentationConfig['formation'],
     board: GameplayConfig['board'],
     dt: number,
+    footprint?: (unit: Unit) => number,
   ) {
     const result = new Map<number, FormationPoint>(),
       alive = new Set(units.map((u) => u.id));
@@ -66,15 +67,21 @@ export class FormationLayout {
       const lower = board.minX + 0.25,
         upper = board.maxX - 0.25,
         center = (lower + upper) / 2;
+      const radii = ordered.map((u) => {
+        const radius = footprint?.(u);
+        return Math.max(f.radius, radius !== undefined && Number.isFinite(radius) ? radius : 0);
+      });
+      const maxRadius = Math.max(0, ...radii);
       let compression = 1,
         packed: number[] = [];
       for (let attempt = 0; attempt < 24; attempt++) {
-        const gap = (f.radius * 2 + f.spacing) * compression;
         const desired = ordered.map((u) => center + (this.anchors.get(u.id)! - center) * compression);
         const forward = desired.slice(),
           backward = desired.slice();
-        const separation = (i: number, j: number) =>
-          Math.sqrt(Math.max(0, gap * gap - (z(ordered[i]) - z(ordered[j])) ** 2));
+        const separation = (i: number, j: number) => {
+          const gap = (radii[i] + radii[j] + f.spacing) * compression;
+          return Math.sqrt(Math.max(0, gap * gap - (z(ordered[i]) - z(ordered[j])) ** 2));
+        };
         for (let i = 0; i < ordered.length; i++)
           for (let j = 0; j < i; j++) {
             const space = separation(i, j);
@@ -86,11 +93,18 @@ export class FormationLayout {
             if (space > 0) backward[i] = Math.min(backward[i], backward[j] - space);
           }
         packed = forward.map((v, i) => (v + backward[i]) / 2);
-        if (!packed.length || Math.max(...packed) - Math.min(...packed) <= upper - lower) break;
+        if (
+          !packed.length ||
+          Math.max(...packed) - Math.min(...packed) <= upper - lower - 2 * maxRadius * compression
+        )
+          break;
         compression *= 0.9;
       }
       const shift = packed.length
-        ? Math.max(lower - Math.min(...packed), Math.min(upper - Math.max(...packed), 0))
+        ? Math.max(
+            lower + maxRadius * compression - Math.min(...packed),
+            Math.min(upper - maxRadius * compression - Math.max(...packed), 0),
+          )
         : 0;
       ordered.forEach((u, i) =>
         result.set(u.id, { x: packed[i] + shift, z: LANES[lane] + z(u), scale: f.modelScale * compression }),

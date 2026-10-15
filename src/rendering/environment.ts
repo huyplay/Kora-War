@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { LANES } from '../data/index';
-import { part, seeded } from './resources';
+import { part as primitive, seeded } from './resources';
+import { arenaBlock } from './arena-block';
 
 export interface ArenaScene {
   scene: THREE.Scene;
@@ -14,6 +15,17 @@ export const ARENA_WALL = [0x3c414d, 0x545360, 0x656674];
 
 /** An open Aether arena: scenery stays outside the three combat lanes. */
 export function buildEnvironment(world: ArenaScene) {
+  const blocks = new Map<string, THREE.BufferGeometry>();
+  const part: typeof primitive = (parent, kind, color, x, y, z, sx, sy, sz, emissive = 0) => {
+    const mesh = primitive(parent, kind, color, x, y, z, sx, sy, sz, emissive);
+    if (kind === 'box' && !emissive) {
+      const key = `${sx}/${sy}/${sz}`;
+      if (!blocks.has(key)) blocks.set(key, arenaBlock(sx, sy, sz));
+      mesh.geometry = blocks.get(key)!;
+      mesh.scale.setScalar(1);
+    }
+    return mesh;
+  };
   const stage = new THREE.Group();
   stage.name = 'ArenaArchitecture';
   const random = seeded();
@@ -30,10 +42,10 @@ export function buildEnvironment(world: ArenaScene) {
           'box',
           ARENA_STONE[Math.floor(random() * ARENA_STONE.length)],
           -13.25 + column * 1.47 + (row % 2 ? 0.1 : 0),
-          0.025,
+          -0.02,
           z + (row - 1) * 1.08,
           1.39,
-          0.07,
+          0.16,
           1.01,
         );
         tile.rotation.y = (random() - 0.5) * 0.015;
@@ -139,10 +151,12 @@ export function buildEnvironment(world: ArenaScene) {
     const geometry = mergeGeometries(geometries);
     if (geometry) {
       const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = 'ArenaSurfaceBatch';
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       world.scene.add(mesh);
     }
     geometries.forEach((geometry) => geometry.dispose());
   }
+  blocks.forEach((geometry) => geometry.dispose());
 }

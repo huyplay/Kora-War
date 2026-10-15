@@ -20,6 +20,26 @@ function units() {
 }
 const fire: SpellZone = { id: 10, spellId: 'fire', side: 0, lane: 1, x: 0, starts: 0.7, ends: 3.7 };
 
+test('status shells follow formation scale while the damaging zone keeps its gameplay radius', () => {
+  const effects = new SpellEffects(),
+    targets = units();
+  const before = structuredClone(targets);
+  try {
+    effects.update([fire], targets, 1, 1, () => ({ x: 4, z: 0.4, scale: 0.3 }));
+    const status = effects.root.getObjectByName(`spell-status-${targets[1].id}`)!;
+    const zone = effects.root.getObjectByName('spell-zone-10')!;
+    assert.deepEqual(status.scale.toArray(), [0.3, 0.3, 0.3]);
+    assert.equal(status.position.x, 4);
+    assert.equal(zone.position.x, fire.x);
+    assert.deepEqual(zone.scale.toArray(), [1, 1, 1]);
+    effects.update([fire], targets, 1, 1);
+    assert.deepEqual(status.scale.toArray(), [1, 1, 1], 'fallback must not retain old packed scale');
+    assert.deepEqual(targets, before);
+  } finally {
+    effects.dispose();
+  }
+});
+
 test('spell atlas load after disposal releases its frames and cannot resurrect effects', async () => {
   const previous = THREE.TextureLoader.prototype.loadAsync;
   let resolve!: (texture: THREE.Texture) => void;

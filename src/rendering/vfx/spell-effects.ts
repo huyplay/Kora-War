@@ -217,7 +217,7 @@ export class SpellEffects {
     units: readonly Unit[],
     time: number,
     clock: number,
-    position?: (id: number) => { x: number; z: number } | undefined,
+    position?: (id: number) => { x: number; z: number; scale?: number } | undefined,
   ) {
     const ids = new Set(zones.map((zone) => zone.id));
     for (const [id, visual] of this.zones)
@@ -268,6 +268,7 @@ export class SpellEffects {
         0.05,
         point?.z ?? LANES[unit.lane] + ((unit.id % 3) - 1) * 0.32,
       );
+      visual.group.scale.setScalar(point?.scale ?? 1);
       visual.frost.visible = chilled;
       visual.fire.visible = burning;
       visual.haste.visible = hasted;

@@ -52,7 +52,10 @@ export function tierFor(rating: number, config: CompetitionConfig) {
 }
 export function eloAfter(a: number, b: number, score: number, config: CompetitionConfig): number {
   const r = config.rating;
-  return Math.max(r.floor, Math.round(a + r.kFactor * (score - 1 / (1 + 10 ** ((b - a) / r.scale)))));
+  return Math.max(
+    Math.min(r.floor, a),
+    Math.round(a + r.kFactor * (score - 1 / (1 + 10 ** ((b - a) / r.scale)))),
+  );
 }
 export function modeContent(base: ContentConfig, mode: MatchMode): ContentConfig {
   const content = structuredClone(base);
@@ -133,5 +136,5 @@ export interface Standing {
 export interface CompetitionOverview {
   self: Standing;
   leaderboard: (Standing & { self: boolean })[];
-  history: (MatchOutcome & { ended: number; map: string })[];
+  history: (MatchOutcome & { ended: number; map: string; corrected?: boolean })[];
 }

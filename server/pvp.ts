@@ -69,6 +69,15 @@ export class PvpRooms {
     const at = this.now();
     for (const r of this.rooms.values()) this.advance(r, at);
     this.prune(at);
+    for (const [code, r] of this.rooms)
+      if (!r.battle) {
+        try {
+          this.competition?.review.assertAllowed(r.players[0]);
+          r.rating = this.competition?.score(r.players[0], r.content) ?? r.rating;
+        } catch {
+          this.rooms.delete(code);
+        }
+      }
     const waiting = [...this.rooms.values()].filter((r) => !r.battle && r.mode !== 'friendly');
     for (let i = 0; i < waiting.length; i++) {
       const a = waiting[i];
@@ -103,8 +112,17 @@ export class PvpRooms {
   }
   private redirects = new Map<string, { player: string; code: string; expires: number }>();
   private settle(r: Room) {
-    if (r.battle?.phase === 'ended' && !r.outcomes && this.competition)
+    if (r.battle?.phase === 'ended' && !r.outcomes && this.competition) {
+      this.competition.review.finish(r.id, {
+        tick: r.battle.tick,
+        time: r.battle.time,
+        winner: r.battle.winner,
+        cores: r.battle.cores,
+        stats: r.battle.stats,
+        reason: r.reason ?? 'combat',
+      });
       r.outcomes = this.competition.finish(r.id, r.battle.winner, r.reason ?? 'combat');
+    }
   }
   private validate(input: Loadout, content: ContentConfig) {
     if (!input || !Array.isArray(input.deck)) throw new Error('Đội hình không hợp lệ.');
@@ -124,7 +142,17 @@ export class PvpRooms {
     const b = r.battle;
     if (!b) return;
     if (b.cycling && b.phase === 'ready' && at >= r.openingEnds!) {
-      for (const side of [0, 1] as const) if (!b.mulliganDone[side]) b.mulligan(side, []);
+      for (const side of [0, 1] as const)
+        if (!b.mulliganDone[side]) {
+          b.mulligan(side, []);
+          this.competition?.review.record(
+            r.id,
+            r.players[side],
+            0,
+            { id: `auto-keep-${side}`, type: 'mulligan', cards: [], lane: 0, x: 0 },
+            null,
+          );
+        }
       b.start();
       r.started = r.openingEnds!;
     }
@@ -176,10 +204,12 @@ export class PvpRooms {
     }
   }
   create(player: string, input: Loadout, content: ContentConfig, revision = 0) {
+    this.competition?.review.assertAllowed(player);
     if (!competitionOf(content).modes.friendly.enabled) throw new Error('Đấu bạn bè đang tạm đóng.');
     return this.createRoom(player, input, content, 'friendly', revision);
   }
   enqueue(player: string, input: Loadout, base: ContentConfig, mode: QueueMode, revision: number) {
+    this.competition?.review.assertAllowed(player);
     if (!['casual', 'ranked', 'challenge'].includes(mode) || !competitionOf(base).modes[mode]?.enabled)
       throw new Error('Chế độ đang tạm đóng hoặc không hợp lệ.');
     if (!input?.cards) throw new Error('Ghép trận yêu cầu deck cycle-v1.');
@@ -261,6 +291,8 @@ export class PvpRooms {
     const r = this.rooms.get(code);
     if (!r) throw new Error('Phòng không tồn tại hoặc đã hết hạn.');
     if (r.players.includes(player)) return this.state(player, code);
+    this.competition?.review.assertAllowed(player);
+    this.competition?.review.assertAllowed(r.players[0]);
     if (r.mode !== 'friendly' && !matched) throw new Error('Phòng ghép trận không nhận mã mời.');
     if (r.players.length !== 1 || r.battle) throw new Error('Phòng đã đủ người.');
     for (const other of this.rooms.values()) {
@@ -356,6 +388,25 @@ export class PvpRooms {
     };
   }
   command(player: string, code: string, c: PvpCommand) {
+    const { r } = this.member(player, code);
+    const tick = r.battle?.tick ?? 0;
+    try {
+      const result = this.applyCommand(player, code, c);
+      if (r.battle) this.competition?.review.record(r.id, player, tick, c, result.error ?? null);
+      return result;
+    } catch (error) {
+      if (r.battle)
+        this.competition?.review.record(
+          r.id,
+          player,
+          tick,
+          c,
+          error instanceof Error ? error.message : 'Lệnh bị từ chối',
+        );
+      throw error;
+    }
+  }
+  private applyCommand(player: string, code: string, c: PvpCommand) {
     const at = this.now();
     const { r, side } = this.member(player, code, at);
     if (!c || typeof c.id !== 'string' || !/^[a-zA-Z0-9-]{8,64}$/.test(c.id))

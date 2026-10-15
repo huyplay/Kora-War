@@ -131,7 +131,34 @@ export function createGameServer(store: GameDatabase, staticDir = resolve('dist'
             draft: store.ruleModules.read('draft'),
             published: store.ruleModules.read('published'),
           });
+        if (path === '/api/admin/fairplay/policy' && req.method === 'GET')
+          return send(200, competition.review.policy());
+        if (path === '/api/admin/matches' && req.method === 'GET')
+          return send(
+            200,
+            competition.review.list({
+              kind: url.searchParams.get('kind') ?? undefined,
+              player: url.searchParams.get('player') ?? undefined,
+              id: url.searchParams.get('id') ?? undefined,
+              mode: url.searchParams.get('mode') ?? undefined,
+              status: url.searchParams.get('status') ?? undefined,
+              offset: Number(url.searchParams.get('offset') ?? 0),
+            }),
+          );
+        if (path === '/api/admin/match' && req.method === 'GET')
+          return send(
+            200,
+            competition.review.detail(
+              url.searchParams.get('kind') ?? 'pvp',
+              url.searchParams.get('id') ?? '',
+            ),
+          );
         const input = JSON.parse((await body(req)).toString());
+        if (path === '/api/admin/fairplay/policy' && req.method === 'PUT')
+          return send(200, competition.review.savePolicy(input.policy, input.version));
+        if (path === '/api/admin/moderation' && req.method === 'POST')
+          return send(200, competition.review.moderate(input));
+
         if (path.startsWith('/api/admin/rule-modules/') && req.method === 'PUT')
           return send(
             200,

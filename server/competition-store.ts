@@ -1,3 +1,4 @@
+import { FairPlayStore } from './fair-play-store';
 import {
   competitionOf,
   eloAfter,
@@ -25,6 +26,7 @@ interface Rating {
   wins: number;
 }
 export class CompetitionStore {
+  readonly review: FairPlayStore;
   constructor(private store: GameDatabase) {
     store.db.exec(`CREATE TABLE IF NOT EXISTS ratings (
       player TEXT PRIMARY KEY REFERENCES players(id), rating INTEGER NOT NULL, games INTEGER NOT NULL DEFAULT 0,
@@ -38,6 +40,7 @@ export class CompetitionStore {
       match TEXT NOT NULL REFERENCES pvp_matches(id), player TEXT NOT NULL REFERENCES players(id),
       PRIMARY KEY(match,player));
       CREATE INDEX IF NOT EXISTS pvp_player_history ON pvp_members(player,match);`);
+    this.review = new FairPlayStore(store);
   }
   private rating(player: string, c: ContentConfig): Rating {
     this.store.db
@@ -77,6 +80,7 @@ export class CompetitionStore {
           JSON.stringify(match.loadouts),
           Date.now(),
         );
+      this.review.start(match.id);
       for (const player of match.players)
         this.store.db.prepare('INSERT INTO pvp_members VALUES(?,?)').run(match.id, player);
     });
@@ -159,6 +163,9 @@ export class CompetitionStore {
           ...(JSON.parse(String(row.outcomes)) as MatchOutcome[])[side],
           ended: Number(row.ended),
           map: (JSON.parse(String(row.content)) as ContentConfig).map.name,
+          corrected: !!this.store.db
+            .prepare('SELECT 1 FROM match_corrections WHERE match=?')
+            .get(String(row.id)),
         };
       });
     return {

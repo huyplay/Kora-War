@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-/** Shared static aim meshes; positions and sizes come from the locked match. */
+/** Shared lane telegraphs; positions and sizes come from the locked match. */
 export function createAimArea() {
   const mesh = new THREE.Mesh(
     new THREE.PlaneGeometry(1, 1),
@@ -9,14 +9,17 @@ export function createAimArea() {
         color: { value: new THREE.Color() },
         size: { value: new THREE.Vector2(1, 1) },
         strength: { value: 1 },
+        borderOpacity: { value: 0.9 },
+        fillOpacity: { value: 0.08 },
       },
       vertexShader: `varying vec2 vUv;
         void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-      fragmentShader: `uniform vec3 color; uniform vec2 size; uniform float strength; varying vec2 vUv;
+      fragmentShader: `uniform vec3 color; uniform vec2 size; uniform float strength;
+        uniform float borderOpacity; uniform float fillOpacity; varying vec2 vUv;
         void main(){
           vec2 edge=min(vUv,1.-vUv)*size;
           float border=1.-smoothstep(.065,.10,min(edge.x,edge.y));
-          gl_FragColor=vec4(mix(color,vec3(1.),border*.2),mix(.08,.9,border)*strength);
+          gl_FragColor=vec4(mix(color,vec3(1.),border*.2),mix(fillOpacity,borderOpacity,border)*strength);
           #include <colorspace_fragment>
         }`,
       transparent: true,

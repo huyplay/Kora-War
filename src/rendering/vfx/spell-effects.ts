@@ -6,11 +6,12 @@ import { COMPAT_GAMEPLAY, type GameplayConfig } from '../../data/gameplay';
 import type { SpellId } from '../../data/spells';
 import type { ContentConfig } from '../../data/content';
 import { loadAtlas } from './atlas';
+import { spellAffectsUnit } from '../../core/physics/spell-area';
+import { createAimArea } from '../aim-primitives';
 
 interface ZoneVisual {
   group: THREE.Group;
-  ring: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
-  fill: THREE.Mesh<THREE.CircleGeometry, THREE.MeshBasicMaterial>;
+  area: ReturnType<typeof createAimArea>;
   flames: THREE.Group;
 }
 interface StatusVisual {
@@ -36,14 +37,17 @@ export class SpellEffects {
     this.shellMaterial.color.set(config.spells.ice.color);
     this.hasteMaterial.color.set(config.spells.haste.color);
     this.weakenMaterial.color.set(config.spells.weaken.color);
+    this.flameMaterial.color.set(config.spells.fire.color);
   }
   readonly root = new THREE.Group();
   private zones = new Map<number, ZoneVisual>();
   private statuses = new Map<number, StatusVisual>();
   private atlases = new Map<SpellId, { frames: THREE.Texture[]; fps: number }>();
+  private spriteStyle?: { opacity: number; blend: 'normal' | 'additive' };
   private generation = 0;
   async configure(profile: ContentConfig['vfx']) {
     this.reset();
+    this.spriteStyle = profile.readability?.events.skill;
     const generation = ++this.generation;
     this.atlases.forEach(({ frames }) => frames.forEach((frame) => frame.dispose()));
     this.atlases.clear();
@@ -60,13 +64,15 @@ export class SpellEffects {
   }
   private sprite(id: SpellId, size: number) {
     const atlas = this.atlases.get(id);
-    if (!atlas) return undefined;
+    if (!atlas || this.spriteStyle?.opacity === 0) return undefined;
     const sprite = new THREE.Sprite(
       new THREE.SpriteMaterial({
         map: atlas.frames[0],
         transparent: true,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
+        blending: this.spriteStyle?.blend === 'normal' ? THREE.NormalBlending : THREE.AdditiveBlending,
+        opacity: this.spriteStyle?.opacity ?? 1,
+        toneMapped: !this.spriteStyle,
       }),
     );
     sprite.scale.setScalar(size);
@@ -82,7 +88,6 @@ export class SpellEffects {
   }
   private matrix = new THREE.Matrix4();
   private ringGeometry = new THREE.RingGeometry(0.88, 1, 40);
-  private fillGeometry = new THREE.CircleGeometry(1, 32);
   private flameGeometry = new THREE.ConeGeometry(1, 1, 5);
   private crystalGeometry = new THREE.OctahedronGeometry(1);
   private shellGeometry = new THREE.CylinderGeometry(0.62, 0.75, 1, 6, 1, true);
@@ -123,19 +128,31 @@ export class SpellEffects {
     this.root.name = 'SpellEffects';
   }
 
-  private flames(count: number, radius: number, width: number) {
+  private flames(count: number, radius: number, width: number, rectangular = false) {
     const group = new THREE.Group();
     if (!count) return group;
     const flames = new THREE.InstancedMesh(this.flameGeometry, this.flameMaterial, count);
     flames.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     flames.frustumCulled = false;
     const offsets: [number, number][] = [];
+    const columns = Math.max(1, Math.min(count, Math.ceil(Math.sqrt((count * radius) / width))));
+    const rows = Math.ceil(count / columns);
     for (let i = 0; i < count; i++) {
+      if (rectangular) {
+        const row = Math.floor(i / columns);
+        const inRow = Math.min(columns, count - row * columns);
+        offsets.push([
+          ((((i % columns) + 0.5) / inRow) * 2 - 1) * radius,
+          (((row + 0.5) / rows) * 2 - 1) * width,
+        ]);
+        continue;
+      }
       const angle = i * 2.399963;
       const spread = Math.sqrt((i + 0.5) / count);
       offsets.push([Math.cos(angle) * radius * spread, Math.sin(angle) * width * spread]);
     }
     flames.userData.offsets = offsets;
+    flames.userData.width = rectangular ? Math.min(0.14, radius * 0.1, width * 0.1) : 0.14;
     group.add(flames);
     return group;
   }
@@ -143,38 +160,30 @@ export class SpellEffects {
   private createZone(zone: SpellZone): ZoneVisual {
     const group = new THREE.Group();
     group.name = `spell-zone-${zone.id}`;
-    const material = new THREE.MeshBasicMaterial({
-      color: this.config.spells[zone.spellId].color,
-      transparent: true,
-      opacity: 0.85,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    });
-    const ring = new THREE.Mesh(this.ringGeometry, material);
-    const fill = new THREE.Mesh(this.fillGeometry, material.clone());
-    for (const mesh of [ring, fill]) {
-      mesh.rotation.x = -Math.PI / 2;
-      mesh.position.y = 0.28;
-      mesh.scale.set(this.config.spells[zone.spellId].radius, 1.35, 1);
-      group.add(mesh);
-    }
-    const flames = this.flames(
-      zone.spellId === 'fire' ? 18 : 0,
-      this.config.spells[zone.spellId].radius * 0.9,
-      1.1,
-    );
+    const spell = this.config.spells[zone.spellId];
+    const halfWidth = this.config.board.halfWidth;
+    const area = createAimArea();
+    area.name = `spell-zone-${zone.id}-area`;
+    area.position.y = 0.28;
+    area.scale.set(spell.radius * 2, halfWidth * 2, 1);
+    area.material.uniforms.size.value.set(spell.radius * 2, halfWidth * 2);
+    area.material.uniforms.color.value.set(spell.color);
+    group.add(area);
+    const flames = this.flames(zone.spellId === 'fire' ? 18 : 0, spell.radius * 0.9, halfWidth * 0.9, true);
+    flames.name = `spell-zone-${zone.id}-flames`;
     if (zone.spellId === 'fire')
-      for (const x of [-1.5, 0, 1.5]) {
-        const sprite = this.sprite('fire', 2.8);
+      for (const x of [-0.55, 0, 0.55]) {
+        const size = Math.min(2.8, spell.radius * 0.8, halfWidth * 1.4);
+        const sprite = this.sprite('fire', size);
         if (sprite) {
-          sprite.position.set(x, 1, 0);
+          sprite.position.set(x * spell.radius, size * 0.4, 0);
           flames.add(sprite);
         }
       }
     group.add(flames);
     group.position.set(zone.x, 0, LANES[zone.lane]);
     this.root.add(group);
-    return { group, ring, fill, flames };
+    return { group, area, flames };
   }
 
   private createStatus(id: number): StatusVisual {
@@ -249,16 +258,16 @@ export class SpellEffects {
       if (!ids.has(id)) {
         visual.group.removeFromParent();
         this.releaseInstances(visual.group);
-        visual.ring.material.dispose();
-        visual.fill.material.dispose();
+        visual.area.geometry.dispose();
+        visual.area.material.dispose();
         this.zones.delete(id);
       }
     for (const zone of zones) {
       const visual = this.zones.get(zone.id) ?? this.createZone(zone);
       this.zones.set(zone.id, visual);
       const active = time + 1e-8 >= zone.starts;
-      visual.ring.material.opacity = active ? 0.9 : 0.35 + 0.4 * Math.abs(Math.sin(clock * 10));
-      visual.fill.material.opacity = active ? 0.22 : 0.08;
+      visual.area.material.uniforms.strength.value = active ? 1 : 0.55 + 0.3 * Math.abs(Math.sin(clock * 6));
+      visual.area.material.uniforms.fillOpacity.value = active ? 0.14 : 0.04;
       visual.flames.visible = active;
       this.animateFlames(visual.flames, clock);
       this.animateAtlas(visual.flames, options?.reducedMotion ? 0 : time);
@@ -272,14 +281,9 @@ export class SpellEffects {
         (zone) =>
           zone.spellId === 'fire' &&
           this.config.spells[zone.spellId].effects.some((e) => e.kind === 'damage' && e.amount > 0) &&
-          (this.config.spells[zone.spellId].target === 'all' ||
-            (this.config.spells[zone.spellId].target === 'ally'
-              ? zone.side === unit.side
-              : zone.side !== unit.side)) &&
-          zone.lane === unit.lane &&
+          spellAffectsUnit(unit, zone, this.config.spells[zone.spellId]) &&
           time + 1e-8 >= zone.starts &&
-          time < zone.ends &&
-          Math.abs(unit.x - zone.x) <= this.config.spells[zone.spellId].radius,
+          time < zone.ends,
       );
       const hasted = (unit.hasteUntil ?? 0) > time,
         weakened = (unit.weakenUntil ?? 0) > time;
@@ -319,9 +323,12 @@ export class SpellEffects {
     const flames = group.children[0] as THREE.InstancedMesh | undefined;
     if (!flames) return;
     const offsets = flames.userData.offsets as [number, number][];
+    const width = flames.userData.width as number;
     for (let i = 0; i < offsets.length; i++) {
       const height = 0.65 + 0.35 * Math.sin(clock * 13 + i * 1.7);
-      this.matrix.makeScale(0.14, height, 0.14).setPosition(offsets[i][0], height / 2 + 0.25, offsets[i][1]);
+      this.matrix
+        .makeScale(width, height, width)
+        .setPosition(offsets[i][0], height / 2 + 0.25, offsets[i][1]);
       flames.setMatrixAt(i, this.matrix);
     }
     flames.instanceMatrix.needsUpdate = true;
@@ -335,8 +342,8 @@ export class SpellEffects {
   reset() {
     this.releaseInstances(this.root);
     for (const visual of this.zones.values()) {
-      visual.ring.material.dispose();
-      visual.fill.material.dispose();
+      visual.area.geometry.dispose();
+      visual.area.material.dispose();
     }
     this.zones.clear();
     this.statuses.clear();
@@ -346,13 +353,7 @@ export class SpellEffects {
     this.generation++;
     this.reset();
     this.root.removeFromParent();
-    for (const geometry of [
-      this.ringGeometry,
-      this.fillGeometry,
-      this.flameGeometry,
-      this.crystalGeometry,
-      this.shellGeometry,
-    ])
+    for (const geometry of [this.ringGeometry, this.flameGeometry, this.crystalGeometry, this.shellGeometry])
       geometry.dispose();
     for (const material of [
       this.flameMaterial,

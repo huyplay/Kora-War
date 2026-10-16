@@ -287,12 +287,13 @@ test('admin exposes every gameplay section and spell preview uses configured rad
   const fx = new SpellEffects();
   fx.setConfig(c.gameplay!);
   fx.update([{ id: 1, spellId: 'fire', side: 0, lane: 1, x: 0, starts: 1, ends: 4 }], [], 0, 0);
-  const ring = fx.root.getObjectByName('spell-zone-1')!.children[0] as THREE.Mesh<
-    THREE.RingGeometry,
-    THREE.MeshBasicMaterial
+  const area = fx.root.getObjectByName('spell-zone-1-area') as THREE.Mesh<
+    THREE.PlaneGeometry,
+    THREE.ShaderMaterial
   >;
-  assert.equal(ring.scale.x, 4);
-  assert.equal(ring.material.color.getHexString(), '123456');
+  assert.equal(area.scale.x, 8, 'full diameter is represented by the unit plane');
+  assert.equal(area.scale.y, c.gameplay!.board.halfWidth * 2);
+  assert.equal(area.material.uniforms.color.value.getHexString(), '123456');
   fx.dispose();
 });
 

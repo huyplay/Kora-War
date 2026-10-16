@@ -8,6 +8,7 @@ import type { ContentConfig } from '../../data/content';
 import { loadAtlas } from './atlas';
 import { spellAffectsUnit } from '../../core/physics/spell-area';
 import { createAimArea } from '../aim-primitives';
+import { UnitSupportAuras } from './unit-support-auras';
 
 interface ZoneVisual {
   group: THREE.Group;
@@ -28,8 +29,12 @@ interface StatusVisual {
 
 /** Presentation only: all visibility and lifetimes come from the combat snapshot. */
 export class SpellEffects {
+  private support = new UnitSupportAuras();
+  private disposed = false;
+  private clock = 0;
   private config = COMPAT_GAMEPLAY;
   setConfig(config: GameplayConfig) {
+    if (this.disposed) return;
     if (this.config === config) return;
     this.reset();
     this.config = config;
@@ -46,8 +51,10 @@ export class SpellEffects {
   private spriteStyle?: { opacity: number; blend: 'normal' | 'additive' };
   private generation = 0;
   async configure(profile: ContentConfig['vfx']) {
+    if (this.disposed) return;
     this.reset();
     this.spriteStyle = profile.readability?.events.skill;
+    this.support.configure(profile.readability?.events.skill);
     const generation = ++this.generation;
     this.atlases.forEach(({ frames }) => frames.forEach((frame) => frame.dispose()));
     this.atlases.clear();
@@ -249,9 +256,15 @@ export class SpellEffects {
     units: readonly Unit[],
     time: number,
     clock: number,
-    position?: (id: number) => { x: number; z: number; scale?: number; height?: number } | undefined,
+    position?: (
+      id: number,
+    ) => { x: number; y?: number; z: number; scale?: number; height?: number; radius?: number } | undefined,
     options?: { bodyManaged?: boolean; reducedMotion?: boolean },
   ) {
+    if (this.disposed || !Number.isFinite(time)) return;
+    if (Number.isFinite(clock)) this.clock = clock;
+    clock = this.clock;
+    this.support.begin(this.config, clock, !!options?.reducedMotion);
     if (options?.reducedMotion) clock = 0;
     const ids = new Set(zones.map((zone) => zone.id));
     for (const [id, visual] of this.zones)
@@ -274,7 +287,7 @@ export class SpellEffects {
     }
     const activeIds = new Set<number>();
     for (const unit of units) {
-      if (unit.hp <= 0) continue;
+      if (unit.hp <= 0 || !Number.isFinite(unit.hp) || !Number.isFinite(unit.id)) continue;
       const frozen = (unit.frozenUntil ?? 0) > time + 1e-8;
       const chilled = (unit.slowUntil > time + 1e-8 && unit.slowFactor < 1) || frozen;
       const burning = zones.some(
@@ -285,18 +298,21 @@ export class SpellEffects {
           time + 1e-8 >= zone.starts &&
           time < zone.ends,
       );
-      const hasted = (unit.hasteUntil ?? 0) > time,
-        weakened = (unit.weakenUntil ?? 0) > time;
-      if (!chilled && !burning && !hasted && !weakened) continue;
+      const hasted = Number.isFinite(unit.hasteUntil) && (unit.hasteUntil ?? 0) > time + 1e-8,
+        weakened = Number.isFinite(unit.weakenUntil) && (unit.weakenUntil ?? 0) > time + 1e-8;
+      const point = position?.(unit.id);
+      const x = point?.x ?? unit.x ?? 0,
+        z = point?.z ?? LANES[unit.lane] + ((unit.id % 3) - 1) * 0.32,
+        y = point?.y ?? 0,
+        scale = point?.scale ?? 1;
+      if (![x, y, z, scale, point?.height ?? 2.3, point?.radius ?? 0.8].every(Number.isFinite) || scale <= 0)
+        continue;
+      this.support.add(unit, { x, y, z, radius: point?.radius ?? 0.8 * scale }, time);
+      if (!chilled && !burning && (this.support.managed || (!hasted && !weakened))) continue;
       activeIds.add(unit.id);
       const visual = this.statuses.get(unit.id) ?? this.createStatus(unit.id);
       this.statuses.set(unit.id, visual);
-      const point = position?.(unit.id);
-      visual.group.position.set(
-        point?.x ?? unit.x,
-        0.05,
-        point?.z ?? LANES[unit.lane] + ((unit.id % 3) - 1) * 0.32,
-      );
+      visual.group.position.set(x, y + 0.05, z);
       visual.group.scale.setScalar(point?.scale ?? 1);
       visual.frost.visible = chilled;
       visual.iceShell.visible = visual.iceShards.visible = frozen && !options?.bodyManaged;
@@ -306,8 +322,8 @@ export class SpellEffects {
       if (visual.freezeRune) visual.freezeRune.visible = frozen && !options?.bodyManaged;
       visual.chillRing.visible = !frozen;
       visual.fire.visible = burning;
-      visual.haste.visible = hasted;
-      visual.weaken.visible = weakened;
+      visual.haste.visible = hasted && !this.support.managed;
+      visual.weaken.visible = weakened && !this.support.managed;
       this.animateFlames(visual.fire, clock);
       this.animateAtlas(visual.frost, options?.reducedMotion ? 0 : time);
     }
@@ -317,6 +333,7 @@ export class SpellEffects {
         this.releaseInstances(visual.group);
         this.statuses.delete(id);
       }
+    this.support.end(this.root);
   }
 
   private animateFlames(group: THREE.Group, clock: number) {
@@ -340,6 +357,8 @@ export class SpellEffects {
     });
   }
   reset() {
+    this.support.reset();
+    this.clock = 0;
     this.releaseInstances(this.root);
     for (const visual of this.zones.values()) {
       visual.area.geometry.dispose();
@@ -350,9 +369,12 @@ export class SpellEffects {
     this.root.clear();
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.generation++;
     this.reset();
     this.root.removeFromParent();
+    this.support.dispose();
     for (const geometry of [this.ringGeometry, this.flameGeometry, this.crystalGeometry, this.shellGeometry])
       geometry.dispose();
     for (const material of [

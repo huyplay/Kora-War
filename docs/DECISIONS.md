@@ -1,5 +1,9 @@
 # Các quyết định đang áp dụng
 
+## 16/10/2026 — Dấu hỗ trợ dưới chân tướng
+
+Tiếp tục đồ họa: tăng tốc dùng chevron theo hướng phe, suy yếu dùng ấn đứt đoạn, gom một lượt vẽ và bám bán kính/origin hiển thị. Màu và style từ snapshot database; legacy giữ vòng cũ. Không đổi luật, thời hạn hoặc phát hành content; hỗ trợ pause/reduced motion/reset/disposal. Xem [QA dấu hỗ trợ](SUPPORT-AURAS-QA.md).
+
 ## 16/10/2026 — Phân biệt lớp băng và khiên
 
 Tiếp tục đồ họa trạng thái: khiên có lưới năng lượng và viền, băng có vân tinh thể/phủ sương, giữ màu/opacity/padding từ snapshot database. Họa tiết ổn định theo ID, một lượt vẽ giới hạn 200 lớp; pause/reduced motion, dữ liệu lỗi và disposal được kiểm tra. Không sửa luật hoặc phát hành content. Xem [QA lớp trạng thái](STATUS-BODIES-QA.md).

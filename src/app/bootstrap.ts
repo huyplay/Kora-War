@@ -5,6 +5,7 @@ import { cycleBattle } from '../core/cycle-battle';
 import { quickDeploymentX } from '../core/physics/deployment-range';
 import { ManaDisplay } from '../ui/mana-display';
 import { HandFeedback } from '../ui/hand-feedback';
+import { DragPreview } from '../ui/drag-preview';
 import { DefenseFeedback } from '../ui/defense-feedback';
 import { gameplayOf, fitDeck, synergyDescription, type TraitId } from '../data/gameplay';
 import { spellCard } from '../ui/spell-card';
@@ -46,6 +47,7 @@ import '../ui/styles/energy-cards.css';
 import '../ui/styles/touch-screens.css';
 import '../ui/styles/mobile-hand.css';
 import '../ui/styles/roster.css';
+import '../ui/styles/drag-preview.css';
 const lifetime = new Lifetime();
 const inputLifetime = new AbortController();
 lifetime.defer(() => inputLifetime.abort());
@@ -73,6 +75,7 @@ deck = [...new Set(cardDeck.filter((id) => !isSpell(id)))];
 spells = cardDeck.filter(isSpell);
 let selectedUid: number | undefined;
 let gestureUid: number | undefined;
+let dragPoint: { id: string; x: number; y: number } | undefined;
 let handSignature = '',
   openingKey = '';
 const activeGameplay = () => (mode === 'battle' ? battle.gameplay : GAMEPLAY);
@@ -123,6 +126,8 @@ function persist() {
   }
 }
 $('#app').innerHTML = renderShell(HEROES.length);
+const dragPreview = new DragPreview($('#drag-ghost'));
+lifetime.defer(() => dragPreview.hide());
 const manaDisplay = new ManaDisplay($('.mana-panel'), $('#mana-track'), $('#mana'));
 const handFeedback = lifetime.own(new HandFeedback($('#hand'), $('.draw-back'), (cue) => sound.tone(cue)));
 const defenseFeedback = lifetime.own(new DefenseFeedback((cue) => sound.tone(cue)));
@@ -199,8 +204,7 @@ function renderDeck() {
         selectCard(button.dataset.hero!, Number(button.dataset.cardUid));
       });
       button.addEventListener('pointerdown', (e) => {
-        gestureUid = Number(button.dataset.cardUid);
-        gestures.begin(e, button.dataset.hero!);
+        if (gestures.begin(e, button.dataset.hero!)) gestureUid = Number(button.dataset.cardUid);
       });
       button.addEventListener('mouseenter', () => {
         if (!gestures.active) showTooltip(button.dataset.hero!, button);
@@ -235,7 +239,7 @@ function clearSelection() {
   selected = null;
   selectedUid = undefined;
   skillSelected = false;
-  world.hoverRing.visible = false;
+  world.clearHover();
   updateSelection();
 }
 function updateSelection() {
@@ -279,6 +283,7 @@ function selectCard(id: string, uid?: number) {
   selected = selected === id && selectedUid === heldUid ? null : id;
   selectedUid = selected ? heldUid : undefined;
   skillSelected = false;
+  world.clearHover();
   selectionRevision++;
   updateSelection();
   if (tutorial === 1 && selected) {
@@ -547,6 +552,8 @@ function updateHud() {
       gestures.cancel();
       renderDeck();
     }
+    if (gestures.active && battle.phase !== 'playing') gestures.cancel();
+    if (gestures.active && dragPoint) updateDragPreview(dragPoint.id, dragPoint.x, dragPoint.y);
     if (battle.cycling && battle.cardDrawInfo[0]) {
       const info = battle.cardDrawInfo[0];
       $('#draw-count').textContent = String(info.remaining);
@@ -706,12 +713,41 @@ const openRoster = (focusId = deck[0]) => rosterScreen(screenContext, focusId);
 const settings = () => settingsScreen(screenContext);
 const pause = () => pauseScreen(screenContext);
 const result = () => resultScreen(screenContext);
+function updateDragPreview(id: string, x: number, y: number) {
+  const onBoard = document.elementFromPoint(x, y) === world.canvas;
+  const p = onBoard ? world.setHover(x, y, isSpell(id), isSpell(id) ? id : undefined) : null;
+  if (!onBoard) world.clearHover();
+  const valid =
+    !!p &&
+    (isSpell(id) ? p.spellValid : p.valid) &&
+    !(isSpell(id)
+      ? battle.canCast(0, id, p.lane, p.x, gestureUid)
+      : battle.canPlay(0, id, p.lane, p.x, gestureUid));
+  dragPreview.show(
+    {
+      id,
+      cost: cardInfo(id).cost,
+      valid,
+      art: isSpell(id)
+        ? `<span class="spell-symbol">${escapeHTML(activeGameplay().spells[id].icon)}</span>`
+        : `<img src="${escapeHTML(portraits[id])}" alt=""/>`,
+    },
+    x,
+    y,
+    innerWidth,
+    innerHeight,
+  );
+}
 const gestures = lifetime.own(
   new CardGesture({
     canStart: (id) =>
       mode === 'battle' &&
       battle.phase === 'playing' &&
       !landscape.blocked &&
+      (!battle.cycling ||
+        battle.hands[0].some(
+          (card) => card.id === id && (gestureUid === undefined || card.uid === gestureUid),
+        )) &&
       !(isSpell(id) ? battle.canCast(0, id, 1, 0) : [0, 1, 2].every((lane) => !!battle.canPlay(0, id, lane))),
     move: (id, x, y) => {
       if (selected !== id || skillSelected) selectionRevision++;
@@ -719,13 +755,8 @@ const gestures = lifetime.own(
       selectedUid = gestureUid ?? battle.hands[0].find((card) => card.id === id)?.uid;
       skillSelected = false;
       updateSelection();
-      const ghost = $('#drag-ghost');
-      ghost.hidden = false;
-      ghost.innerHTML = isSpell(id)
-        ? `<span class="spell-symbol">${escapeHTML(activeGameplay().spells[id].icon)}</span>`
-        : `<img src="${portraits[id]}" alt=""/>`;
-      ghost.style.transform = `translate(${x - 35}px,${y - 90}px)`;
-      world.setHover(x, y, isSpell(id), isSpell(id) ? id : undefined);
+      dragPoint = { id, x, y };
+      updateDragPreview(id, x, y);
     },
     drop: (id, x, y) => {
       const top = document.elementFromPoint(x, y);
@@ -748,7 +779,8 @@ const gestures = lifetime.own(
     },
     cancel: () => clearSelection(),
     end: () => {
-      $('#drag-ghost').hidden = true;
+      dragPoint = undefined;
+      dragPreview.hide();
       gestureUid = undefined;
     },
   }),
@@ -784,13 +816,18 @@ $('#wallet-gold').textContent = gameSession.wallet ? String(gameSession.wallet.g
 document.addEventListener(
   'pointermove',
   (event) => {
-    if (!gestures.active && (selected || skillSelected))
+    if (!gestures.active && (selected || skillSelected)) {
+      if (document.elementFromPoint(event.clientX, event.clientY) !== world.canvas) {
+        world.clearHover();
+        return;
+      }
       world.setHover(
         event.clientX,
         event.clientY,
         skillSelected || (!!selected && isSpell(selected)),
         selected && isSpell(selected) ? selected : undefined,
       );
+    }
   },
   { signal: inputLifetime.signal },
 );
@@ -830,6 +867,8 @@ $('#pulse').onclick = () => {
   }
   skillSelected = !skillSelected;
   selected = null;
+  selectedUid = undefined;
+  world.clearHover();
   selectionRevision++;
   updateSelection();
 };

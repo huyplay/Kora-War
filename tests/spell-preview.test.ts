@@ -61,3 +61,30 @@ test('spell previews reject off-lane positions, mark invalid hero placement red 
     world.hoverRing.material.dispose();
   }
 });
+
+test('a stationary pointer refreshes legality as the frontline moves and clears between selections', () => {
+  const { world, point } = preview();
+  try {
+    point.valid = true;
+    world.setHover(240, 160);
+    assert.equal(world.hoverRing.material.color.getHex(), 0xa2ffdd);
+    point.valid = false;
+    world.refreshHover();
+    assert.equal(world.hoverRing.material.color.getHex(), 0xff536a);
+    point.x = -10;
+    point.valid = true;
+    world.refreshHover();
+    assert.equal(world.hoverRing.position.x, -10);
+    assert.equal(world.hoverRing.material.color.getHex(), 0xa2ffdd);
+    world.clearHover();
+    assert.equal(world.hoverRing.visible, false);
+    assert.equal(world.selectedLane, -1);
+    world.pick = () => {
+      throw Error('Old pointer must not be reused');
+    };
+    assert.equal(world.refreshHover(), null);
+  } finally {
+    world.hoverRing.geometry.dispose();
+    world.hoverRing.material.dispose();
+  }
+});

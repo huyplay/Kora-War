@@ -116,6 +116,7 @@ export class World {
   instanceColor = new THREE.Color();
   private deploymentGuidance = new DeploymentGuidance();
   private placementState?: Battle;
+  private hoverRequest?: { x: number; y: number; ability: boolean; spellId?: SpellId };
   deployZone = this.deploymentGuidance.root;
   hoverRing: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
   selected = false;
@@ -437,6 +438,7 @@ export class World {
     };
   }
   setHover(clientX: number, clientY: number, ability = false, spellId?: SpellId) {
+    this.hoverRequest = { x: clientX, y: clientY, ability, spellId };
     const p = this.pick(
       clientX,
       clientY,
@@ -461,6 +463,16 @@ export class World {
       this.selectedLane = p.lane;
     }
     return p;
+  }
+  clearHover() {
+    this.hoverRequest = undefined;
+    this.hoverRing.visible = false;
+    this.selectedLane = -1;
+  }
+  refreshHover() {
+    const request = this.hoverRequest;
+    if (request) return this.setHover(request.x, request.y, request.ability, request.spellId);
+    return null;
   }
   setQuality(q: 'high' | 'low') {
     this.quality = q;
@@ -490,7 +502,7 @@ export class World {
     this.corpses = [];
     this.sprites.reset();
     this.clock = 0;
-    this.hoverRing.visible = false;
+    this.clearHover();
     this.deployZone.visible = false;
     for (const batch of this.unitBatches.values()) {
       batch.count = 0;
@@ -737,7 +749,7 @@ export class World {
     this.atmosphere.update(this.clock, this.camera, this.quality === 'low');
     this.deployZone.visible = selected && !spellTarget && battle.phase === 'playing';
     if (this.deployZone.visible) this.deploymentGuidance.update(battle, this.clock);
-    if (!selected) this.hoverRing.visible = false;
+    if (!selected) this.clearHover();
     const ids = new Set(battle.units.map((u) => u.id));
     const anchors = battle.events.some((event) => event.id > this.lastEvent)
       ? new Map<number, CombatAnchor>()
@@ -811,6 +823,7 @@ export class World {
     }
     this.unitOverlays.end();
     this.statusBodies.end();
+    if (selected) this.refreshHover();
     this.spellEffects.setConfig(battle.gameplay);
     this.spellEffects.update(
       battle.spellZones,

@@ -166,3 +166,7 @@ Tiếp tục hoàn thiện phản hồi giao chiến trên mobile: số có kíc
 ## 16/10/2026 — Giảm lớp sáng che tướng
 
 Tiếp tục hoàn thiện đồ họa theo yêu cầu người dùng: profile database tùy chọn điều khiển độ rõ/kích thước/trộn màu/nhịp và ngân sách atlas sự kiện theo vùng. Khi profile có mặt, sprite không bị vẽ trùng thêm vòng generic. Vệt chém căn theo model/đội hình và hỗ trợ giảm chuyển động. Không đổi combat, asset hay cấu hình lịch sử. Xem [QA độ rõ giao chiến](DENSE-COMBAT-QA.md).
+
+## 16/10/2026 — Kéo thả mobile an toàn
+
+Tiếp tục tối ưu thao tác theo yêu cầu mobile: ảnh thẻ có dấu vùng thả hợp lệ, nằm trên ngón và không vượt màn hình. Chạm thêm ngón, mất capture, đổi tay bài hoặc mất readiness hủy thao tác; chỉ giữ UID của pointer được nhận. Preview đứng yên theo tiền tuyến hiện hành; đổi thẻ xóa mục tiêu cũ. Không đổi luật, tọa độ thả, balance hoặc database. Xem [QA kéo thả](MOBILE-DRAG-QA.md).

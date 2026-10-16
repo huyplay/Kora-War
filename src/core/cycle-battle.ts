@@ -11,8 +11,8 @@ export function cycleBattle(
   enemyCards = gameplayOf(content).deck.aiCards,
   difficulty: Difficulty = 'normal',
 ) {
-  validateCardDeck(cards, gameplayOf(content));
-  validateCardDeck(enemyCards, gameplayOf(content));
+  validateCardDeck(cards, gameplayOf(content), content.heroes);
+  validateCardDeck(enemyCards, gameplayOf(content), content.heroes);
   return new Battle(
     [...new Set(cards.filter((id) => !isSpell(id)))],
     difficulty,

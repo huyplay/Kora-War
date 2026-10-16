@@ -1,5 +1,11 @@
 # Các quyết định đang áp dụng
 
+## 16/10/2026 — Bốn tướng mới từ catalog database
+
+Người dùng đổi phạm vi từ ngoại hình sang **thêm tướng mới**, sau đó chọn 4 model Leona (đỡ đòn), Ahri (pháp sư), Zed (sát thủ), Volibear (đấu sĩ). Tên/lore Elyndra: Elara, Seryn, Kharos, Torvyn. Kỹ năng ghép từ damage/heal/shield/stun/engage đã có; admin chỉnh chỉ số, nội dung, hệ/tộc, model và chuỗi hiệu ứng qua bản nháp/phát hành database.
+
+Catalog live tăng từ 10 lên 14 tướng, cùng 8 phép. Không tự đổi deck mặc định/AI/người chơi hoặc luật trận. Core, save, synergy, PvP và renderer nhận catalog của content khóa theo trận; preset gốc vẫn có 10 tướng để giữ fixture/replay. Installer cộng thêm tướng/mảnh cho ví cũ và mới, không reset tiến độ, không sửa snapshot lịch sử. Xem [cài đặt và QA](NEW-HEROES.md).
+
 ## 15/10/2026 — Tiền tuyến và phòng thủ cuối lane
 
 Người dùng xác nhận tướng chỉ triển khai trước quân địch gần căn cứ mình nhất trong cùng lane; chỉ phép miễn giới hạn, tướng đặc biệt sẽ xét ở đợt sau. Nếu địch ép hết vùng triển khai để đánh lõi, mở vùng thủ cuối lane để gọi quân phòng thủ. Module `board` schema 2 lưu policy, khóa theo trận; thiếu policy trong snapshot lịch sử vẫn dùng luật cũ. Bổ sung vùng báo xanh/đỏ/vàng, mũi tên triển khai, chân dung cận cảnh và mana tinh thể. Xem [triển khai và QA](FRONTLINE-CARDS-QA.md).

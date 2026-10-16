@@ -1,0 +1,138 @@
+{
+  "id": "elyndra-wave-1",
+  "heroes": [
+    {
+      "id": "elara",
+      "name": "Elara",
+      "title": "Khiên mặt trời Elyndra",
+      "origin": "dawn",
+      "role": "guardian",
+      "cost": 4,
+      "hp": 570,
+      "attack": 26,
+      "range": 1.15,
+      "speed": 0.72,
+      "interval": 1.45,
+      "ability": "Nhật Khiên",
+      "description": "Nhận 100 lá chắn và làm choáng một địch gần trong 0,8 giây.",
+      "skillCooldown": 9,
+      "color": 14330457,
+      "accent": 16770713,
+      "weapon": "sword"
+    },
+    {
+      "id": "seryn",
+      "name": "Seryn",
+      "title": "Hồ linh giữ ký ức Lâm Linh",
+      "origin": "grove",
+      "role": "mage",
+      "cost": 4,
+      "hp": 220,
+      "attack": 37,
+      "range": 4.2,
+      "speed": 1.05,
+      "interval": 1.35,
+      "ability": "Linh Châu",
+      "description": "Linh châu gây 75 sát thương trong vùng 2,4m quanh mục tiêu và hồi cho bản thân 35 HP.",
+      "skillCooldown": 9,
+      "color": 6915741,
+      "accent": 13696989,
+      "weapon": "staff"
+    },
+    {
+      "id": "kharos",
+      "name": "Kharos",
+      "title": "Ảnh vệ bên kia Đại Phân Ly",
+      "origin": "void",
+      "role": "vanguard",
+      "cost": 4,
+      "hp": 280,
+      "attack": 52,
+      "range": 1.05,
+      "speed": 1.45,
+      "interval": 0.95,
+      "ability": "Hư Ảnh Trảm",
+      "description": "Áp sát hậu tuyến đánh xa trong 4,5m và gây 130 sát thương lên địch thấp máu gần nhất.",
+      "skillCooldown": 9,
+      "color": 8027048,
+      "accent": 14723839,
+      "weapon": "daggers"
+    },
+    {
+      "id": "torvyn",
+      "name": "Torvyn",
+      "title": "Hộ thú của mạch sấm cổ",
+      "origin": "storm",
+      "role": "vanguard",
+      "cost": 5,
+      "hp": 650,
+      "attack": 36,
+      "range": 1.25,
+      "speed": 0.85,
+      "interval": 1.5,
+      "ability": "Sấm Hoang",
+      "description": "Gây 80 sát thương trong vùng 2,2m, nhận 90 lá chắn và làm choáng một địch gần trong 0,8 giây.",
+      "skillCooldown": 10,
+      "color": 7246768,
+      "accent": 12319231,
+      "weapon": "daggers"
+    }
+  ],
+  "abilities": {
+    "elara": {
+      "trigger": "enemy",
+      "effects": [
+        { "kind": "shield", "targets": { "group": "self" }, "amount": 100, "cap": 220 },
+        {
+          "kind": "stun",
+          "targets": { "group": "nearEnemies", "radius": 2, "limit": 1 },
+          "amount": 0,
+          "duration": 0.8
+        }
+      ]
+    },
+    "seryn": {
+      "trigger": "enemy",
+      "effects": [
+        { "kind": "damage", "targets": { "group": "areaEnemies", "radius": 2.4 }, "amount": 75 },
+        { "kind": "heal", "targets": { "group": "self" }, "amount": 35 }
+      ]
+    },
+    "kharos": {
+      "trigger": "enemy",
+      "engage": { "enabled": true, "radius": 4.5, "offset": 0.65, "minRange": 2, "preferredRole": "ranger" },
+      "effects": [
+        {
+          "kind": "damage",
+          "targets": { "group": "nearEnemies", "order": "health", "limit": 1 },
+          "amount": 130
+        }
+      ]
+    },
+    "torvyn": {
+      "trigger": "enemy",
+      "effects": [
+        { "kind": "damage", "targets": { "group": "areaEnemies", "radius": 2.2 }, "amount": 80 },
+        { "kind": "shield", "targets": { "group": "self" }, "amount": 90, "cap": 180 },
+        {
+          "kind": "stun",
+          "targets": { "group": "nearEnemies", "radius": 2.2, "limit": 1 },
+          "amount": 0,
+          "duration": 0.8
+        }
+      ]
+    }
+  },
+  "models": [
+    { "hero": "elara", "champion": "leona", "modelId": 89000, "height": 2.4, "portraitYaw": 0 },
+    { "hero": "seryn", "champion": "ahri", "modelId": 103000, "height": 2.2, "portraitYaw": 0 },
+    { "hero": "kharos", "champion": "zed", "modelId": 238000, "height": 2.3, "portraitYaw": 0 },
+    { "hero": "torvyn", "champion": "volibear", "modelId": 106000, "height": 2.8, "portraitYaw": 0 }
+  ],
+  "items": [
+    { "id": "shard-elara", "name": "Mảnh Elara", "price": 40, "heroId": "elara", "copies": 2 },
+    { "id": "shard-seryn", "name": "Mảnh Seryn", "price": 40, "heroId": "seryn", "copies": 2 },
+    { "id": "shard-kharos", "name": "Mảnh Kharos", "price": 40, "heroId": "kharos", "copies": 2 },
+    { "id": "shard-torvyn", "name": "Mảnh Torvyn", "price": 40, "heroId": "torvyn", "copies": 2 }
+  ]
+}

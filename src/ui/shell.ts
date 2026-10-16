@@ -1,10 +1,10 @@
 import { icon } from './icons';
 import { renderHome } from './home';
-export function renderShell() {
+export function renderShell(heroCount = 10) {
   return `
  <header class="topbar">
   <a class="brand" href="#" aria-label="Kora War — về sảnh"><span class="brand-gem">◈</span><span>KORA WAR<small>ELYNDRA</small></span></a>
-  <nav aria-label="Điều hướng"><button class="nav-item active" id="nav-battle" aria-label="Chiến trường">${icon('sword')}<span>Chiến trường</span></button><button class="nav-item" id="nav-heroes" aria-label="Tướng và đội hình">${icon('shield')}<span>Tướng & đội hình</span><em>10</em></button><button class="nav-item" id="nav-story" aria-label="Biên niên sử">${icon('book')}<span>Biên niên sử</span></button></nav>
+  <nav aria-label="Điều hướng"><button class="nav-item active" id="nav-battle" aria-label="Chiến trường">${icon('sword')}<span>Chiến trường</span></button><button class="nav-item" id="nav-heroes" aria-label="Tướng và đội hình">${icon('shield')}<span>Tướng & đội hình</span><em>${heroCount}</em></button><button class="nav-item" id="nav-story" aria-label="Biên niên sử">${icon('book')}<span>Biên niên sử</span></button></nav>
   <div class="header-right"><span class="solo-badge"><i></i> CHƠI ĐƠN · AI</span><button class="icon-button" id="fullscreen" aria-label="Toàn màn hình">⛶</button><button class="icon-button" id="settings" aria-label="Cài đặt">${icon('settings')}</button></div>
  </header>
  <main>

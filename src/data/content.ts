@@ -2,6 +2,7 @@ import { defaultArenaPresentation } from './arena-presentation';
 import { defaultCompetition, validateCompetition, type CompetitionConfig } from './competition';
 import { ABILITIES, DEFAULT_ENGAGE, type AbilityDefinition } from './abilities';
 import { HEROES } from './heroes';
+import { ORIGINS, ROLES } from './traits';
 import { RULES } from './rules';
 import { isSpell, type SpellId } from './spells';
 import type { Hero } from './types';
@@ -142,19 +143,43 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
   const text = (s: unknown, max = 200) => typeof s === 'string' && s.length > 0 && s.length <= max;
   const asset = (s: unknown) => typeof s === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(s);
   const color = (s: unknown) => typeof s === 'string' && /^#[a-fA-F0-9]{6}$/.test(s);
-  if (!c || c.schema !== 1 || !Array.isArray(c.heroes) || c.heroes.length !== 10)
-    fail('Catalog phải có 10 tướng.');
-  if (new Set(c.heroes.map((h) => h.id)).size !== 10) fail('ID tướng bị trùng.');
+  if (
+    !c ||
+    c.schema !== 1 ||
+    !Array.isArray(c.heroes) ||
+    c.heroes.length < HEROES.length ||
+    c.heroes.length > 100
+  )
+    fail('Catalog cần giữ tướng Aetherfall gốc và tối đa 100 tướng.');
+  if (
+    c.heroes.some((h) => !h || typeof h !== 'object') ||
+    new Set(c.heroes.map((h) => h.id)).size !== c.heroes.length
+  )
+    fail('ID tướng bị trùng hoặc không hợp lệ.');
+  if (HEROES.some((original) => !c.heroes.some((h) => h.id === original.id)))
+    fail('Thiếu tướng Aetherfall gốc.');
   for (const h of c.heroes) {
     const original = HEROES.find((o) => o.id === h.id);
     if (
-      !original ||
-      h.name !== original.name ||
-      h.origin !== original.origin ||
-      h.role !== original.role ||
-      h.weapon !== original.weapon
+      original &&
+      (h.name !== original.name ||
+        h.origin !== original.origin ||
+        h.role !== original.role ||
+        h.weapon !== original.weapon)
     )
       fail('Giữ ID, tên, hệ/tộc và vũ khí Aetherfall đã chốt.');
+    if (
+      typeof h.id !== 'string' ||
+      !/^[a-z][a-z0-9-]{1,39}$/.test(h.id) ||
+      ['constructor', 'prototype'].includes(h.id) ||
+      isSpell(h.id) ||
+      !text(h.name, 60) ||
+      !/^[\p{L}\p{N}][\p{L}\p{N} '’.-]*$/u.test(h.name) ||
+      !Object.hasOwn(ORIGINS, h.origin) ||
+      !Object.hasOwn(ROLES, h.role) ||
+      !['sword', 'bow', 'staff', 'hammer', 'daggers'].includes(h.weapon)
+    )
+      fail('Danh tính tướng không hợp lệ.');
     for (const key of ['title', 'ability', 'description'] as const)
       if (!text(h[key], 1000)) fail(`Nội dung ${h.id}.${key} không hợp lệ.`);
     for (const key of ['hp', 'attack', 'range', 'speed', 'interval', 'skillCooldown'] as const)
@@ -234,10 +259,10 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
     !Number.isInteger(c.rules.eventLimit)
   )
     fail('Giữ tick 20 Hz, mana tối đa 30, tối đa 100 quân.');
-  if (c.gameplay !== undefined) validateGameplay(c.gameplay, c.rules.maxMana);
+  if (c.gameplay !== undefined) validateGameplay(c.gameplay, c.rules.maxMana, c.heroes);
   if (c.communication !== undefined) validateCommunication(c.communication);
   if (c.presentation !== undefined) validatePresentation(c.presentation);
-  if (!c.models || Object.keys(c.models).some((id) => !HEROES.some((h) => h.id === id)))
+  if (!c.models || Object.keys(c.models).some((id) => !c.heroes.some((h) => h.id === id)))
     fail('Model gán vào tướng không tồn tại.');
   for (const m of Object.values(c.models)) {
     if (
@@ -315,7 +340,7 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
       checkBinding(binding);
     }
     for (const [hero, bindings] of Object.entries(a.heroes)) {
-      if (!HEROES.some((h) => h.id === hero) || !bindings) fail('Audio tướng không hợp lệ.');
+      if (!c.heroes.some((h) => h.id === hero) || !bindings) fail('Audio tướng không hợp lệ.');
       for (const [cue, binding] of Object.entries(bindings)) {
         if (!['attack', 'cast', 'death', 'footstep'].includes(cue)) fail('Sound tướng không hợp lệ.');
         checkBinding(binding);

@@ -1,5 +1,11 @@
 # Quy tắc triển khai Kora War
 
+## Mở rộng tướng — quyết định 16/10/2026
+
+- Người dùng yêu cầu thêm tướng mới và đã chọn đợt đầu 4 tướng dùng model Leona, Ahri, Zed, Volibear. Tên/lore Elyndra lần lượt là Elara, Seryn, Kharos, Torvyn; dùng các handler hiệu ứng hiện có. Quyết định này mở rộng catalog hiện hành lên 14 tướng, thay thế giới hạn 10 tướng cho content mới; 10 tướng gốc và preset/replay lịch sử giữ nguyên.
+- Catalog, chỉ số, kỹ năng, model/clip và mảnh nâng cấp lấy từ content database được phát hành; không đưa tướng mới vào preset legacy. `npm run assets:heroes` cài gói có kiểm tra checksum, backup và transaction, giữ bản nháp admin và không ghi đè ID đã phát hành.
+- Giữ deck 14 thẻ khác nhau, tay 6, mana/triển khai và chỉ số chiến đấu chuẩn hóa đã chốt. Mở rộng catalog không tự đổi deck của người chơi hay AI. Xem `docs/NEW-HEROES.md`.
+
 ## Tiền tuyến triển khai — quyết định 15/10/2026
 
 - Người dùng yêu cầu tướng chỉ được thả phía căn cứ mình, trước quân địch còn sống gần căn cứ nhất trong cùng lane. Chỉ phép được miễn giới hạn tiền tuyến; chưa có tướng/thẻ vật phẩm ngoại lệ.

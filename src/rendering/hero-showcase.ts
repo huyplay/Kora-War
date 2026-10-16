@@ -186,6 +186,8 @@ export class HeroShowcase {
     const box = new THREE.Box3().setFromObject(figure.pivot);
     const scale = 2.35 / Math.max(0.1, box.max.y - box.min.y);
     figure.pivot.scale.setScalar(scale);
+    figure.pivot.position.x = -(box.min.x + box.max.x) * scale / 2;
+    figure.pivot.position.z = -(box.min.z + box.max.z) * scale / 2;
     figure.pivot.position.y = -box.min.y * scale;
     figure.height = 3.05;
     figure.width = Math.max(2.3, (box.max.x - box.min.x) * scale * 1.15);

@@ -17,6 +17,7 @@
     "start": "npm run build && npm run server",
     "typecheck:server": "tsc --noEmit -p tsconfig.server.json",
     "assets:import": "tsx tools/import-riot-assets.ts",
+    "assets:heroes": "tsx tools/import-hero-catalog.ts",
     "format": "prettier --write \"src/**/*.{ts,css}\" \"server/**/*.ts\" \"tools/*.ts\" \"tests/*.ts\"",
     "assets:media:download": "python tools/download-media.py",
     "assets:media:import": "tsx tools/import-media-assets.ts",

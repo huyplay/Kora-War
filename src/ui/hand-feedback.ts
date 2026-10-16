@@ -11,6 +11,9 @@ export interface HandPresentationCard {
 export class HandReadiness {
   private ready = new Map<number, boolean>();
   waiting?: number;
+  unavailable(uid: number) {
+    return this.ready.get(uid) === false;
+  }
   update(cards: readonly HandPresentationCard[], mana: number) {
     const live = new Set(cards.map((c) => c.uid));
     for (const uid of this.ready.keys()) if (!live.has(uid)) this.ready.delete(uid);
@@ -40,8 +43,9 @@ export class HandReadiness {
 /** Persistent hand nodes, bounded compositor animations and no extra draw timers. */
 export class HandFeedback {
   private readiness = new HandReadiness();
-  private animations = new Set<Animation>();
+  private animations = new Map<HTMLElement, Animation>();
   private playing = false;
+  private quietNext = true;
   constructor(
     private hand: HTMLElement,
     private pile: HTMLElement,
@@ -64,12 +68,13 @@ export class HandFeedback {
     const live = new Set(cards.map((c) => c.uid));
     for (const [uid, el] of old)
       if (!live.has(uid)) {
-        el.getAnimations().forEach((a) => a.cancel());
+        this.cancelAnimation(el);
         el.remove();
       }
     for (const [index, card] of cards.entries()) {
       let button = old.get(card.uid);
       if (!button || button.dataset.hero !== card.id) {
+        if (button) this.cancelAnimation(button);
         button?.remove();
         const template = document.createElement('template');
         template.innerHTML = render(card.id, index);
@@ -84,7 +89,7 @@ export class HandFeedback {
       if (shortcut) shortcut.textContent = String(index + 1);
     }
     // Initial hands and reconnect snapshots stay quiet; a consumed slot alone animates in combat.
-    if (animate && old.size && incoming.length) {
+    if (animate && this.playing && !this.quietNext && old.size && incoming.length) {
       const source = this.pile.getBoundingClientRect();
       for (const button of incoming) {
         if (this.reduced()) continue;
@@ -110,11 +115,17 @@ export class HandFeedback {
     }
   }
   update(cards: readonly HandPresentationCard[], mana: number, playing: boolean) {
+    const quiet = this.quietNext;
     this.playing = playing;
+    this.refreshMotion();
     this.hand.classList.toggle('hand-paused', !playing);
-    for (const animation of this.animations) playing ? animation.play() : animation.pause();
+    for (const animation of this.animations.values()) {
+      if (playing && animation.playState === 'paused') animation.play();
+      else if (!playing && animation.playState === 'running') animation.pause();
+    }
     let readyCue = false;
     for (const card of this.readiness.update(cards, mana)) {
+      if (card.ready && this.readiness.waiting === card.uid) this.readiness.waiting = undefined;
       const element = this.element(card.uid);
       if (!element) continue;
       element.classList.toggle('unaffordable', !card.ready);
@@ -125,22 +136,24 @@ export class HandFeedback {
         `${card.cooldown > 0 ? Math.max(0, card.remaining / card.cooldown) * 100 : 0}%`,
       );
       element.setAttribute('aria-disabled', String(!card.ready));
-      if (card.arrived && playing) {
+      if (card.arrived && playing && !quiet) {
         readyCue = true;
         this.animate(
           element,
           [{ filter: 'brightness(1)' }, { filter: 'brightness(1.65)' }, { filter: 'brightness(1)' }],
           320,
         );
-        if (this.readiness.waiting === card.uid) this.readiness.waiting = undefined;
       }
     }
+    if (playing) this.quietNext = false;
     if (readyCue) this.sound('card-ready');
   }
   wait(uid: number) {
-    this.readiness.waiting = uid;
+    if (!this.playing || !this.readiness.unavailable(uid)) return;
     const element = this.element(uid);
-    element?.classList.add('waiting-card');
+    if (!element) return;
+    this.readiness.waiting = uid;
+    element.classList.add('waiting-card');
     this.sound('card-wait');
     this.animate(
       element,
@@ -153,21 +166,44 @@ export class HandFeedback {
   }
   private animate(element: HTMLElement | null, frames: Keyframe[], duration: number) {
     if (!element || this.reduced()) return;
+    this.cancelAnimation(element);
     if (this.animations.size >= 16) {
-      const oldest = this.animations.values().next().value!;
-      oldest.cancel();
-      this.animations.delete(oldest);
+      this.cancelAnimation(this.animations.keys().next().value!);
     }
     const animation = element.animate(frames, { duration, easing: 'cubic-bezier(.2,.75,.25,1)' });
-    this.animations.add(animation);
-    const release = () => this.animations.delete(animation);
+    this.animations.set(element, animation);
+    const release = () => {
+      if (this.animations.get(element) === animation) this.animations.delete(element);
+    };
     animation.onfinish = animation.oncancel = release;
     if (!this.playing) animation.pause();
   }
-  reset() {
-    for (const animation of this.animations) animation.cancel();
+  private cancelAnimation(element: HTMLElement) {
+    const animation = this.animations.get(element);
+    this.animations.delete(element);
+    animation?.cancel();
+  }
+  private cancelAnimations() {
+    for (const element of this.animations.keys()) this.cancelAnimation(element);
     this.animations.clear();
+  }
+  refreshMotion() {
+    if (this.reduced()) this.cancelAnimations();
+  }
+  /** A new authoritative baseline must not replay draws/readiness missed offscreen. */
+  resync() {
+    this.cancelAnimations();
     this.readiness.reset();
+    this.quietNext = true;
+    for (const element of Array.from(this.hand.children)) element.classList.remove('waiting-card');
+  }
+  suspend() {
+    this.playing = false;
+    this.hand.classList.add('hand-paused');
+    this.resync();
+  }
+  reset() {
+    this.suspend();
     this.hand.replaceChildren();
   }
   dispose() {

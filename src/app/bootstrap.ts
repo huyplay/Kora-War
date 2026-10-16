@@ -57,6 +57,7 @@ const HERO_MAP = Object.fromEntries(HEROES.map((h) => [h.id, h]));
 const GAMEPLAY = gameplayOf(gameSession.content);
 const pvp = lifetime.own(new PvpSession());
 let onlineStarted = false;
+let quietHandPacket = false;
 let saved = parseSave(null, GAMEPLAY, HEROES);
 try {
   saved = loadSave(localStorage, GAMEPLAY, HEROES);
@@ -128,7 +129,7 @@ function persist() {
 $('#app').innerHTML = renderShell(HEROES.length);
 const dragPreview = new DragPreview($('#drag-ghost'));
 lifetime.defer(() => dragPreview.hide());
-const manaDisplay = new ManaDisplay($('.mana-panel'), $('#mana-track'), $('#mana'));
+const manaDisplay = lifetime.own(new ManaDisplay($('.mana-panel'), $('#mana-track'), $('#mana')));
 const handFeedback = lifetime.own(new HandFeedback($('#hand'), $('.draw-back'), (cue) => sound.tone(cue)));
 const defenseFeedback = lifetime.own(new DefenseFeedback((cue) => sound.tone(cue)));
 $('#home-roster .tile-note').textContent = `${GAMEPLAY.deck.size} thẻ · tay ${GAMEPLAY.deck.handSize} thẻ`;
@@ -173,7 +174,16 @@ const portraits = Object.fromEntries(HEROES.map((h) => [h.id, world.portrait(h)]
 function card(h: Hero, index: number, roster = false) {
   return `<button class="hero-card ${roster ? 'roster-card' : ''}" data-hero="${h.id}" style="--hero-color:${ORIGINS[h.origin].color}" aria-label="${h.name}, ${h.cost} mana, ${escapeHTML(h.ability)}"><span class="card-cost">${h.cost}</span>${!roster ? `<kbd>${index + 1}</kbd>` : ''}<img src="${portraits[h.id]}" alt="Mô hình 3D ${h.name}" draggable="false"/><span class="card-shade"></span><span class="card-origin">${ORIGINS[h.origin].icon} ${ORIGINS[h.origin].name}</span><span class="card-name">${h.name}</span><span class="card-role">${ROLES[h.role].name}</span><span class="card-cooldown"></span>${roster ? '<span class="checkmark">✓</span>' : ''}</button>`;
 }
-function renderDeck() {
+function handFeedbackPlaying() {
+  return (
+    mode === 'battle' &&
+    battle.phase === 'playing' &&
+    !landscape.blocked &&
+    !document.hidden &&
+    (!pvp.active || (pvp.connected && !quietHandPacket))
+  );
+}
+function renderDeck(animate = true) {
   const cards =
     mode === 'battle' && battle.cycling
       ? battle.hands[0]
@@ -215,7 +225,7 @@ function renderDeck() {
       button.addEventListener('focus', () => showTooltip(button.dataset.hero!, button));
       button.addEventListener('blur', () => ($('#hero-tooltip').hidden = true));
     },
-    mode === 'battle' && battle.phase === 'playing',
+    animate && handFeedbackPlaying(),
   );
 }
 function showTooltip(id: string, el: HTMLElement) {
@@ -270,11 +280,13 @@ function selectCard(id: string, uid?: number) {
   if (battle.cycling && !battle.hands[0].some((card) => card.id === id)) return;
   sound.unlock();
   if (battle.mana[0] < cardInfo(id).cost) {
+    updateHud();
     const waitingUid = uid ?? battle.hands[0].find((card) => card.id === id)?.uid;
     if (waitingUid !== undefined) handFeedback.wait(waitingUid);
     return;
   }
   if ((battle.cooldowns[0][id] ?? 0) > battle.time) {
+    updateHud();
     const waitingUid = uid ?? battle.hands[0].find((card) => card.id === id)?.uid;
     if (waitingUid !== undefined) handFeedback.wait(waitingUid);
     return;
@@ -401,6 +413,7 @@ async function startBattle(withTutorial = false) {
   $('#combat-message').textContent = '';
   mode = 'battle';
   handFeedback.reset();
+  manaDisplay.reset();
   defenseFeedback.reset();
   world.reset();
   battle = cycleBattle(
@@ -475,7 +488,8 @@ function showOpening() {
         openingKey = '';
         closeModal();
         runner.reset();
-        renderDeck();
+        handFeedback.resync();
+        renderDeck(false);
         updateHud();
       }
       return error;
@@ -581,7 +595,7 @@ function updateHud() {
       $(`#${label}-towers`).textContent =
         `${battle.towers.filter((t) => t.side === side && t.hp > 0).length} trụ`;
     }
-    manaDisplay.update(battle.mana[0], battle.content.rules.maxMana);
+    manaDisplay.update(battle.mana[0], battle.content.rules.maxMana, handFeedbackPlaying());
     $('#mana-regen').textContent =
       `+${(battle.content.rules.manaPerSecond * battle.buff(0, undefined, 'mana', 1)).toLocaleString('vi', { maximumFractionDigits: 2 })} / giây`;
     const heldCards = battle.cycling
@@ -597,7 +611,7 @@ function updateHud() {
           : battle.content.rules.cardCooldown,
       })),
       battle.mana[0],
-      battle.phase === 'playing' && !landscape.blocked,
+      handFeedbackPlaying(),
     );
     const energy = battle.resonance[0];
     $('#pulse').hidden = !battle.gameplay.resonance.enabled;
@@ -1008,9 +1022,20 @@ document.addEventListener(
   'visibilitychange',
   () => {
     defenseFeedback.reset();
+    handFeedback.suspend();
+    manaDisplay.suspend();
+    if (pvp.active) quietHandPacket = true;
     if (document.hidden && !pvp.active && mode === 'battle' && battle.phase === 'playing') pause();
     lastFrame = performance.now();
     runner.reset();
+  },
+  { signal: inputLifetime.signal },
+);
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener(
+  'change',
+  () => {
+    handFeedback.refreshMotion();
+    manaDisplay.suspend();
   },
   { signal: inputLifetime.signal },
 );
@@ -1028,6 +1053,11 @@ preview();
 updateHud();
 pvp.onError = toast;
 pvp.onConnectionChange = (connected) => {
+  if (!connected) {
+    quietHandPacket = true;
+    handFeedback.suspend();
+    manaDisplay.suspend();
+  }
   const status = $('#connection-status');
   status.hidden = connected || (mode !== 'battle' && !pvp.restoring);
   status.textContent = pvp.restoring ? 'Đang nối lại phiên đấu…' : 'Đang nối lại… Trận đấu vẫn tiếp tục.';
@@ -1067,6 +1097,7 @@ pvp.onState = (packet: PvpPacket) => {
     if (packet.loadout.cards) cardDeck = packet.loadout.cards.slice();
     mode = 'battle';
     handFeedback.reset();
+    manaDisplay.reset();
     defenseFeedback.reset();
     gestures.cancel();
     closeModal();
@@ -1102,8 +1133,14 @@ pvp.onState = (packet: PvpPacket) => {
       `${competitionOf(packet.content).modes[packet.mode ?? 'friendly'].name} · ${packet.content.map.name}`,
     );
   }
+  const quietHand = joining || quietHandPacket || battle.phase === 'ready';
+  if (quietHand) {
+    handFeedback.resync();
+    manaDisplay.suspend();
+  }
   Object.assign(battle, packet.state);
-  if (joining) renderDeck();
+  quietHandPacket = document.hidden;
+  if (joining) renderDeck(false);
   quickChat.receive(packet.code, packet.reactions ?? []);
   showOpening();
   const countdown = document.querySelector<HTMLElement>('#opening-countdown');

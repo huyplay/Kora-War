@@ -4,6 +4,7 @@ import { TowerHealthBars } from './tower-health';
 import { UnitOverlays } from './unit-overlays';
 import { ArenaBackdrop } from './arena-backdrop';
 import { DeploymentGuidance } from './deployment-guidance';
+import { SpellAimPreview } from './spell-aim-preview';
 import { portraitCamera } from './portrait-camera';
 import { HeroShowcase } from './hero-showcase';
 import { canDeployInRange } from '../core/physics/deployment-range';
@@ -115,6 +116,7 @@ export class World {
   >();
   instanceColor = new THREE.Color();
   private deploymentGuidance = new DeploymentGuidance();
+  private spellAim = new SpellAimPreview();
   private placementState?: Battle;
   private hoverRequest?: { x: number; y: number; ability: boolean; spellId?: SpellId };
   deployZone = this.deploymentGuidance.root;
@@ -167,6 +169,7 @@ export class World {
     );
     this.scene.add(this.contactShadows.root, this.numbers.root, this.structures.root);
     this.scene.add(this.deployZone);
+    this.scene.add(this.spellAim.root);
     this.deployZone.visible = false;
     this.hoverRing = new THREE.Mesh(
       new THREE.RingGeometry(0.65, 0.73, 40),
@@ -439,26 +442,45 @@ export class World {
   }
   setHover(clientX: number, clientY: number, ability = false, spellId?: SpellId) {
     this.hoverRequest = { x: clientX, y: clientY, ability, spellId };
+    const gameplay =
+      this.placementState?.gameplay ?? (this.content ? gameplayOf(this.content) : COMPAT_GAMEPLAY);
     const p = this.pick(
       clientX,
       clientY,
       !!spellId,
       spellId
-        ? (this.content ? gameplayOf(this.content) : COMPAT_GAMEPLAY).spells[spellId].target === 'all'
+        ? gameplay.spells[spellId].target === 'all'
           ? 'all'
-          : (this.content ? gameplayOf(this.content) : COMPAT_GAMEPLAY).spells[spellId].target === 'ally'
+          : gameplay.spells[spellId].target === 'ally'
         : false,
     );
-    const spell = spellId
-      ? (this.content ? gameplayOf(this.content) : COMPAT_GAMEPLAY).spells[spellId]
-      : undefined;
-    this.hoverRing.visible = !!p && p.spellValid;
+    const spell = spellId ? gameplay.spells[spellId] : undefined;
+    this.hoverRing.visible = !spell && !!p && p.spellValid;
+    if (spell && p?.spellValid) {
+      this.spellAim.update(
+        { side: 0, lane: p.lane, x: p.x },
+        spell,
+        gameplay.board,
+        this.placementState?.units ?? [],
+        (unit) => {
+          const visual = this.units.get(unit.id);
+          return visual
+            ? {
+                position: visual.group.position,
+                // Weapon/wing bounds can be much wider than the feet of a large model.
+                radius:
+                  Math.min(
+                    visual.imported?.footprintRadius ?? 0.7,
+                    (this.content?.models[unit.heroId]?.height ?? 2.65) * 0.3,
+                  ) * visual.group.scale.x,
+              }
+            : undefined;
+        },
+      );
+    } else this.spellAim.clear();
     if (p) {
       this.hoverRing.position.set(p.x, 0.27, LANES[p.lane]);
-      if (spell) {
-        const outerRadius = this.hoverRing.geometry.parameters.outerRadius;
-        this.hoverRing.scale.set(spell.radius / outerRadius, 1.35 / outerRadius, 1);
-      } else this.hoverRing.scale.setScalar(ability ? 3 : 1);
+      this.hoverRing.scale.setScalar(ability ? 3 : 1);
       this.hoverRing.material.color.set(spell?.color || (ability || p.valid ? 0xa2ffdd : 0xff536a));
       this.selectedLane = p.lane;
     }
@@ -467,6 +489,7 @@ export class World {
   clearHover() {
     this.hoverRequest = undefined;
     this.hoverRing.visible = false;
+    this.spellAim.clear();
     this.selectedLane = -1;
   }
   refreshHover() {
@@ -554,6 +577,7 @@ export class World {
     this.unitOverlays.dispose();
     this.backdrop.dispose();
     this.deploymentGuidance.dispose();
+    this.spellAim.dispose();
     this.lighting.dispose();
     this.structureShadows.dispose();
     this.mapInstances.forEach((m) => m.dispose());
@@ -749,7 +773,7 @@ export class World {
     this.atmosphere.update(this.clock, this.camera, this.quality === 'low');
     this.deployZone.visible = selected && !spellTarget && battle.phase === 'playing';
     if (this.deployZone.visible) this.deploymentGuidance.update(battle, this.clock);
-    if (!selected) this.clearHover();
+    if (!selected || battle.phase !== 'playing') this.clearHover();
     const ids = new Set(battle.units.map((u) => u.id));
     const anchors = battle.events.some((event) => event.id > this.lastEvent)
       ? new Map<number, CombatAnchor>()
@@ -823,7 +847,7 @@ export class World {
     }
     this.unitOverlays.end();
     this.statusBodies.end();
-    if (selected) this.refreshHover();
+    if (selected && battle.phase === 'playing') this.refreshHover();
     this.spellEffects.setConfig(battle.gameplay);
     this.spellEffects.update(
       battle.spellZones,

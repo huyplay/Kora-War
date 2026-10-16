@@ -2,6 +2,7 @@ import { isSpell, type SpellId } from '../../data/spells';
 import { STEP } from '../../data/rules';
 import type { Battle } from '../Battle';
 import { isLane } from '../physics/lane-space';
+import { spellAffectsUnit } from '../physics/spell-area';
 import type { Side } from '../types';
 import { applySpellEffect } from './spell-effect';
 export interface SpellZone {
@@ -64,13 +65,7 @@ export function updateSpells(b: Battle) {
   for (const zone of b.spellZones) {
     if (b.time + 1e-8 < zone.starts) continue;
     const s = b.gameplay.spells[zone.spellId];
-    const targets = b.units.filter(
-      (u) =>
-        u.hp > 0 &&
-        (s.target === 'all' || (s.target === 'ally' ? u.side === zone.side : u.side !== zone.side)) &&
-        u.lane === zone.lane &&
-        Math.abs(u.x - zone.x) <= s.radius,
-    );
+    const targets = b.units.filter((u) => spellAffectsUnit(u, zone, s));
     for (const u of targets) {
       for (const effect of s.effects) applySpellEffect(b, u, effect, zone.side, s.duration ? STEP : 1);
     }

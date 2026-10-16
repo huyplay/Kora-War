@@ -35,7 +35,7 @@ import { StructureShadowRefresh } from './animation/structure-shadow-refresh';
 import { UnitFeedback } from './animation/unit-feedback';
 import { FormationLayout } from './formation-layout';
 import { presentationOf } from '../data/presentation';
-import { unitVisualMetrics } from './unit-visual-metrics';
+import { unitBodyPoint, unitVisualMetrics } from './unit-visual-metrics';
 import { HeroProjectiles } from './vfx/hero-projectiles';
 import { UnitStatusBodies } from './vfx/unit-status-bodies';
 import { combatEventAnchors, type CombatAnchor } from './combat-anchors';
@@ -702,7 +702,17 @@ export class World {
     if (e.type === 'projectile' && !e.heroId) {
       const arena = presentationOf(this.content ?? {}).arena;
       const source = new THREE.Vector3(e.x, 0.48 + arena.structures.towerHeight * 0.85, LANES[e.lane]);
-      const destination = new THREE.Vector3(target?.x ?? e.toX ?? e.x, 1.1, target?.z ?? LANES[e.lane]);
+      const anchor = anchors?.target;
+      const body = anchor
+        ? unitBodyPoint(
+            anchor.position,
+            this.content?.models[anchor.unit.heroId]?.height ?? 2.4,
+            anchor.scale,
+          )
+        : undefined;
+      const destination = body
+        ? new THREE.Vector3(body.x, body.y, body.z)
+        : new THREE.Vector3(e.toX ?? e.x, 1.1, LANES[e.lane]);
       this.towerEffects.emit(
         `${e.side}-${e.lane}`,
         source,
@@ -710,6 +720,7 @@ export class World {
         e.side,
         arena.towers.projectileSeconds,
         anchors?.target?.unit.id,
+        this.reducedMotion.matches,
       );
       return;
     }
@@ -927,7 +938,17 @@ export class World {
       presentationOf(battle.content).arena.towers,
       animationDt,
       this.camera,
-      (id) => this.units.get(id)?.group.position,
+      (id) => {
+        const visual = this.units.get(id);
+        if (!visual) return undefined;
+        const body = unitBodyPoint(
+          visual.group.position,
+          this.content?.models[visual.unit.heroId]?.height ?? 2.4,
+          visual.group.scale.x,
+        );
+        return new THREE.Vector3(body.x, body.y, body.z);
+      },
+      { reducedMotion: this.reducedMotion.matches, palette: battle.content.vfx },
     );
     this.numbers.update(animationDt, this.camera, this.canvas.clientHeight, this.reducedMotion.matches);
     this.towerHealth.update(

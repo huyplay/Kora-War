@@ -186,3 +186,7 @@ Tiếp tục làm rõ thao tác mobile: chọn Cộng Hưởng hiện ba guide, 
 ## 16/10/2026 — Vùng phép và độ rõ Lửa sau khi dùng
 
 Vùng báo trước/đang tác động dùng cùng footprint chữ nhật với ngắm phép theo radius/bề rộng lane từ snapshot. Cone/atlas Lửa co theo vùng; atlas phép dùng opacity/blend của profile readability đã phát hành để giảm chói. Giữ target, damage, warning/duration, mana, deck và revision database; không thêm luật hoặc asset. Xem [QA vùng phép](SPELL-ZONE-QA.md).
+
+## 16/10/2026 — Đạn trụ theo thân tướng và tầm bắn mobile
+
+Đạn trụ căn điểm chạm theo model/scale đội hình và đúng hit target; cập nhật tới arrival rồi giữ impact, không track khi pause. Reduced motion dùng dấu tĩnh, không tiếp tục đường đạn cũ khi tắt. Viền tầm bắn dùng plane rõ hơn và màu/opacity từ content đã khóa. Không đổi core, timing sát thương, balance hoặc database. Xem [QA đạn trụ](TOWER-VFX-QA.md).

@@ -1,6 +1,7 @@
 import { ArenaLighting } from './arena-lighting';
 import { TowerEffects } from './vfx/tower-effects';
 import { TowerHealthBars } from './tower-health';
+import { StructureDamage } from './structure-damage';
 import { UnitOverlays } from './unit-overlays';
 import { ArenaBackdrop } from './arena-backdrop';
 import { DeploymentGuidance } from './deployment-guidance';
@@ -87,6 +88,7 @@ export class World {
   private lighting = new ArenaLighting();
   private towerEffects = new TowerEffects();
   private towerHealth = new TowerHealthBars();
+  private structureDamage = new StructureDamage();
   private unitOverlays = new UnitOverlays();
   private backdrop = new ArenaBackdrop();
   private fortressSides: THREE.Group[] = [];
@@ -156,6 +158,7 @@ export class World {
       this.towerEffects.root,
       this.structureShadows.root,
       this.towerHealth.root,
+      this.structureDamage.root,
       this.unitOverlays.root,
       this.backdrop.root,
     );
@@ -543,6 +546,7 @@ export class World {
     this.coreShadowAlive = [];
     this.towerEffects.reset();
     this.towerHealth.reset();
+    this.structureDamage.reset();
     this.unitOverlays.reset();
     this.corpses.forEach((c) => c.model.dispose());
     this.corpses = [];
@@ -597,6 +601,7 @@ export class World {
     this.structures.dispose();
     this.towerEffects.dispose();
     this.towerHealth.dispose();
+    this.structureDamage.dispose();
     this.unitOverlays.dispose();
     this.backdrop.dispose();
     this.deploymentGuidance.dispose();
@@ -960,7 +965,16 @@ export class World {
       this.canvas.clientHeight,
     );
     structureChanged =
-      this.structures.update(battle.towers, this.towerMeshes, animationDt) || structureChanged;
+      this.structures.update(battle.towers, this.towerMeshes, animationDt, this.reducedMotion.matches) ||
+      structureChanged;
+    this.structureDamage.update(
+      battle.towers,
+      presentationOf(battle.content).arena.structures.towerHeight,
+      animationDt,
+      this.camera,
+      battle.content.vfx,
+      this.reducedMotion.matches,
+    );
     for (const side of [0, 1]) {
       const alive = battle.cores[side] > 0;
       structureChanged ||= this.coreShadowAlive[side] !== alive;

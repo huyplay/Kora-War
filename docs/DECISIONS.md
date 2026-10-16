@@ -206,3 +206,7 @@ Kiến trúc đá có sắc độ vertex tĩnh theo mặt/khe/khối, giữ geom
 ## 16/10/2026 — Cổng gia cố Elyndra
 
 Cổng thành có mũ đá, ngưỡng nền, đai/đinh tán và huy hiệu Aether hai phe; trụ cổng có lớp đá rõ hơn. Chi tiết tĩnh bake cùng batch, giữ mặt đánh theo coreX và scale cấu hình; không thêm vật cản, HP hay đổi combat/database. Xem [QA cổng thành](FORTRESS-DETAILS-QA.md).
+
+## 16/10/2026 — Phản hồi sát thương trụ
+
+Dấu nứt quanh chân trụ đọc HP và dấu trúng đòn đọc delta thực, dùng palette/readability đã khóa. Giới hạn sáu slot, giữ im lặng snapshot đầu; pause/reset/dispose theo vòng đời. Reduced motion giữ dấu tĩnh và chuyển collapse/rubble thành tàn tích đứng yên, không đổi combat hoặc database. Xem [QA sát thương trụ](STRUCTURE-DAMAGE-QA.md).

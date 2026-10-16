@@ -10,6 +10,7 @@ import { renderStudioPage } from './views';
 import { modelPartsEditor } from './model-parts';
 import { defaultCombatPresentation } from '../data/combat-presentation';
 import { defaultUnitFeedback } from '../data/unit-feedback';
+import { defaultVfxReadability } from '../data/vfx-readability';
 const root = document.querySelector<HTMLDivElement>('#studio')!;
 let state: State,
   section = 'overview',
@@ -228,6 +229,13 @@ async function save() {
   notice('Đã lưu bản nháp.');
 }
 function wire() {
+  const addReadability = document.querySelector<HTMLButtonElement>('#add-vfx-readability');
+  if (addReadability)
+    addReadability.onclick = () => {
+      state.draft.vfx.readability = defaultVfxReadability();
+      dirty = true;
+      render();
+    };
   const addFeedback = document.querySelector<HTMLButtonElement>('#add-unit-feedback');
   if (addFeedback)
     addFeedback.onclick = () => {

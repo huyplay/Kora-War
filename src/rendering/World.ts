@@ -251,6 +251,7 @@ export class World {
     await this.models.supportTextures(this.renderer);
     this.sprites.configure(content.vfx);
     this.heroProjectiles.configure(content.vfx.combat);
+    this.accents.configure(content.vfx.readability, [content.vfx.ally, content.vfx.enemy]);
     this.statusBodies.configure(content.vfx.feedback?.bodies);
     this.numbers.configure(content.vfx.feedback?.numbers);
     await this.spellEffects.configure(content.vfx);
@@ -674,8 +675,23 @@ export class World {
       this.heroProjectiles.emit(e.heroId, from, to, anchors?.target?.unit.id, this.reducedMotion.matches);
       return;
     }
-    this.sprites.emit(e, point, target);
-    this.accents.emit(e, point);
+    const anchor = ['hit', 'death'].includes(e.type)
+      ? anchors?.target
+      : e.heroId || e.type === 'heal'
+        ? anchors?.source
+        : undefined;
+    const height = anchor
+      ? (this.content?.models[anchor.unit.heroId]?.height ?? 2.4) * anchor.scale * 0.55
+      : 1.1;
+    this.sprites.emit(e, point, target, {
+      unitId: anchor?.unit.id,
+      height,
+      scale: anchor?.scale,
+      reducedMotion: this.reducedMotion.matches,
+    });
+    this.accents.emit(e, point, height, this.reducedMotion.matches);
+    // The configured sprite owns this cue; do not stack a second generic ring over it.
+    if (this.content?.vfx.readability && e.type !== 'projectile') return;
     const color = e.type === 'heal' ? 0x83ffc2 : e.side === 0 ? 0xb4ffde : 0xffb4a0;
     if (e.type === 'hit' || e.type === 'core' || e.type === 'finish') return;
     const kind =
@@ -892,9 +908,23 @@ export class World {
         e.mesh.position.y = 0.2 + p * 0.45;
       }
     }
-    this.accents.observe(battle.units, battle.time, (id) => this.units.get(id)?.group.position);
-    this.accents.update(animationDt, this.camera);
-    this.sprites.update(animationDt);
+    this.accents.observe(
+      battle.units,
+      battle.time,
+      (id) => {
+        const v = this.units.get(id);
+        if (!v) return undefined;
+        return {
+          x: v.group.position.x,
+          z: v.group.position.z,
+          height: (this.content?.models[v.unit.heroId]?.height ?? 2.4) * v.group.scale.x,
+          radius: (this.templates.get(v.unit.heroId)?.footprintRadius ?? 0.7) * v.group.scale.x,
+        };
+      },
+      this.reducedMotion.matches,
+    );
+    this.accents.update(animationDt, this.camera, this.reducedMotion.matches);
+    this.sprites.update(animationDt, this.reducedMotion.matches);
     this.heroProjectiles.update(
       animationDt,
       this.camera,

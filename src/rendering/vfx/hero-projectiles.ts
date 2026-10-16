@@ -1,5 +1,29 @@
 import * as THREE from 'three';
 import type { CombatPresentation, ProjectileStyle } from '../../data/combat-presentation';
+const finitePoint = (p: THREE.Vector3) =>
+  Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.z);
+const impactVertex = `
+varying vec2 impactUv;
+void main() {
+  impactUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+const impactFragment = `
+uniform vec3 color;
+uniform float opacity;
+varying vec2 impactUv;
+void main() {
+  vec2 p = impactUv * 2.0 - 1.0;
+  float r = length(p);
+  float core = exp(-r * r * 32.0);
+  float ring = exp(-pow((r - .52) * 14.0, 2.0));
+  float rays = pow(abs(cos(atan(p.y, p.x + .00001) * 4.0)), 18.0)
+    * (1.0 - smoothstep(.2, 1.0, r)) * smoothstep(.08, .25, r);
+  float alpha = clamp(core + ring * .5 + rays * .55, 0.0, 1.0) * opacity;
+  if (alpha < .005) discard;
+  gl_FragColor = vec4(mix(color, vec3(1.0), core * .85), alpha);
+  #include <colorspace_fragment>
+}`;
 interface Shot {
   root: THREE.Group;
   tip: THREE.Mesh;
@@ -17,31 +41,51 @@ export class HeroProjectiles {
   readonly root = new THREE.Group();
   private shots: Shot[] = [];
   private impacts: {
-    mesh: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
+    mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
     age: number;
     active: boolean;
     reduced: boolean;
   }[] = [];
   private config?: CombatPresentation;
+  private disposed = false;
   private arrow = new THREE.ConeGeometry(1, 2, 5);
   private orb = new THREE.IcosahedronGeometry(1, 1);
   private bolt = new THREE.OctahedronGeometry(1);
-  private line = new THREE.CylinderGeometry(1, 1, 1, 5);
-  private ring = new THREE.RingGeometry(0.55, 1, 20);
+  private line = new THREE.CylinderGeometry(1, 0.03, 1, 5, 1, true);
+  private impactPlane = new THREE.PlaneGeometry(2, 2);
   private direction = new THREE.Vector3();
   private up = new THREE.Vector3(0, 1, 0);
   constructor() {
     this.root.name = 'HeroProjectiles';
+    // Additive vertex colors fade the narrow tail without another transparent layer.
+    const positions = this.line.getAttribute('position'),
+      colors = new Float32Array(positions.count * 3);
+    for (let i = 0; i < positions.count; i++) {
+      const brightness = Math.max(0, positions.getY(i) + 0.5);
+      colors.fill(brightness, i * 3, i * 3 + 3);
+    }
+    this.line.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    for (const geometry of [this.arrow, this.orb, this.bolt])
+      geometry.setAttribute(
+        'color',
+        new THREE.BufferAttribute(new Float32Array(geometry.getAttribute('position').count * 3).fill(1), 3),
+      );
     for (let i = 0; i < 40; i++) {
       const root = new THREE.Group(),
         material = new THREE.MeshBasicMaterial({
           transparent: true,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
+          vertexColors: true,
+          toneMapped: false,
         });
       const tip = new THREE.Mesh(this.arrow, material),
         trail = new THREE.Mesh(this.line, material),
         core = new THREE.Mesh(this.orb, material);
+      root.name = 'HeroProjectile';
+      tip.name = 'HeroHead';
+      trail.name = 'HeroTrail';
+      core.name = 'HeroCore';
       root.add(tip, trail, core);
       root.visible = false;
       this.root.add(root);
@@ -57,27 +101,36 @@ export class HeroProjectiles {
         style: 'orb',
       });
       const mesh = new THREE.Mesh(
-        this.ring,
-        new THREE.MeshBasicMaterial({
+        this.impactPlane,
+        new THREE.ShaderMaterial({
+          uniforms: { color: { value: new THREE.Color() }, opacity: { value: 1 } },
+          vertexShader: impactVertex,
+          fragmentShader: impactFragment,
           transparent: true,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
           side: THREE.DoubleSide,
+          toneMapped: false,
+          depthTest: false,
         }),
       );
+      mesh.name = 'HeroImpact';
+      // The torso anchor lies inside the model; a small billboard must remain readable on its surface.
+      mesh.renderOrder = 12;
       mesh.visible = false;
       this.root.add(mesh);
       this.impacts.push({ mesh, age: 0, active: false, reduced: false });
     }
   }
   configure(config?: CombatPresentation) {
+    if (this.disposed) return;
     this.reset();
     this.config = config;
   }
   emit(hero: string, from: THREE.Vector3, to: THREE.Vector3, targetId?: number, reduced = false) {
     const c = this.config,
       profile = c?.heroes[hero];
-    if (!c?.enabled || !profile || ![...from.toArray(), ...to.toArray()].every(Number.isFinite)) return false;
+    if (this.disposed || !c?.enabled || !profile || !finitePoint(from) || !finitePoint(to)) return false;
     if (reduced) {
       this.impact(to, new THREE.Color(profile.color), true);
       return true;
@@ -110,6 +163,7 @@ export class HeroProjectiles {
     this.direction.y += Math.cos(progress * Math.PI) * c.arcHeight * Math.PI;
     if (this.direction.lengthSq() > 0.000001)
       shot.root.quaternion.setFromUnitVectors(this.up, this.direction.normalize());
+    else shot.root.quaternion.identity();
     shot.tip.scale.set(size, shot.style === 'arrow' ? size * 2.8 : size * 1.8, size);
     shot.core.scale.setScalar(size * (1 + 0.18 * Math.sin(progress * Math.PI * 4)));
     const length = Math.min(c.trailLength, shot.from.distanceTo(shot.root.position));
@@ -125,8 +179,8 @@ export class HeroProjectiles {
     impact.reduced = reduced;
     impact.mesh.visible = true;
     impact.mesh.position.copy(position);
-    impact.mesh.material.color.copy(color);
-    impact.mesh.material.opacity = 1;
+    impact.mesh.material.uniforms.color.value.copy(color);
+    impact.mesh.material.uniforms.opacity.value = 1;
     impact.mesh.scale.setScalar(this.config!.impactSize * (reduced ? 1 : 0.35));
   }
   update(
@@ -136,8 +190,8 @@ export class HeroProjectiles {
     reduced = false,
   ) {
     const c = this.config;
-    if (!c) return;
-    const step = Math.max(0, Math.min(dt, 0.25));
+    if (!c || this.disposed) return;
+    const step = Number.isFinite(dt) ? Math.max(0, Math.min(dt, 0.25)) : 0;
     for (const impact of this.impacts)
       if (impact.active) {
         impact.age += step;
@@ -145,25 +199,30 @@ export class HeroProjectiles {
         impact.active = p < 1;
         impact.mesh.visible = impact.active;
         impact.mesh.quaternion.copy(camera.quaternion);
-        impact.mesh.scale.setScalar(c.impactSize * (impact.reduced || reduced ? 1 : 0.35 + p));
-        impact.mesh.material.opacity = Math.max(0, 1 - p);
+        // Once reduced, this impact stays at its current size until it expires.
+        impact.reduced ||= reduced;
+        if (!impact.reduced) impact.mesh.scale.setScalar(c.impactSize * (0.35 + p));
+        impact.mesh.material.uniforms.opacity.value = Math.max(0, 1 - p);
       }
     for (const shot of this.shots)
       if (shot.active) {
         if (reduced) {
           shot.active = false;
           shot.root.visible = false;
+          this.impact(shot.to, (shot.tip.material as THREE.MeshBasicMaterial).color, true);
+          shot.targetId = undefined;
           continue;
         }
         shot.age += step;
-        const position = shot.targetId === undefined ? undefined : lookup?.(shot.targetId);
-        if (position && step > 0) shot.to.copy(position);
+        const position = step > 0 && shot.targetId !== undefined ? lookup?.(shot.targetId) : undefined;
+        if (position && finitePoint(position)) shot.to.copy(position);
         const p = Math.min(1, shot.age / c.flightSeconds);
         this.pose(shot, p);
         if (p >= 1) {
           shot.active = false;
           shot.root.visible = false;
           this.impact(shot.to, (shot.tip.material as THREE.MeshBasicMaterial).color);
+          shot.targetId = undefined;
         }
       }
     // New impacts created during this frame must face the camera immediately too.
@@ -184,11 +243,13 @@ export class HeroProjectiles {
     }
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.reset();
     this.root.removeFromParent();
     for (const shot of this.shots) (shot.tip.material as THREE.Material).dispose();
     for (const impact of this.impacts) impact.mesh.material.dispose();
-    for (const geometry of [this.arrow, this.orb, this.bolt, this.line, this.ring]) geometry.dispose();
+    for (const geometry of [this.arrow, this.orb, this.bolt, this.line, this.impactPlane]) geometry.dispose();
     this.root.clear();
   }
 }

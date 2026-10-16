@@ -226,3 +226,7 @@ Cổng thành có mũ đá, ngưỡng nền, đai/đinh tán và huy hiệu Aeth
 ## 16/10/2026 — Phản hồi sát thương trụ
 
 Dấu nứt quanh chân trụ đọc HP và dấu trúng đòn đọc delta thực, dùng palette/readability đã khóa. Giới hạn sáu slot, giữ im lặng snapshot đầu; pause/reset/dispose theo vòng đời. Reduced motion giữ dấu tĩnh và chuyển collapse/rubble thành tàn tích đứng yên, không đổi combat hoặc database. Xem [QA sát thương trụ](STRUCTURE-DAMAGE-QA.md).
+
+## 16/10/2026 — Giãn số giao tranh trên mobile
+
+Số sát thương/hồi máu mới tìm vị trí gần điểm trúng đòn bằng chín ứng viên có giới hạn; số đang hiện giữ offset tới lúc hết hạn. Giữ cỡ pixel/màu/lifetime từ snapshot presentation, giới hạn atlas/pool cũ và delta HP thực. Reduced motion giữ vị trí/scale đang có; không thay gameplay hay database. Xem [QA số giao tranh](COMBAT-NUMBERS-QA.md).

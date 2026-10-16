@@ -8,6 +8,7 @@ import './studio.css';
 import { type State, sections } from './types';
 import { renderStudioPage } from './views';
 import { modelPartsEditor } from './model-parts';
+import { defaultCombatPresentation } from '../data/combat-presentation';
 const root = document.querySelector<HTMLDivElement>('#studio')!;
 let state: State,
   section = 'overview',
@@ -226,6 +227,13 @@ async function save() {
   notice('Đã lưu bản nháp.');
 }
 function wire() {
+  const addCombatVfx = document.querySelector<HTMLButtonElement>('#add-combat-vfx');
+  if (addCombatVfx)
+    addCombatVfx.onclick = () => {
+      state.draft.vfx.combat = defaultCombatPresentation(state.draft.heroes);
+      dirty = true;
+      render();
+    };
   wireMatchReview(root);
   const addTier = document.querySelector<HTMLButtonElement>('#add-rank-tier');
   if (addTier)

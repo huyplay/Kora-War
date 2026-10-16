@@ -198,3 +198,7 @@ Pinch mất capture/thêm ngón hoặc bị ngắt bởi vòng đời màn hình
 ## 16/10/2026 — Chậu đuốc và ánh lửa ngày/đêm
 
 Nâng cấp bệ/chậu đuốc và lửa nhiều lớp; geometry, sprite và nguồn sáng dùng chung mốc. Cường độ/mode từ presentation snapshot điều khiển cả lửa và ánh sáng, bao gồm tắt hoàn toàn. Đồng bộ dao động với render clock, pause và reduced motion; không đổi gameplay hay database. Xem [QA ánh lửa](ARENA-TORCHES-QA.md).
+
+## 16/10/2026 — Sắc độ đá và vòng đời vật liệu
+
+Kiến trúc đá có sắc độ vertex tĩnh theo mặt/khe/khối, giữ geometry, UV và tint texture của database. Vật liệu có/không có màu đỉnh dùng biến thể phù hợp; nạp PBR theo generation, thay/clear đủ các kênh và dọn texture bị thay thế hoặc tới muộn. Không đổi gameplay, asset hay config phát hành. Xem [QA vật liệu sân](ARENA-SURFACES-QA.md).

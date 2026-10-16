@@ -1,0 +1,16 @@
+# Vùng phép sau khi dùng — 16/10/2026
+
+Task [#63](https://github.com/huyplay/Kora-War/issues/63) nối tiếp vùng ngắm #59: thay elip báo trước/đang tác động bằng viền chữ nhật phủ đúng `x ± spell.radius` và `board.halfWidth` của snapshot. Vùng sau khi thả có cùng footprint với vùng ngắm; không thêm giới hạn tọa độ hoặc thay timing của mô phỏng.
+
+- Dùng chung plane/shader với ngắm phép và Cộng Hưởng. Shader thêm uniform border/fill có mặc định bằng giá trị cũ để hai preview đó giữ hình ảnh hiện hành. Viền cảnh báo mờ có nhịp; active có viền/fill rõ hơn. Reduced motion giữ viền cảnh báo tĩnh ở mức đọc được; pause giữ clock và snapshot time.
+- Màu vùng và lửa thủ tục lấy từ phép trong gameplay đã khóa. 18 cone lửa phân bố trong hình chữ nhật, co bề rộng theo vùng nhỏ; ba atlas co kích thước/vị trí theo bán kính và bề rộng lane. Hiệu ứng cháy trên thân tiếp tục theo vị trí/scale đội hình đã giãn. Không di chuyển quân hoặc thay sát thương.
+- Atlas phép dùng `vfx.readability.events.skill.opacity/blend` đã có trong content database, gồm Lửa nền và rune Băng dự phòng. Giá trị 0 bỏ atlas, vẫn giữ viền và lửa thủ tục. Content thiếu profile tiếp tục dùng additive/opacity 1; không thêm schema, installer hoặc publish. Các thông số scale/cooldown của event không được áp dụng vào lifetime vùng phép.
+- Burn eligibility dùng lại `spellAffectsUnit`: còn sống, đúng phe mục tiêu, cùng lane, khoảng cách x trong bán kính. Giữ điều kiện thời gian hiện hành; không khóa target theo preview. Quân rời vùng/chết không giữ hiệu ứng cũ.
+- Mỗi zone sở hữu một plane/material, trả tài nguyên khi zone biến mất/reset/config đổi. Giữ budget cone/atlas hiện có; không thêm asset, request tải ảnh hoặc label DOM. Async atlas sau dispose vẫn bị loại.
+
+## QA
+
+- `npm run check`: kiến trúc, TypeScript server/client, **364 tests**, production build. Năm test mới bao phủ tám phép/ba lane/bán kính và bề rộng tùy chỉnh/các góc, warning/active reuse, phe enemy/ally/all cho hai bên, biên chính xác/quân chết/rời vùng, bán kính 0,05 đến 28, atlas/cone bounds, published color/readability, reduced motion và disposal/config reset. Test admin được cập nhật theo unit plane có full diameter; fixture gameplay/replay không đổi.
+- `npm run smoke`, Prettier check và `git diff --check` qua sau build cuối. Review trực tiếp call sites, lifecycle và diff. GitNexus chưa có index cho repo này; truy vết bằng source và test thay vì báo kết quả graph không tồn tại.
+- Chrome DOM **1536×720**, **844×390**, **667×376**: ngắm/thả Lửa, chạm thả trên mobile, báo trước rồi kích hoạt, zoom wheel, reduced motion, pause/resume và reset trận. Khung nhỏ có document kích thước đúng viewport, không cuộn trang. Không có console warning/error trong lượt QA cuối. Ảnh local: `.data/spell-zone-final.png`, `.data/spell-zone-desktop.png`.
+- QA dùng database riêng, chỉ sao content/asset, không sao player/session. Fixture quan sát có mana đầu/max 10, HP tướng 5.000, attack 1, skill cooldown 900s, lane half-width 1,3, Lửa radius 3,6/warning 8s/duration 30s và Băng warning 8s. Những giá trị này chỉ phục vụ quan sát, không triển khai lên main. Database main giữ revision 29. Đây là kiểm tra trình duyệt, chưa phải nghiệm thu trên điện thoại thật.

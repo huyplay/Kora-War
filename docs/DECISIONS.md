@@ -182,3 +182,7 @@ Tiếp tục làm rõ chiến đấu mobile: vùng ngắm phép lấy bán kính
 ## 16/10/2026 — Ngắm Cộng Hưởng toàn lane
 
 Tiếp tục làm rõ thao tác mobile: chọn Cộng Hưởng hiện ba guide, nhấn mạnh lane ngắm và đánh dấu đồng minh/địch bằng màu content đã khóa. Ẩn vòng con trỏ nhỏ và vùng thả tướng gây nhầm phạm vi. Core/renderer dùng chung điều kiện còn sống/cùng lane cũ, giữ cách chọn lane gần nhất kể cả ngoài phần nền lane. Không đổi gameplay, năng lượng hoặc database. Xem [QA Cộng Hưởng](PULSE-AIM-QA.md).
+
+## 16/10/2026 — Vùng phép và độ rõ Lửa sau khi dùng
+
+Vùng báo trước/đang tác động dùng cùng footprint chữ nhật với ngắm phép theo radius/bề rộng lane từ snapshot. Cone/atlas Lửa co theo vùng; atlas phép dùng opacity/blend của profile readability đã phát hành để giảm chói. Giữ target, damage, warning/duration, mana, deck và revision database; không thêm luật hoặc asset. Xem [QA vùng phép](SPELL-ZONE-QA.md).

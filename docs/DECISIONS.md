@@ -1,5 +1,9 @@
 # Các quyết định đang áp dụng
 
+## 16/10/2026 — Vệt chém cận chiến theo thân tướng
+
+Tiếp tục yêu cầu đồ họa: crescent thuôn/mềm, bám người ra đòn theo origin và kích thước hiển thị, giữ hướng hai phe và cấu hình melee từ database. Dọn khi freeze/stun/death, giữ pause và không phát lại cue sau reduced motion/reset. Không đổi combat, attack clip hoặc content đã phát hành; lịch sử thiếu profile giữ hình cung cũ. Xem [QA cận chiến](MELEE-SLASHES-QA.md).
+
 ## 16/10/2026 — Vệt đạn và dấu va chạm của tướng
 
 Tiếp tục yêu cầu hoàn thiện đồ họa: vệt đạn thuôn/mờ dần, dấu trúng đòn mềm và rõ trên thân tướng. Giữ profile combat từ database đã khóa, pool giới hạn và luật sát thương hiện hành. Đạn bám torso hiển thị, xử lý pause/tọa độ lỗi/giảm chuyển động và disposal an toàn. Không thêm schema hoặc phát hành content. Xem [QA đường đạn tướng](HERO-PROJECTILES-QA.md).

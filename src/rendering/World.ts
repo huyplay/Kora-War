@@ -1017,22 +1017,19 @@ export class World {
         e.mesh.position.y = 0.2 + p * 0.45;
       }
     }
-    this.accents.observe(
-      battle.units,
-      battle.time,
-      (id) => {
-        const v = this.units.get(id);
-        if (!v) return undefined;
-        return {
-          x: v.group.position.x,
-          z: v.group.position.z,
-          height: (this.content?.models[v.unit.heroId]?.height ?? 2.4) * v.group.scale.x,
-          radius: (this.templates.get(v.unit.heroId)?.footprintRadius ?? 0.7) * v.group.scale.x,
-        };
-      },
-      this.reducedMotion.matches,
-    );
-    this.accents.update(animationDt, this.camera, this.reducedMotion.matches);
+    const meleePosition = (id: number) => {
+      const v = this.units.get(id);
+      if (!v) return undefined;
+      return {
+        x: v.group.position.x,
+        y: v.group.position.y,
+        z: v.group.position.z,
+        height: (this.content?.models[v.unit.heroId]?.height ?? 2.4) * v.group.scale.x,
+        radius: (this.templates.get(v.unit.heroId)?.footprintRadius ?? 0.7) * v.group.scale.x,
+      };
+    };
+    this.accents.observe(battle.units, battle.time, meleePosition, this.reducedMotion.matches);
+    this.accents.update(animationDt, this.camera, this.reducedMotion.matches, meleePosition);
     this.sprites.update(animationDt, this.reducedMotion.matches);
     this.heroProjectiles.update(
       animationDt,

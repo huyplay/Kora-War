@@ -190,3 +190,7 @@ Vùng báo trước/đang tác động dùng cùng footprint chữ nhật với 
 ## 16/10/2026 — Đạn trụ theo thân tướng và tầm bắn mobile
 
 Đạn trụ căn điểm chạm theo model/scale đội hình và đúng hit target; cập nhật tới arrival rồi giữ impact, không track khi pause. Reduced motion dùng dấu tĩnh, không tiếp tục đường đạn cũ khi tắt. Viền tầm bắn dùng plane rõ hơn và màu/opacity từ content đã khóa. Không đổi core, timing sát thương, balance hoặc database. Xem [QA đạn trụ](TOWER-VFX-QA.md).
+
+## 16/10/2026 — Hủy pinch bị ngắt trên mobile
+
+Pinch mất capture/thêm ngón hoặc bị ngắt bởi vòng đời màn hình sẽ hủy và chặn click tới khi các ngón đã kết thúc. Dọn trạng thái khi pause, đổi trận, xoay dọc và mất kết nối; nhận release ngoài canvas để không kẹt input. Giữ tap dùng thẻ, giới hạn zoom và toàn bộ luật/config hiện hành. Xem [QA cử chỉ sân](ARENA-GESTURES-QA.md).

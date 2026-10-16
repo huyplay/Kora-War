@@ -154,3 +154,7 @@ Người dùng xác nhận cả ba cổng là phần hiển thị của lõi chu
 Theo ảnh tham chiếu mới, đội hình 14 thẻ hiển thị đồng thời thành hai hàng model có animation trên bệ; bộ sưu tập ở dải thẻ vuốt ngang bên dưới. Chạm mở chi tiết, bỏ/thêm hoặc chọn ô để thay thẻ; bản nháp giữ nguyên khi xem và nâng cấp. Đây là cuộn ngang nội bộ có giới hạn, không cuộn trang game.
 
 Nâng cấp dùng ví server, `collection.copiesPerLevel`, `collection.maxLevel` và `economy.upgradeBase` từ content database. Cấp vẫn là cấp sưu tập, chỉ số combat chuẩn hóa; không thêm tiền tệ, deck preset hoặc powerup từ ảnh. Một renderer WebGL được dùng chung với chiến trường; close trả canvas/trạng thái về World, giảm chuyển động và tab ẩn dừng animation. Xem [QA bộ sưu tập](ROSTER-QA.md).
+
+## 16/10/2026 — Đạn tướng có cấu hình và đúng điểm chạm
+
+Tiếp tục hoàn thiện đồ họa theo yêu cầu người dùng: profile VFX tùy chọn trong database điều khiển kiểu/màu đạn, quỹ đạo và điểm chạm. Renderer nối đạn với hit của cùng đòn và giữ tọa độ quân vừa chết trong frame, thay cách chọn quân gần nhất. Pool giới hạn, pause và reduced motion được hỗ trợ. Không thay luật, nhịp đánh hoặc thời điểm sát thương; snapshot cũ giữ hiệu ứng cũ. Xem [QA đạn chiến đấu](COMBAT-VFX-QA.md).

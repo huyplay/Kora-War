@@ -19,6 +19,7 @@
     "assets:import": "tsx tools/import-riot-assets.ts",
     "assets:heroes": "tsx tools/import-hero-catalog.ts",
     "assets:presentation": "tsx tools/import-model-presentation.ts",
+    "presentation:combat": "tsx tools/install-combat-presentation.ts",
     "format": "prettier --write \"src/**/*.{ts,css}\" \"server/**/*.ts\" \"tools/*.ts\" \"tests/*.ts\"",
     "assets:media:download": "python tools/download-media.py",
     "assets:media:import": "tsx tools/import-media-assets.ts",

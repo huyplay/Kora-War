@@ -34,6 +34,8 @@ import { UnitFeedback } from './animation/unit-feedback';
 import { FormationLayout } from './formation-layout';
 import { presentationOf } from '../data/presentation';
 import { unitVisualMetrics } from './unit-visual-metrics';
+import { HeroProjectiles } from './vfx/hero-projectiles';
+import { combatEventAnchors, type CombatAnchor } from './combat-anchors';
 interface Visual {
   group: THREE.Group;
   feedback: UnitFeedback;
@@ -70,6 +72,8 @@ export class World {
   private spellEffects = new SpellEffects();
   private atmosphere = new ArenaAtmosphere();
   private accents = new CombatAccents();
+  private heroProjectiles = new HeroProjectiles();
+  private reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   private contactShadows = new ContactShadows();
   private numbers = new FloatingNumbers();
   private structures = new StructureAnimator();
@@ -152,7 +156,7 @@ export class World {
     this.terrain.apply(this.scene);
     this.scene.add(this.sprites.root);
     this.scene.add(this.spellEffects.root);
-    this.scene.add(this.atmosphere.root, this.accents.root);
+    this.scene.add(this.atmosphere.root, this.accents.root, this.heroProjectiles.root);
     this.scene.add(this.contactShadows.root, this.numbers.root, this.structures.root);
     this.scene.add(this.deployZone);
     this.deployZone.visible = false;
@@ -239,6 +243,7 @@ export class World {
     );
     await this.models.supportTextures(this.renderer);
     this.sprites.configure(content.vfx);
+    this.heroProjectiles.configure(content.vfx.combat);
     await this.spellEffects.configure(content.vfx);
     await this.terrain.configure(
       content.map.textures,
@@ -461,6 +466,7 @@ export class World {
     this.arenaCamera.reset();
     this.spellEffects.reset();
     this.accents.reset();
+    this.heroProjectiles.reset();
     this.numbers.reset();
     this.contactShadows.begin();
     this.structures.reset(this.towerMeshes);
@@ -514,6 +520,7 @@ export class World {
     this.reset();
     this.spellEffects.dispose();
     this.accents.dispose();
+    this.heroProjectiles.dispose();
     this.atmosphere.dispose();
     this.numbers.dispose();
     this.contactShadows.dispose();
@@ -613,20 +620,13 @@ export class World {
       if (b.mesh.instanceColor) b.mesh.instanceColor.needsUpdate = true;
     }
   }
-  effect(e: GameEvent) {
-    const closest = (x: number, side: number, heroId?: string) =>
-      Array.from(this.units.values())
-        .filter(
-          (v) => v.unit.lane === e.lane && v.unit.side === side && (!heroId || v.unit.heroId === heroId),
-        )
-        .sort((a, b) => Math.abs(a.unit.x - x) - Math.abs(b.unit.x - x))[0];
-    const point = e.targetId
-      ? this.units.get(e.targetId)?.group.position
-      : e.heroId
-        ? closest(e.x, e.side, e.heroId)?.group.position
+  effect(e: GameEvent, anchors?: ReturnType<typeof combatEventAnchors>) {
+    const point = ['hit', 'death'].includes(e.type)
+      ? anchors?.target?.position
+      : e.heroId || e.type === 'heal'
+        ? anchors?.source?.position
         : undefined;
-    const targetVisual = e.type === 'projectile' ? closest(e.toX ?? e.x, 1 - e.side) : undefined;
-    const target = targetVisual?.group.position;
+    const target = anchors?.target?.position;
     if (e.type === 'projectile' && !e.heroId) {
       const arena = presentationOf(this.content ?? {}).arena;
       const source = new THREE.Vector3(e.x, 0.48 + arena.structures.towerHeight * 0.85, LANES[e.lane]);
@@ -637,8 +637,30 @@ export class World {
         destination,
         e.side,
         arena.towers.projectileSeconds,
-        targetVisual?.unit.id,
+        anchors?.target?.unit.id,
       );
+      return;
+    }
+    const profile = this.content?.vfx.combat;
+    if (e.type === 'projectile' && e.heroId && profile?.heroes[e.heroId]) {
+      const bodyPoint = (anchor: CombatAnchor) =>
+        new THREE.Vector3(
+          anchor.position.x,
+          (this.content?.models[anchor.unit.heroId]?.height ?? 2.4) * anchor.scale * 0.55,
+          anchor.position.z,
+        );
+      const from = anchors?.source ? bodyPoint(anchors.source) : new THREE.Vector3(e.x, 1.2, LANES[e.lane]);
+      const tower = this.placementState?.towers.find(
+        (tower) => tower.lane === e.lane && tower.side !== e.side && Math.abs(tower.x - (e.toX ?? 0)) < 0.01,
+      );
+      const to = anchors?.target
+        ? bodyPoint(anchors.target)
+        : new THREE.Vector3(
+            e.toX ?? e.x,
+            tower ? presentationOf(this.content ?? {}).arena.structures.towerHeight * 0.65 : 1.3,
+            LANES[e.lane],
+          );
+      this.heroProjectiles.emit(e.heroId, from, to, anchors?.target?.unit.id, this.reducedMotion.matches);
       return;
     }
     this.sprites.emit(e, point, target);
@@ -690,8 +712,12 @@ export class World {
     if (this.deployZone.visible) this.deploymentGuidance.update(battle, this.clock);
     if (!selected) this.hoverRing.visible = false;
     const ids = new Set(battle.units.map((u) => u.id));
+    const anchors = battle.events.some((event) => event.id > this.lastEvent)
+      ? new Map<number, CombatAnchor>()
+      : undefined;
     for (const [id, v] of this.units)
       if (!ids.has(id)) {
+        anchors?.set(id, { unit: v.unit, position: v.group.position.clone(), scale: v.group.scale.x });
         this.scene.remove(v.group);
         this.disposeUnit(v, true);
         this.units.delete(id);
@@ -715,6 +741,7 @@ export class World {
       v.group.position.z = z;
       const born = Math.min(1, (battle.time - u.born) * 3 + 0.15);
       v.group.scale.setScalar(born * point.scale);
+      anchors?.set(u.id, { unit: u, position: v.group.position.clone(), scale: v.group.scale.x });
       const metrics = unitVisualMetrics(this.content?.models[u.heroId]?.height ?? 2.4, v.group.scale.y);
       this.contactShadows.add(
         v.group.position,
@@ -801,11 +828,17 @@ export class World {
       c.position.y = 2.25 + Math.sin(this.clock * 1.7 + i) * 0.1;
       c.scale.set(0.8, 1.55, 0.8).multiplyScalar(battle.cores[i] <= 0 ? 0.05 : 1);
     });
-    for (const e of battle.events)
+    for (let index = 0; index < battle.events.length; index++) {
+      const e = battle.events[index];
       if (e.id > this.lastEvent) {
-        this.effect(e);
+        if (
+          e.type !== 'projectile' ||
+          battle.time - e.time <= Math.max(0.5, (battle.content.vfx.combat?.flightSeconds ?? 0.25) * 2)
+        )
+          this.effect(e, anchors ? combatEventAnchors(battle.events, index, anchors) : undefined);
         this.lastEvent = e.id;
       }
+    }
     for (let i = this.effects.length - 1; i >= 0; i--) {
       const e = this.effects[i],
         p = (this.clock - e.start) / e.duration;
@@ -828,6 +861,20 @@ export class World {
     this.accents.observe(battle.units, battle.time, (id) => this.units.get(id)?.group.position);
     this.accents.update(animationDt, this.camera);
     this.sprites.update(animationDt);
+    this.heroProjectiles.update(
+      animationDt,
+      this.camera,
+      (id) => {
+        const visual = this.units.get(id);
+        if (!visual) return undefined;
+        return new THREE.Vector3(
+          visual.group.position.x,
+          (this.content?.models[visual.unit.heroId]?.height ?? 2.4) * visual.group.scale.x * 0.55,
+          visual.group.position.z,
+        );
+      },
+      this.reducedMotion.matches,
+    );
     for (let i = this.corpses.length - 1; i >= 0; i--) {
       const corpse = this.corpses[i];
       if (battle.phase === 'playing') {

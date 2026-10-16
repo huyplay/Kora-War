@@ -1,0 +1,82 @@
+{
+  "heroes": [
+    {
+      "hero": "kael",
+      "champion": "braum",
+      "modelId": 201000,
+      "sourceFile": "braum.glb",
+      "report": "assets/riot/import-report.json",
+      "hiddenMaterials": ["Poro"],
+      "clips": [
+        {
+          "state": "idle",
+          "from": "Idle_01_In",
+          "to": "Idle_01_Loop"
+        }
+      ]
+    },
+    {
+      "hero": "vesper",
+      "champion": "morgana",
+      "modelId": 25000,
+      "sourceFile": "morgana.glb",
+      "report": "assets/riot/import-report.json",
+      "hiddenMaterials": ["flower"],
+      "clips": [
+        {
+          "state": "walk",
+          "from": "Run_Homeguard",
+          "to": "morgana_run"
+        }
+      ]
+    },
+    {
+      "hero": "orin",
+      "champion": "ornn",
+      "modelId": 516000,
+      "sourceFile": "ornn.glb",
+      "report": "assets/riot/import-report.json",
+      "hiddenMaterials": [
+        "Ornn_Base_Anvil_Mat",
+        "Ornn_Base_Sword_Mat",
+        "Ornn_Base_Bucket_Mat",
+        "Ornn_Base_Poro_Mat"
+      ],
+      "clips": [
+        {
+          "state": "walk",
+          "from": "Run_Fast",
+          "to": "Run_Base"
+        }
+      ]
+    },
+    {
+      "hero": "torvyn",
+      "champion": "volibear",
+      "modelId": 106000,
+      "sourceFile": "volibear-106000.glb",
+      "report": "assets/riot/elyndra-wave-1-report.json",
+      "hiddenMaterials": ["Poro"],
+      "clips": [
+        {
+          "state": "walk",
+          "from": "Volibear_spell1_run.anm",
+          "to": "Run_Base"
+        }
+      ]
+    },
+    {
+      "hero": "aurelia",
+      "champion": "lux",
+      "modelId": 99000,
+      "sourceFile": "lux.glb",
+      "report": "assets/riot/import-report.json",
+      "hiddenMaterials": [],
+      "clips": [],
+      "showcaseYaw": {
+        "from": 180,
+        "to": 0
+      }
+    }
+  ]
+}

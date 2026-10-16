@@ -7,6 +7,7 @@ import { AssetPreview } from './preview';
 import './studio.css';
 import { type State, sections } from './types';
 import { renderStudioPage } from './views';
+import { modelPartsEditor } from './model-parts';
 const root = document.querySelector<HTMLDivElement>('#studio')!;
 let state: State,
   section = 'overview',
@@ -34,7 +35,7 @@ function render() {
           if (el.dataset.path!.startsWith('abilities.')) syncAbilityJSON();
           markDirty();
           if (el.dataset.path!.startsWith('models.') && state.draft.models[hero])
-            void task(() => preview!.show(structuredClone(state.draft.models[hero])));
+            void task(() => refreshModelPreview());
         } catch (e) {
           notice(e);
         }
@@ -151,6 +152,27 @@ async function task(fn: () => Promise<unknown>) {
   } catch (e) {
     notice(e);
   }
+}
+async function refreshModelPreview(rebuildParts = true) {
+  const current = preview,
+    selectedHero = hero,
+    binding = state.draft.models[hero];
+  if (!current || !binding) return;
+  const names = await current.show(structuredClone(binding));
+  const parts = document.querySelector<HTMLElement>('#model-parts');
+  if (!names || current !== preview || selectedHero !== hero || !parts || !rebuildParts) return;
+  parts.innerHTML = modelPartsEditor(names, binding.hiddenMaterials);
+  parts.querySelectorAll<HTMLInputElement>('[data-model-part]').forEach((field) => {
+    field.onchange = () => {
+      const hidden = new Set(binding.hiddenMaterials ?? []),
+        name = field.dataset.modelPart!;
+      if (field.checked) hidden.delete(name);
+      else hidden.add(name);
+      binding.hiddenMaterials = [...hidden].sort();
+      markDirty();
+      void task(() => refreshModelPreview(false));
+    };
+  });
 }
 async function load() {
   state = await api<State>('/api/admin/state');
@@ -387,7 +409,8 @@ function wire() {
       state.assets.find((a) => a.id === selectedAsset)?.kind === 'model'
     )
       preview = new AssetPreview($('#asset-preview'));
-    if (b && preview) void task(() => preview!.show(structuredClone(b)));
+    if (b && preview)
+      void task(() => (section === 'heroes' ? refreshModelPreview() : preview!.show(structuredClone(b))));
   }
   const model = document.querySelector<HTMLSelectElement>('#model-binding');
   if (model)

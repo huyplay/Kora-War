@@ -1,6 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
-import { mkdirSync, existsSync, writeFileSync } from 'node:fs';
+import { mkdirSync, existsSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   defaultContent,
@@ -13,6 +13,7 @@ import { gameplayOf } from '../src/data/gameplay';
 import type { RuleModuleRecord } from '../src/data/rule-modules';
 import { composeRuleModules } from '../src/data/rule-modules';
 import { RuleModuleStore } from './rule-module-store';
+import { inspectModelMaterials } from './model-materials';
 
 export class GameDatabase {
   private transactionDepth = 0;
@@ -197,6 +198,13 @@ export class GameDatabase {
       for (const binding of Object.values(current.draft.models)) {
         const model = this.asset(binding.assetId)!;
         if (model.kind !== 'model') throw new Error('Nhân vật phải gán GLB.');
+        if (binding.hiddenMaterials?.length) {
+          const parts = inspectModelMaterials(readFileSync(join(this.directory, model.path as string)));
+          if (binding.hiddenMaterials.some((name) => !parts.includes(name)))
+            throw new Error('Phần model cần ẩn không tồn tại trong GLB.');
+          if (parts.every((name) => binding.hiddenMaterials!.includes(name)))
+            throw new Error('Model cần giữ ít nhất một phần hiển thị.');
+        }
         const clips = new Set(
           JSON.parse(this.asset(binding.animationAssetId || binding.assetId)!.metadata as string).clips || [],
         );

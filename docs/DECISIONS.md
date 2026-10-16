@@ -1,5 +1,9 @@
 # Các quyết định đang áp dụng
 
+## 16/10/2026 — Model và khung bộ sưu tập
+
+Tiếp tục hoàn thiện đồ họa: admin bật/tắt phần model bằng material trong database và chỉnh góc bộ sưu tập độc lập chân dung. Renderer chỉ tính khung theo phần được vẽ, bỏ ảnh hưởng của đạo cụ ẩn/dữ liệu đỉnh dùng chung; giữ nguyên gameplay. Gói chỉnh Kael/Vesper/Orin/Torvyn và hướng mô hình Aurelia có backup, bảo vệ tùy chỉnh admin và snapshot lịch sử. Xem [QA và cài đặt](MODEL-PRESENTATION-QA.md).
+
 ## 16/10/2026 — Bốn tướng mới từ catalog database
 
 Người dùng đổi phạm vi từ ngoại hình sang **thêm tướng mới**, sau đó chọn 4 model Leona (đỡ đòn), Ahri (pháp sư), Zed (sát thủ), Volibear (đấu sĩ). Tên/lore Elyndra: Elara, Seryn, Kharos, Torvyn. Kỹ năng ghép từ damage/heal/shield/stun/engage đã có; admin chỉnh chỉ số, nội dung, hệ/tộc, model và chuỗi hiệu ứng qua bản nháp/phát hành database.

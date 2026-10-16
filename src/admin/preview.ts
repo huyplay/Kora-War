@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { ModelBinding } from '../data/content';
 import { ModelLibrary, type ModelInstance } from '../rendering/assets/model-library';
+import { modelMaterialNames } from '../rendering/assets/model-parts';
 export class AssetPreview {
   private library = new ModelLibrary();
   private scene = new THREE.Scene();
@@ -58,6 +59,7 @@ export class AssetPreview {
     this.model?.dispose();
     this.model = instance;
     this.scene.add(instance.root);
+    return modelMaterialNames(instance.model);
   }
   clip(name: string) {
     if (this.model) {

@@ -1,5 +1,9 @@
 # Các quyết định đang áp dụng
 
+## 16/10/2026 — Phân biệt lớp băng và khiên
+
+Tiếp tục đồ họa trạng thái: khiên có lưới năng lượng và viền, băng có vân tinh thể/phủ sương, giữ màu/opacity/padding từ snapshot database. Họa tiết ổn định theo ID, một lượt vẽ giới hạn 200 lớp; pause/reduced motion, dữ liệu lỗi và disposal được kiểm tra. Không sửa luật hoặc phát hành content. Xem [QA lớp trạng thái](STATUS-BODIES-QA.md).
+
 ## 16/10/2026 — Vệt chém cận chiến theo thân tướng
 
 Tiếp tục yêu cầu đồ họa: crescent thuôn/mềm, bám người ra đòn theo origin và kích thước hiển thị, giữ hướng hai phe và cấu hình melee từ database. Dọn khi freeze/stun/death, giữ pause và không phát lại cue sau reduced motion/reset. Không đổi combat, attack clip hoặc content đã phát hành; lịch sử thiếu profile giữ hình cung cũ. Xem [QA cận chiến](MELEE-SLASHES-QA.md).

@@ -698,6 +698,8 @@ export class World {
     }
   }
   effect(e: GameEvent, anchors?: ReturnType<typeof combatEventAnchors>) {
+    // Modern HP feedback supplies the recipient; historical heal events have no target ID.
+    if (e.type === 'heal' && this.sprites.recoveryManaged) return;
     const point = ['hit', 'death'].includes(e.type)
       ? anchors?.target?.position
       : e.heroId || e.type === 'heal'
@@ -763,7 +765,7 @@ export class World {
       : 1.1;
     this.sprites.emit(e, point, target, {
       unitId: anchor?.unit.id,
-      height,
+      height: height + (anchor?.position.y ?? 0),
       scale: anchor?.scale,
       reducedMotion: this.reducedMotion.matches,
     });
@@ -881,6 +883,15 @@ export class World {
         point.y += metrics.barY + 0.15;
         this.numbers.emit(change.damage, point);
         this.numbers.emit(change.healing, point, true);
+        this.sprites.recover(
+          u,
+          change.healing,
+          battle.time,
+          v.group.position,
+          metrics.bodyHeight,
+          v.group.scale.x,
+          this.reducedMotion.matches,
+        );
       }
       if (v.imported) v.imported.update(u, battle.time, battle.phase, animationDt);
       else animateUnit(v.group, u, battle.time, this.clock, battle.phase);
@@ -1033,7 +1044,7 @@ export class World {
     };
     this.accents.observe(battle.units, battle.time, meleePosition, this.reducedMotion.matches);
     this.accents.update(animationDt, this.camera, this.reducedMotion.matches, meleePosition);
-    this.sprites.update(animationDt, this.reducedMotion.matches);
+    this.sprites.update(animationDt, this.reducedMotion.matches, meleePosition);
     this.heroProjectiles.update(
       animationDt,
       this.camera,

@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import type { GameEvent } from '../../core/types';
+import type { GameEvent, Unit } from '../../core/types';
 import type { ContentConfig } from '../../data/content';
 import { LANES } from '../../data/map';
 import { ObjectPool } from '../../engine/object-pool';
 import { VFX_EVENTS, type SpriteBinding, type VfxEvent } from '../../data/media';
 import { SPELLS } from '../../data/spells';
+import { healingAtlas } from './healing-atlas';
 interface Particle {
   sprite: THREE.Sprite;
   age: number;
@@ -20,6 +21,9 @@ interface Particle {
   lane?: number;
   kind?: VfxEvent;
   reduced?: boolean;
+  visualProgress?: number;
+  unitId?: number;
+  heightOffset?: number;
 }
 export interface SpritePlacement {
   unitId?: number;
@@ -32,6 +36,7 @@ export class SpriteEffects {
   readonly root = new THREE.Group();
   private frames: THREE.Texture[] = [];
   private fallbackFrames: THREE.Texture[] = [];
+  private healingFrames: THREE.Texture[] = [];
   private eventFrames = new Map<string, THREE.Texture[]>();
   private lastHit = new Map<string, number>();
   private lastEvent = new Map<string, number>();
@@ -41,6 +46,7 @@ export class SpriteEffects {
   private profile?: ContentConfig['vfx'];
   private disposed = false;
   configure(profile: ContentConfig['vfx']) {
+    if (this.disposed) return;
     this.reset();
     const generation = ++this.generation;
     if (this.frames !== this.fallbackFrames) this.frames.forEach((frame) => frame.dispose());
@@ -120,6 +126,7 @@ export class SpriteEffects {
     }
     texture.dispose();
     this.fallbackFrames = this.frames;
+    this.healingFrames = healingAtlas();
     this.pool = new ObjectPool(
       48,
       () => {
@@ -140,18 +147,53 @@ export class SpriteEffects {
       (p) => p.sprite.material.dispose(),
     );
   }
+  get recoveryManaged() {
+    return !this.disposed && !!this.profile?.readability && !!this.profile.feedback;
+  }
+  /** The same confirmed HP delta as floating numbers; never infer a recipient by proximity. */
+  recover(
+    unit: Pick<Unit, 'id' | 'side' | 'lane' | 'x'>,
+    healing: number,
+    time: number,
+    point: { x: number; y: number; z: number },
+    bodyHeight: number,
+    scale: number,
+    reducedMotion = false,
+  ) {
+    if (
+      !this.recoveryManaged ||
+      !Number.isFinite(healing) ||
+      healing <= 0 ||
+      !Number.isFinite(bodyHeight) ||
+      bodyHeight <= 0 ||
+      !Number.isFinite(unit.id)
+    )
+      return;
+    this.emit(
+      { id: unit.id, time, type: 'heal', side: unit.side, lane: unit.lane, x: unit.x, value: healing },
+      point,
+      undefined,
+      { unitId: unit.id, height: point.y + bodyHeight * 0.55, scale, reducedMotion },
+    );
+  }
   emit(
     event: GameEvent,
-    position?: { x: number; z: number },
+    position?: { x: number; y?: number; z: number },
     target?: { x: number; z: number },
     placement?: SpritePlacement,
   ): void {
-    if (!(VFX_EVENTS as readonly string[]).includes(event.type)) return;
+    if (this.disposed || !(VFX_EVENTS as readonly string[]).includes(event.type)) return;
     const readability = this.profile?.readability;
     const kind = event.type as VfxEvent,
       style = readability?.events[kind];
     const x = position?.x ?? event.x,
       z = position?.z ?? LANES[event.lane];
+    if (
+      ![x, z, position?.y ?? 0, placement?.height ?? 1, placement?.scale ?? 1].every(Number.isFinite) ||
+      (placement?.scale ?? 1) <= 0 ||
+      (event.time !== undefined && !Number.isFinite(event.time))
+    )
+      return;
     const key = `${kind}:${placement?.unitId ?? event.targetId ?? `${event.side}:${event.lane}:${Math.round(x)}`}`;
     if (style) {
       if (style.opacity <= 0 || event.time - (this.lastEvent.get(key) ?? -Infinity) < style.cooldown - 1e-8)
@@ -183,7 +225,9 @@ export class SpriteEffects {
         ? Object.values(SPELLS).find((s) => s.name === event.label)
         : undefined;
     const slot = spell ? `spell:${spell.id}` : kind;
-    particle.frames = this.eventFrames.get(slot) || this.eventFrames.get(kind) || this.frames;
+    const loaded = this.eventFrames.get(slot) || this.eventFrames.get(kind);
+    const recoveryFallback = !!style && kind === 'heal' && !loaded;
+    particle.frames = loaded || (recoveryFallback ? this.healingFrames : this.frames);
     const binding = spell ? this.profile?.spellSprites?.[spell.id] : this.profile?.eventSprites?.[kind];
     particle.duration = binding
       ? Math.min(2, particle.frames.length / binding.fps)
@@ -198,14 +242,16 @@ export class SpriteEffects {
           ? 0.85
           : event.type === 'projectile'
             ? 0.9
-            : ['spawn', 'heal', 'death'].includes(event.type)
-              ? 1.6
-              : 2.3) * (this.profile?.intensity || 1);
+            : recoveryFallback
+              ? 2.8
+              : ['spawn', 'heal', 'death'].includes(event.type)
+                ? 1.6
+                : 2.3) * (this.profile?.intensity || 1);
     particle.fromX = position?.x ?? event.x;
     particle.toX = event.type === 'projectile' ? (target?.x ?? event.toX) : undefined;
     particle.fromZ = position?.z ?? LANES[event.lane];
     particle.toZ = target?.z ?? particle.fromZ;
-    particle.rotate = !binding;
+    particle.rotate = !binding && !recoveryFallback;
     if (event.type === 'projectile') particle.duration = 0.22;
     if (style) {
       particle.duration = Math.min(particle.duration, readability!.maxDuration);
@@ -215,8 +261,13 @@ export class SpriteEffects {
     particle.lane = event.lane;
     particle.kind = kind;
     particle.reduced = !!style && !!placement?.reducedMotion;
+    particle.visualProgress = 0;
+    particle.unitId = style && kind === 'heal' ? placement?.unitId : undefined;
+    particle.heightOffset = (placement?.height ?? 1) - (position?.y ?? 0);
     particle.sprite.material.blending =
       style?.blend === 'normal' ? THREE.NormalBlending : THREE.AdditiveBlending;
+    particle.sprite.material.depthTest = !(style && kind === 'heal');
+    particle.sprite.renderOrder = style && kind === 'heal' ? 24 : 0;
     if (particle.sprite.material.toneMapped !== !style) {
       particle.sprite.material.toneMapped = !style;
       particle.sprite.material.needsUpdate = true;
@@ -227,7 +278,7 @@ export class SpriteEffects {
     particle.sprite.visible = true;
     particle.sprite.material.rotation = 0;
     particle.sprite.material.color.set(
-      binding
+      loaded
         ? '#ffffff'
         : event.type === 'heal'
           ? this.profile?.heal || '#70ffc7'
@@ -237,7 +288,13 @@ export class SpriteEffects {
     );
     this.particles.push(particle);
   }
-  update(dt: number, reducedMotion = false): void {
+  update(
+    dt: number,
+    reducedMotion = false,
+    position?: (id: number) => { x: number; y?: number; z: number } | undefined,
+  ): void {
+    if (this.disposed) return;
+    dt = Number.isFinite(dt) ? Math.max(0, dt) : 0;
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.age += dt;
@@ -249,12 +306,18 @@ export class SpriteEffects {
       }
       // Switching the preference mid-effect must not restart motion on the next frame.
       p.reduced ||= !!this.profile?.readability && reducedMotion;
-      const visualProgress = p.reduced ? 0 : progress;
+      const visualProgress = p.reduced ? p.visualProgress! : progress;
+      p.visualProgress = visualProgress;
       p.sprite.material.map =
         p.frames[Math.min(p.frames.length - 1, Math.floor(visualProgress * p.frames.length))];
       p.sprite.material.opacity = (p.opacity ?? 1) * Math.min(1, (1 - progress) * 3);
       p.sprite.material.rotation = p.rotate ? visualProgress * 0.8 : 0;
       p.sprite.scale.setScalar(p.size * (0.85 + Math.sin(visualProgress * Math.PI) * 0.15));
+      if (dt > 0 && p.unitId !== undefined && !p.reduced) {
+        const point = position?.(p.unitId);
+        if (point && [point.x, point.y ?? 0, point.z].every(Number.isFinite))
+          p.sprite.position.set(point.x, (point.y ?? 0) + p.heightOffset!, point.z);
+      }
       if (p.toX !== undefined && !p.reduced) {
         p.sprite.position.x = THREE.MathUtils.lerp(p.fromX!, p.toX, progress);
         p.sprite.position.z = THREE.MathUtils.lerp(p.fromZ!, p.toZ!, progress);
@@ -272,13 +335,17 @@ export class SpriteEffects {
     this.particles = [];
   }
   dispose(): void {
+    if (this.disposed) return;
     this.disposed = true;
     this.generation++;
     this.reset();
     this.pool.dispose();
-    new Set([...this.frames, ...this.fallbackFrames, ...[...this.eventFrames.values()].flat()]).forEach(
-      (frame) => frame.dispose(),
-    );
+    new Set([
+      ...this.frames,
+      ...this.fallbackFrames,
+      ...this.healingFrames,
+      ...[...this.eventFrames.values()].flat(),
+    ]).forEach((frame) => frame.dispose());
     this.eventFrames.clear();
     this.root.clear();
   }

@@ -3,6 +3,7 @@ import { defaultCompetition, validateCompetition, type CompetitionConfig } from 
 import { ABILITIES, DEFAULT_ENGAGE, type AbilityDefinition } from './abilities';
 import { HEROES } from './heroes';
 import { validateCombatPresentation, type CombatPresentation } from './combat-presentation';
+import { validateUnitFeedback, type UnitFeedbackProfile } from './unit-feedback';
 import { ORIGINS, ROLES } from './traits';
 import { RULES } from './rules';
 import { isSpell, type SpellId } from './spells';
@@ -66,6 +67,7 @@ export interface ContentConfig {
   };
   vfx: {
     combat?: CombatPresentation;
+    feedback?: UnitFeedbackProfile;
     ally: string;
     enemy: string;
     heal: string;
@@ -369,6 +371,7 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
   )
     fail('VFX không hợp lệ.');
   if (c.vfx.combat !== undefined) validateCombatPresentation(c.vfx.combat, c.heroes);
+  if (c.vfx.feedback !== undefined) validateUnitFeedback(c.vfx.feedback);
   for (const size of [c.vfx.spriteColumns, c.vfx.spriteRows])
     if (size !== undefined && (!Number.isInteger(size) || !num(size, 1, 8)))
       fail('Sprite atlas có 1–8 cột/hàng.');

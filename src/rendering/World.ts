@@ -35,6 +35,7 @@ import { FormationLayout } from './formation-layout';
 import { presentationOf } from '../data/presentation';
 import { unitVisualMetrics } from './unit-visual-metrics';
 import { HeroProjectiles } from './vfx/hero-projectiles';
+import { UnitStatusBodies } from './vfx/unit-status-bodies';
 import { combatEventAnchors, type CombatAnchor } from './combat-anchors';
 interface Visual {
   group: THREE.Group;
@@ -73,6 +74,7 @@ export class World {
   private atmosphere = new ArenaAtmosphere();
   private accents = new CombatAccents();
   private heroProjectiles = new HeroProjectiles();
+  private statusBodies = new UnitStatusBodies();
   private reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   private contactShadows = new ContactShadows();
   private numbers = new FloatingNumbers();
@@ -156,7 +158,12 @@ export class World {
     this.terrain.apply(this.scene);
     this.scene.add(this.sprites.root);
     this.scene.add(this.spellEffects.root);
-    this.scene.add(this.atmosphere.root, this.accents.root, this.heroProjectiles.root);
+    this.scene.add(
+      this.atmosphere.root,
+      this.accents.root,
+      this.heroProjectiles.root,
+      this.statusBodies.root,
+    );
     this.scene.add(this.contactShadows.root, this.numbers.root, this.structures.root);
     this.scene.add(this.deployZone);
     this.deployZone.visible = false;
@@ -244,6 +251,8 @@ export class World {
     await this.models.supportTextures(this.renderer);
     this.sprites.configure(content.vfx);
     this.heroProjectiles.configure(content.vfx.combat);
+    this.statusBodies.configure(content.vfx.feedback?.bodies);
+    this.numbers.configure(content.vfx.feedback?.numbers);
     await this.spellEffects.configure(content.vfx);
     await this.terrain.configure(
       content.map.textures,
@@ -467,6 +476,7 @@ export class World {
     this.spellEffects.reset();
     this.accents.reset();
     this.heroProjectiles.reset();
+    this.statusBodies.reset();
     this.numbers.reset();
     this.contactShadows.begin();
     this.structures.reset(this.towerMeshes);
@@ -521,6 +531,7 @@ export class World {
     this.spellEffects.dispose();
     this.accents.dispose();
     this.heroProjectiles.dispose();
+    this.statusBodies.dispose();
     this.atmosphere.dispose();
     this.numbers.dispose();
     this.contactShadows.dispose();
@@ -724,6 +735,7 @@ export class World {
       }
     this.contactShadows.begin();
     this.unitOverlays.begin();
+    this.statusBodies.begin(battle.gameplay, this.clock, this.reducedMotion.matches);
     const formation = presentationOf(battle.content).formation;
     const positions = this.formation.update(
       battle.units,
@@ -743,6 +755,19 @@ export class World {
       v.group.scale.setScalar(born * point.scale);
       anchors?.set(u.id, { unit: u, position: v.group.position.clone(), scale: v.group.scale.x });
       const metrics = unitVisualMetrics(this.content?.models[u.heroId]?.height ?? 2.4, v.group.scale.y);
+      this.statusBodies.add(
+        u,
+        v.group.position,
+        metrics.bodyHeight,
+        Math.max(
+          0.25,
+          Math.min(
+            metrics.bodyHeight * 0.6,
+            (this.templates.get(u.heroId)?.footprintRadius ?? 0.7) * v.group.scale.x,
+          ),
+        ),
+        battle.time,
+      );
       this.contactShadows.add(
         v.group.position,
         Math.min(2, (this.content?.models[u.heroId]?.height ?? 2.4) * 0.65) * point.scale,
@@ -769,6 +794,7 @@ export class World {
       );
     }
     this.unitOverlays.end();
+    this.statusBodies.end();
     this.spellEffects.setConfig(battle.gameplay);
     this.spellEffects.update(
       battle.spellZones,
@@ -777,8 +803,16 @@ export class World {
       this.clock,
       (id) => {
         const group = this.units.get(id)?.group;
-        return group ? { x: group.position.x, z: group.position.z, scale: group.scale.x } : undefined;
+        return group
+          ? {
+              x: group.position.x,
+              z: group.position.z,
+              scale: group.scale.x,
+              height: this.content?.models[this.units.get(id)!.unit.heroId]?.height ?? 2.4,
+            }
+          : undefined;
       },
+      { bodyManaged: !!this.content?.vfx.feedback, reducedMotion: this.reducedMotion.matches },
     );
     let structureChanged = false;
     for (const tower of battle.towers) {
@@ -808,7 +842,7 @@ export class World {
       this.camera,
       (id) => this.units.get(id)?.group.position,
     );
-    this.numbers.update(animationDt, this.camera);
+    this.numbers.update(animationDt, this.camera, this.canvas.clientHeight, this.reducedMotion.matches);
     this.towerHealth.update(
       battle.towers,
       presentationOf(battle.content).arena.structures.towerHeight,

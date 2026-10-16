@@ -9,6 +9,7 @@ import { type State, sections } from './types';
 import { renderStudioPage } from './views';
 import { modelPartsEditor } from './model-parts';
 import { defaultCombatPresentation } from '../data/combat-presentation';
+import { defaultUnitFeedback } from '../data/unit-feedback';
 const root = document.querySelector<HTMLDivElement>('#studio')!;
 let state: State,
   section = 'overview',
@@ -227,6 +228,13 @@ async function save() {
   notice('Đã lưu bản nháp.');
 }
 function wire() {
+  const addFeedback = document.querySelector<HTMLButtonElement>('#add-unit-feedback');
+  if (addFeedback)
+    addFeedback.onclick = () => {
+      state.draft.vfx.feedback = defaultUnitFeedback();
+      dirty = true;
+      render();
+    };
   const addCombatVfx = document.querySelector<HTMLButtonElement>('#add-combat-vfx');
   if (addCombatVfx)
     addCombatVfx.onclick = () => {

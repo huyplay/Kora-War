@@ -10,9 +10,10 @@ export interface HeroRig {
 }
 export type AnimationState = 'idle' | 'walk' | 'attack' | 'cast' | 'stunned' | 'spawn';
 export function animationState(unit: Unit, time: number, phase: Phase): AnimationState {
-  if (time - unit.born < 0.3) return 'spawn';
   if (phase !== 'playing') return 'idle';
-  if (unit.state === 'stunned') return 'stunned';
+  if (unit.state === 'stunned' || (unit.frozenUntil ?? 0) > time + 1e-8 || unit.stunUntil > time + 1e-8)
+    return 'stunned';
+  if (time - unit.born < 0.3) return 'spawn';
   if (time - unit.skillAt < 0.5) return 'cast';
   if (time - unit.attackAt < 0.35) return 'attack';
   return unit.state === 'move' ? 'walk' : 'idle';
@@ -22,6 +23,7 @@ export function animateUnit(group: Group, unit: Unit, time: number, clock: numbe
   if (phase !== 'playing') return;
   const rig = group.userData as HeroRig;
   const state = animationState(unit, time, phase);
+  if (state === 'stunned') return;
   const walking = state === 'walk',
     t = clock * 9 + unit.id;
   rig.leftLeg.rotation.x = walking ? Math.sin(t) * 0.45 : 0;

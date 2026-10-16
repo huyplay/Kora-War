@@ -140,6 +140,7 @@ export class ModelInstance {
     // Pausing preserves the current pose and action; it must not crossfade to idle.
     if (phase !== 'playing') return;
     const state = animationState(unit, time, phase);
+    if (state === 'stunned') return;
     const restart =
       state === 'attack'
         ? unit.attackAt !== this.lastStrike
@@ -150,7 +151,7 @@ export class ModelInstance {
     this.lastCast = unit.skillAt;
     this.play(state, restart);
     if (phase === 'playing') {
-      const rate = state === 'walk' && unit.slowUntil > time ? unit.slowFactor : state === 'stunned' ? 0 : 1;
+      const rate = state === 'walk' && unit.slowUntil > time ? unit.slowFactor : 1;
       this.mixer.update(
         dt * rate * (state === 'walk' && (unit.hasteUntil ?? 0) > time ? (unit.hasteFactor ?? 1) : 1),
       );

@@ -165,4 +165,4 @@ Tiếp tục hoàn thiện phản hồi giao chiến trên mobile: số có kíc
 
 ## 16/10/2026 — Giảm lớp sáng che tướng
 
-Tiếp tục hoàn thiện đồ họa theo yêu cầu người dùng: profile database tùy chọn điều khiển độ rõ/kích thước/trộn màu/nhịp và ngân sách atlas sự kiện theo vùng. Khi profile có mặt, sprite không bị vẽ trùng thêm vòng generic. Vệt chém căn theo model/đội hình và hỗ trợ giảm chuyển động. Không đổi combat, asset hay cấu hình lịch sử. Xem [QA độ rõ giao chiến](COMBAT-READABILITY-QA.md).
+Tiếp tục hoàn thiện đồ họa theo yêu cầu người dùng: profile database tùy chọn điều khiển độ rõ/kích thước/trộn màu/nhịp và ngân sách atlas sự kiện theo vùng. Khi profile có mặt, sprite không bị vẽ trùng thêm vòng generic. Vệt chém căn theo model/đội hình và hỗ trợ giảm chuyển động. Không đổi combat, asset hay cấu hình lịch sử. Xem [QA độ rõ giao chiến](DENSE-COMBAT-QA.md).

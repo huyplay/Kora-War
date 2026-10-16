@@ -230,3 +230,7 @@ Dấu nứt quanh chân trụ đọc HP và dấu trúng đòn đọc delta th�
 ## 16/10/2026 — Giãn số giao tranh trên mobile
 
 Số sát thương/hồi máu mới tìm vị trí gần điểm trúng đòn bằng chín ứng viên có giới hạn; số đang hiện giữ offset tới lúc hết hạn. Giữ cỡ pixel/màu/lifetime từ snapshot presentation, giới hạn atlas/pool cũ và delta HP thực. Reduced motion giữ vị trí/scale đang có; không thay gameplay hay database. Xem [QA số giao tranh](COMBAT-NUMBERS-QA.md).
+
+## 16/10/2026 — Cue hồi máu theo người nhận
+
+Content có feedback/readability dùng cùng delta HP đã gom của số hồi máu để phát cue theo đúng ID và vị trí model, không phát trùng từ event thiếu ID. Atlas admin giữ ưu tiên; thiếu atlas dùng dấu cộng dự phòng có viền, màu/style/budget từ VFX snapshot. Hiệu ứng theo origin và dừng chuyển động tại chỗ khi bật reduced motion. Giữ core, replay, gameplay và database. Xem [QA hồi máu](RECOVERY-FEEDBACK-QA.md).

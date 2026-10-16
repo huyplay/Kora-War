@@ -6,6 +6,7 @@ import type { Phase, Unit } from '../../core/types';
 import type { ModelBinding } from '../../data/content';
 import { animationState } from '../animation/unit-animator';
 import { selectModelLod } from './model-lod';
+import { hideModelMaterials, visibleModelBounds } from './model-parts';
 export class ModelLibrary {
   private loaded = new Map<string, GLTF>();
   private pending = new Map<string, Promise<GLTF>>();
@@ -84,12 +85,13 @@ export class ModelInstance {
   ) {
     this.model = clone(source);
     selectModelLod(this.model);
+    this.ownedMaterials.push(...hideModelMaterials(this.model, binding.hiddenMaterials));
     this.clips = clips;
     this.mixer = new THREE.AnimationMixer(this.model);
     this.play('idle');
     this.mixer.update(0);
     this.model.updateMatrixWorld(true);
-    const box = new THREE.Box3().setFromObject(this.model),
+    const box = visibleModelBounds(this.model),
       size = box.getSize(new THREE.Vector3()),
       center = box.getCenter(new THREE.Vector3());
     const scale = binding.height / Math.max(0.001, size.y);

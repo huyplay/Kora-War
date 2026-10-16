@@ -1,0 +1,104 @@
+[
+  {
+    "hero": "kael",
+    "sha256": "455b9e1e70323299543e1edbfc4b150fbd771b1123c983f5a0e03851b634df94",
+    "bytes": 1829380,
+    "hiddenMaterials": [
+      "Poro"
+    ],
+    "clips": [
+      "Run",
+      "Attack1",
+      "Braum_Idle_in.anm",
+      "Spell1",
+      "Death",
+      "Idle_01_In",
+      "Idle_01_Loop"
+    ],
+    "triangles": 13392,
+    "nodes": 99,
+    "skins": 1
+  },
+  {
+    "hero": "vesper",
+    "sha256": "9cf4232248eb9df34185b3924cce0b23930201831bf085784e4c9c25dd3b0cc6",
+    "bytes": 4189516,
+    "hiddenMaterials": [
+      "flower"
+    ],
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle2",
+      "Spell1_0",
+      "Idle1",
+      "Run_Homeguard",
+      "morgana_run",
+      "Respawn"
+    ],
+    "triangles": 12580,
+    "nodes": 185,
+    "skins": 1
+  },
+  {
+    "hero": "orin",
+    "sha256": "6eda8f9c8516ae27ce9b0552e2c4eb331998815e84672a6414e79b21910ec920",
+    "bytes": 2652692,
+    "hiddenMaterials": [
+      "Ornn_Base_Anvil_Mat",
+      "Ornn_Base_Sword_Mat",
+      "Ornn_Base_Bucket_Mat",
+      "Ornn_Base_Poro_Mat"
+    ],
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle1_Base",
+      "Run_Fast",
+      "Run_Base",
+      "Spell1",
+      "Respawn"
+    ],
+    "triangles": 13050,
+    "nodes": 134,
+    "skins": 1
+  },
+  {
+    "hero": "torvyn",
+    "sha256": "64ca4fce06b7dcc97fd46fc8a8aa98384754bdb325f70226c4432411002aac9c",
+    "bytes": 3699156,
+    "hiddenMaterials": [
+      "Poro"
+    ],
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle_Base",
+      "Spell1",
+      "Volibear_spell1_run.anm",
+      "Run_Base",
+      "Respawn"
+    ],
+    "triangles": 18146,
+    "nodes": 143,
+    "skins": 1
+  },
+  {
+    "hero": "aurelia",
+    "sha256": "38e2decf5c1ad782fd08cb4013a52b9b0733cfc49f5388a28940c57cd6827356",
+    "bytes": 1200160,
+    "hiddenMaterials": [],
+    "showcaseYaw": 0,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle1",
+      "Spell1",
+      "Respawn",
+      "Run"
+    ],
+    "triangles": 4926,
+    "nodes": 81,
+    "skins": 1
+  }
+]

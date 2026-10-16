@@ -3,6 +3,7 @@ import { isSpell } from '../data/spells';
 import { spellMiniature } from './spell-miniature';
 import type { ModelInstance } from './assets/model-library';
 import type { HeroRig } from './animation/unit-animator';
+import { visibleModelBounds } from './assets/model-parts';
 
 export interface ShowcaseView {
   id: string;
@@ -105,7 +106,10 @@ export class HeroShowcase {
               figure.fallback = undefined;
               figure.instance = instance;
               instance.root.rotation.y =
-                (((instance.binding.portraitYaw ?? 0) - instance.binding.yaw) * Math.PI) / 180;
+                (((instance.binding.showcaseYaw ?? instance.binding.portraitYaw ?? 0) -
+                  instance.binding.yaw) *
+                  Math.PI) /
+                180;
               instance.play('walk');
               instance.tick(0.2);
               figure.pivot.add(instance.root);
@@ -179,15 +183,11 @@ export class HeroShowcase {
     figure.pivot.rotation.set(0, 0, 0);
     // updateMatrixWorld also refreshes SkinnedMesh.bindMatrixInverse after reparenting.
     figure.scene.updateMatrixWorld(true);
-    // SkinnedMesh caches its idle bounds. A walk pose must measure actual posed vertices.
-    figure.pivot.traverse((object) => {
-      if (object instanceof THREE.SkinnedMesh) object.computeBoundingBox();
-    });
-    const box = new THREE.Box3().setFromObject(figure.pivot);
+    const box = visibleModelBounds(figure.pivot);
     const scale = 2.35 / Math.max(0.1, box.max.y - box.min.y);
     figure.pivot.scale.setScalar(scale);
-    figure.pivot.position.x = -(box.min.x + box.max.x) * scale / 2;
-    figure.pivot.position.z = -(box.min.z + box.max.z) * scale / 2;
+    figure.pivot.position.x = (-(box.min.x + box.max.x) * scale) / 2;
+    figure.pivot.position.z = (-(box.min.z + box.max.z) * scale) / 2;
     figure.pivot.position.y = -box.min.y * scale;
     figure.height = 3.05;
     figure.width = Math.max(2.3, (box.max.x - box.min.x) * scale * 1.15);

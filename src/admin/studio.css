@@ -1039,3 +1039,21 @@ main > header {
   border-radius: 8px;
   margin: 20px 0;
 }
+#model-parts {
+  border: 1px solid #45525b;
+  border-radius: 8px;
+  margin-top: 18px;
+  padding: 12px;
+}
+#model-parts label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  overflow-wrap: anywhere;
+}
+#model-parts input {
+  width: 20px;
+  min-height: 20px;
+  flex: 0 0 20px;
+}

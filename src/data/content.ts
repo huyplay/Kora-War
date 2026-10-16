@@ -26,6 +26,8 @@ export interface ModelBinding {
   height: number;
   yaw: number;
   portraitYaw?: number;
+  showcaseYaw?: number;
+  hiddenMaterials?: string[];
   clips: Partial<Record<'idle' | 'walk' | 'attack' | 'cast' | 'stunned' | 'spawn' | 'death', string>>;
   animationAssetId?: string;
 }
@@ -270,6 +272,14 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
       !num(m.height, 0.2, 5) ||
       !num(m.yaw, -360, 360) ||
       (m.portraitYaw !== undefined && !num(m.portraitYaw, -360, 360)) ||
+      (m.showcaseYaw !== undefined && !num(m.showcaseYaw, -360, 360)) ||
+      (m.hiddenMaterials !== undefined &&
+        (!Array.isArray(m.hiddenMaterials) ||
+          m.hiddenMaterials.length > 64 ||
+          new Set(m.hiddenMaterials).size !== m.hiddenMaterials.length ||
+          m.hiddenMaterials.some(
+            (name) => !text(name, 200) || !name.trim() || /[\u0000-\u001f\u007f]/.test(name),
+          ))) ||
       !m.clips ||
       (m.animationAssetId && !asset(m.animationAssetId))
     )

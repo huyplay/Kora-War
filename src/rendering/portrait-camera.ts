@@ -1,8 +1,9 @@
 import * as THREE from 'three';
+import { visibleModelBounds } from './assets/model-parts';
 /** Weapons can dominate a model's bounds; anchor character art to its head instead. */
 export function portraitCamera(model: THREE.Object3D) {
   model.updateWorldMatrix(true, true);
-  const bounds = new THREE.Box3().setFromObject(model);
+  const bounds = visibleModelBounds(model);
   const height = Math.max(1, bounds.max.y - bounds.min.y),
     target = bounds.getCenter(new THREE.Vector3());
   target.y = bounds.min.y + height * 0.66;

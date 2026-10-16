@@ -1193,6 +1193,7 @@ function loop(now: number) {
       !!selected || skillSelected,
       !!selected && isSpell(selected),
       pvp.active ? 1 : speed,
+      skillSelected,
     );
   defenseFeedback.update(
     battle,

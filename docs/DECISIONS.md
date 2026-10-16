@@ -178,3 +178,7 @@ Tiếp tục hoàn thiện phản hồi mobile: mulligan và snapshot nối lạ
 ## 16/10/2026 — Vùng ngắm phép theo lane
 
 Tiếp tục làm rõ chiến đấu mobile: vùng ngắm phép lấy bán kính/bề rộng lane từ snapshot và đánh dấu các quân hợp lệ hiện tại. Core và renderer dùng chung predicate cũ; dấu chân theo vị trí hình ảnh, lệnh giữ tọa độ logic. Không đổi phép, timing, balance hoặc database. Xem [QA vùng ngắm phép](SPELL-AIM-QA.md).
+
+## 16/10/2026 — Ngắm Cộng Hưởng toàn lane
+
+Tiếp tục làm rõ thao tác mobile: chọn Cộng Hưởng hiện ba guide, nhấn mạnh lane ngắm và đánh dấu đồng minh/địch bằng màu content đã khóa. Ẩn vòng con trỏ nhỏ và vùng thả tướng gây nhầm phạm vi. Core/renderer dùng chung điều kiện còn sống/cùng lane cũ, giữ cách chọn lane gần nhất kể cả ngoài phần nền lane. Không đổi gameplay, năng lượng hoặc database. Xem [QA Cộng Hưởng](PULSE-AIM-QA.md).

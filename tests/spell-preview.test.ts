@@ -5,6 +5,7 @@ import { World } from '../src/rendering/World';
 import { SPELLS, type SpellId } from '../src/data/spells';
 import { LANES } from '../src/data/map';
 import { SpellAimPreview } from '../src/rendering/spell-aim-preview';
+import { PulseAimPreview } from '../src/rendering/pulse-aim-preview';
 import { COMPAT_GAMEPLAY } from '../src/data/gameplay';
 import type { Unit } from '../src/core/types';
 
@@ -12,7 +13,8 @@ function preview() {
   // setHover only needs the picked lane and its ring, so no WebGL/DOM is needed.
   const world = Object.create(World.prototype) as World;
   const aim = new SpellAimPreview();
-  Object.assign(world, { spellAim: aim });
+  const pulse = new PulseAimPreview();
+  Object.assign(world, { spellAim: aim, pulseAim: pulse });
   world.hoverRing = new THREE.Mesh(
     new THREE.RingGeometry(0.65, 0.73, 40),
     new THREE.MeshBasicMaterial({ color: 0xa2ffdd }),
@@ -20,11 +22,11 @@ function preview() {
   world.hoverRing.rotation.x = -Math.PI / 2;
   const point = { x: 3, z: LANES[1], lane: 1, valid: false, spellValid: true };
   world.pick = () => point;
-  return { world, point, aim };
+  return { world, point, aim, pulse };
 }
 
 test('spell targeting previews match each spell radius, configured lane width and color', () => {
-  const { world, aim } = preview();
+  const { world, aim, pulse } = preview();
   try {
     for (const id of Object.keys(SPELLS) as SpellId[]) {
       world.setHover(0, 0, false, id);
@@ -44,11 +46,12 @@ test('spell targeting previews match each spell radius, configured lane width an
     world.hoverRing.geometry.dispose();
     world.hoverRing.material.dispose();
     aim.dispose();
+    pulse.dispose();
   }
 });
 
 test('spell previews reject off-lane positions, mark invalid hero placement red and restore valid rings', () => {
-  const { world, point, aim } = preview();
+  const { world, point, aim, pulse } = preview();
   try {
     point.spellValid = false;
     world.setHover(0, 0, true, 'ice');
@@ -65,18 +68,22 @@ test('spell previews reject off-lane positions, mark invalid hero placement red 
     world.setHover(0, 0);
     assert.equal(world.hoverRing.visible, true);
     world.setHover(0, 0, true);
-    assert.equal(world.hoverRing.visible, true);
-    assert.deepEqual(world.hoverRing.scale.toArray(), [3, 3, 3]);
-    assert.equal(world.hoverRing.material.color.getHex(), 0xa2ffdd);
+    assert.equal(world.hoverRing.visible, false, 'pulse no longer uses a small cursor ring');
+    assert.equal(pulse.root.visible, true);
+    assert.deepEqual(
+      pulse.areas.map((a) => a.material.uniforms.strength.value),
+      [0.25, 1, 0.25],
+    );
   } finally {
     world.hoverRing.geometry.dispose();
     world.hoverRing.material.dispose();
     aim.dispose();
+    pulse.dispose();
   }
 });
 
 test('a stationary pointer refreshes legality as the frontline moves and clears between selections', () => {
-  const { world, point, aim } = preview();
+  const { world, point, aim, pulse } = preview();
   try {
     point.valid = true;
     world.setHover(240, 160);
@@ -100,11 +107,12 @@ test('a stationary pointer refreshes legality as the frontline moves and clears 
     world.hoverRing.geometry.dispose();
     world.hoverRing.material.dispose();
     aim.dispose();
+    pulse.dispose();
   }
 });
 
 test('World spell aim uses locked gameplay and current formation without changing command coordinates', () => {
-  const { world, point, aim } = preview();
+  const { world, point, aim, pulse } = preview();
   const gameplay = structuredClone(COMPAT_GAMEPLAY);
   gameplay.spells.heal.radius = 2;
   gameplay.spells.heal.target = 'all';
@@ -163,5 +171,55 @@ test('World spell aim uses locked gameplay and current formation without changin
     world.hoverRing.geometry.dispose();
     world.hoverRing.material.dispose();
     aim.dispose();
+    pulse.dispose();
+  }
+});
+
+test('World pulse preview preserves nearest-lane picking outside lane paint and uses locked colors', () => {
+  const { world, point, aim, pulse } = preview();
+  const gameplay = structuredClone(COMPAT_GAMEPLAY);
+  const unit = { id: 1, heroId: 'solan', side: 1, lane: 2, x: 99, hp: 100 } as Unit;
+  const group = new THREE.Group();
+  group.position.set(10, 0, LANES[2] + 0.4);
+  Object.assign(world, {
+    placementState: {
+      gameplay,
+      units: [unit],
+      content: { vfx: { ally: '#4455ff', heal: '#00ff77', enemy: '#ff4411' } },
+    },
+    units: new Map([[1, { unit, group }]]),
+  });
+  Object.assign(point, { lane: 2, x: 99, valid: false, spellValid: false });
+  world.pick = (_x, _y, spellTarget, friendly) => {
+    assert.equal(spellTarget, false);
+    assert.equal(friendly, false);
+    return point;
+  };
+  try {
+    assert.equal(world.setHover(900, 400, true), point);
+    assert.equal(world.selectedLane, 2);
+    assert.equal(world.hoverRing.visible, false);
+    assert.equal(aim.root.visible, false);
+    assert.equal(pulse.root.visible, true);
+    assert.equal(pulse.markers.count, 1, 'pulse membership has no x bounds');
+    const color = new THREE.Color();
+    pulse.markers.getColorAt(0, color);
+    assert.equal(color.getHex(), 0xff4411);
+    assert.equal(pulse.areas[2].material.uniforms.color.value.getHex(), 0x4455ff);
+    assert.equal(pulse.areas[2].scale.x, gameplay.board.maxX - gameplay.board.minX);
+    unit.hp = 0;
+    world.refreshHover();
+    assert.equal(pulse.markers.count, 0);
+    gameplay.resonance.enabled = false;
+    world.refreshHover();
+    assert.equal(pulse.root.visible, false);
+    world.clearHover();
+    assert.equal(world.selectedLane, -1);
+    assert.equal(world.refreshHover(), null);
+  } finally {
+    world.hoverRing.geometry.dispose();
+    world.hoverRing.material.dispose();
+    aim.dispose();
+    pulse.dispose();
   }
 });

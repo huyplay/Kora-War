@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { ModelInstance } from '../src/rendering/assets/model-library';
 import { CombatAccents } from '../src/rendering/vfx/combat-accents';
 import type { Unit } from '../src/core/types';
+import { animateUnit, animationState, type HeroRig } from '../src/rendering/animation/unit-animator';
 
 const unit = (overrides: Partial<Unit> = {}): Unit => ({
   id: 1,
@@ -88,6 +89,37 @@ test('walking animation respects slow and stun without changing simulation', () 
   instance.update(unit({ state: 'stunned' }), 3.2, 'playing', 0.2);
   assert.equal(instance.mixer.time, time);
   assert.deepEqual(slowed, original);
+  instance.dispose();
+});
+
+test('freeze preserves imported and procedural poses immediately, including during spawn, then releases', () => {
+  const { instance, action } = model();
+  const mover = unit();
+  instance.update(mover, 3, 'playing', 0.1);
+  const actionTime = action('Walk').time,
+    pose = instance.model.getObjectByName('Hero')!.rotation.x;
+  const frozen = unit({ frozenUntil: 4, born: 3, state: 'move' }),
+    before = structuredClone(frozen);
+  assert.equal(animationState(frozen, 3.1, 'playing'), 'stunned');
+  instance.update(frozen, 3.1, 'playing', 0.2);
+  assert.equal(action('Walk').time, actionTime);
+  assert.equal(instance.model.getObjectByName('Hero')!.rotation.x, pose);
+  instance.update(frozen, 4, 'playing', 0.1);
+  assert.ok(action('Walk').time > actionTime);
+  const group = new THREE.Group();
+  const rig = Object.fromEntries(
+    ['body', 'leftLeg', 'rightLeg', 'armL', 'armR', 'cape'].map((key) => [key, new THREE.Object3D()]),
+  ) as unknown as HeroRig;
+  group.userData = rig;
+  animateUnit(group, mover, 3, 3, 'playing');
+  const transforms = () =>
+    Object.values(rig).map((object) => [...object.position.toArray(), ...object.rotation.toArray()]);
+  const prior = transforms();
+  animateUnit(group, frozen, 3.1, 3.5, 'playing');
+  assert.deepEqual(transforms(), prior);
+  animateUnit(group, frozen, 4, 4, 'playing');
+  assert.notDeepEqual(transforms(), prior);
+  assert.deepEqual(frozen, before);
   instance.dispose();
 });
 test('impact pools stay bounded under bursts, expire, and clear between matches', () => {

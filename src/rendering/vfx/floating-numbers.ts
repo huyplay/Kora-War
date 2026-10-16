@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { UnitFeedbackProfile } from '../../data/unit-feedback';
 
 interface Label {
   text: string;
@@ -40,6 +41,9 @@ export class FloatingNumbers {
   private texture: THREE.Texture;
   private dummy = new THREE.Object3D();
   private right = new THREE.Vector3();
+  private up = new THREE.Vector3();
+  private viewPoint = new THREE.Vector3();
+  private profile?: UnitFeedbackProfile['numbers'];
   private color = new THREE.Color();
   private glyph = new THREE.InstancedBufferAttribute(new Float32Array(160), 1);
   private alpha = new THREE.InstancedBufferAttribute(new Float32Array(160), 1);
@@ -83,7 +87,8 @@ export class FloatingNumbers {
     this.root.renderOrder = 5;
   }
   emit(value: number, position: THREE.Vector3, heal = false) {
-    if (!Number.isFinite(value) || value < 1 || this.labels.length >= 32) return;
+    if (this.profile?.enabled === false || !Number.isFinite(value) || value < 1 || this.labels.length >= 32)
+      return;
     const text = `${heal ? '+' : ''}${Math.min(9999, Math.round(value))}`;
     this.labels.push({
       text,
@@ -95,29 +100,65 @@ export class FloatingNumbers {
       drift: ((this.labels.length % 3) - 1) * 0.12,
     });
   }
-  update(dt: number, camera: THREE.Camera) {
+  configure(profile?: UnitFeedbackProfile['numbers']) {
+    this.reset();
+    this.profile = profile;
+    (this.root.material as THREE.Material).depthTest = !profile;
+    this.root.renderOrder = profile ? 26 : 5;
+  }
+  update(dt: number, camera: THREE.Camera, viewportHeight?: number, reducedMotion = false) {
     this.right.set(1, 0, 0).applyQuaternion(camera.quaternion);
+    this.up.set(0, 1, 0).applyQuaternion(camera.quaternion);
     let count = 0;
     for (let i = this.labels.length - 1; i >= 0; i--) {
       const label = this.labels[i];
       label.age += dt;
-      if (label.age >= 0.75) {
+      const lifetime = this.profile?.lifetime ?? 0.75;
+      if (label.age >= lifetime) {
         this.labels.splice(i, 1);
         continue;
       }
-      const p = label.age / 0.75,
-        pop = 1 + Math.sin(Math.min(1, p * 4) * Math.PI) * 0.15;
+      let size = 0.4;
+      const screen =
+        this.profile && camera instanceof THREE.PerspectiveCamera && viewportHeight && viewportHeight > 0;
+      if (screen) {
+        this.viewPoint.set(label.x, label.y, label.z).applyMatrix4(camera.matrixWorldInverse);
+        if (this.viewPoint.z >= -camera.near) continue;
+        size =
+          (this.profile!.pixels *
+            2 *
+            -this.viewPoint.z *
+            Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) /
+          (viewportHeight! * camera.zoom);
+      }
+      const p = label.age / lifetime,
+        move = reducedMotion ? 0 : p,
+        pop = reducedMotion || screen ? 1 : 1 + Math.sin(Math.min(1, p * 4) * Math.PI) * 0.15;
       for (let n = 0; n < label.text.length; n++) {
-        this.dummy.position.set(label.x, label.y + p * 0.75, label.z);
+        this.dummy.position.set(label.x, label.y + (screen ? 0 : move * 0.75), label.z);
+        if (screen)
+          this.dummy.position.addScaledVector(
+            this.up,
+            (1 + (move * this.profile!.risePixels) / this.profile!.pixels) * size,
+          );
         this.dummy.position.addScaledVector(
           this.right,
-          (n - (label.text.length - 1) / 2) * 0.17 + label.drift * p,
+          (n - (label.text.length - 1) / 2) * (screen ? size * 0.6 : 0.17) +
+            label.drift * move * (screen ? size : 1),
         );
         this.dummy.quaternion.copy(camera.quaternion);
-        this.dummy.scale.set(0.27 * pop, 0.4 * pop, 1);
+        this.dummy.scale.set(size * 0.675 * pop, size * pop, 1);
         this.dummy.updateMatrix();
         this.root.setMatrixAt(count, this.dummy.matrix);
-        this.color.setHex(label.heal ? 0x8affbe : 0xffe1ad);
+        this.color.set(
+          this.profile
+            ? label.heal
+              ? this.profile.healColor
+              : this.profile.damageColor
+            : label.heal
+              ? 0x8affbe
+              : 0xffe1ad,
+        );
         this.root.setColorAt(count, this.color);
         this.glyph.setX(count, GLYPHS.indexOf(label.text[n]));
         this.alpha.setX(count++, Math.min(1, (1 - p) * 3));

@@ -33,6 +33,7 @@ export class SpellEffects {
     this.reset();
     this.config = config;
     this.iceMaterial.color.set(config.spells.ice.color);
+    this.shellMaterial.color.set(config.spells.ice.color);
     this.hasteMaterial.color.set(config.spells.haste.color);
     this.weakenMaterial.color.set(config.spells.weaken.color);
   }
@@ -239,8 +240,10 @@ export class SpellEffects {
     units: readonly Unit[],
     time: number,
     clock: number,
-    position?: (id: number) => { x: number; z: number; scale?: number } | undefined,
+    position?: (id: number) => { x: number; z: number; scale?: number; height?: number } | undefined,
+    options?: { bodyManaged?: boolean; reducedMotion?: boolean },
   ) {
+    if (options?.reducedMotion) clock = 0;
     const ids = new Set(zones.map((zone) => zone.id));
     for (const [id, visual] of this.zones)
       if (!ids.has(id)) {
@@ -258,7 +261,7 @@ export class SpellEffects {
       visual.fill.material.opacity = active ? 0.22 : 0.08;
       visual.flames.visible = active;
       this.animateFlames(visual.flames, clock);
-      this.animateAtlas(visual.flames, time);
+      this.animateAtlas(visual.flames, options?.reducedMotion ? 0 : time);
     }
     const activeIds = new Set<number>();
     for (const unit of units) {
@@ -292,14 +295,17 @@ export class SpellEffects {
       );
       visual.group.scale.setScalar(point?.scale ?? 1);
       visual.frost.visible = chilled;
-      visual.iceShell.visible = visual.iceShards.visible = frozen;
-      if (visual.freezeRune) visual.freezeRune.visible = frozen;
+      visual.iceShell.visible = visual.iceShards.visible = frozen && !options?.bodyManaged;
+      const bodyHeight = point?.height ?? 2.3;
+      visual.iceShell.scale.y = bodyHeight;
+      visual.iceShell.position.y = bodyHeight * 0.5;
+      if (visual.freezeRune) visual.freezeRune.visible = frozen && !options?.bodyManaged;
       visual.chillRing.visible = !frozen;
       visual.fire.visible = burning;
       visual.haste.visible = hasted;
       visual.weaken.visible = weakened;
       this.animateFlames(visual.fire, clock);
-      this.animateAtlas(visual.frost, time);
+      this.animateAtlas(visual.frost, options?.reducedMotion ? 0 : time);
     }
     for (const [id, visual] of this.statuses)
       if (!activeIds.has(id)) {

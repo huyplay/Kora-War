@@ -158,3 +158,7 @@ Nâng cấp dùng ví server, `collection.copiesPerLevel`, `collection.maxLevel`
 ## 16/10/2026 — Đạn tướng có cấu hình và đúng điểm chạm
 
 Tiếp tục hoàn thiện đồ họa theo yêu cầu người dùng: profile VFX tùy chọn trong database điều khiển kiểu/màu đạn, quỹ đạo và điểm chạm. Renderer nối đạn với hit của cùng đòn và giữ tọa độ quân vừa chết trong frame, thay cách chọn quân gần nhất. Pool giới hạn, pause và reduced motion được hỗ trợ. Không thay luật, nhịp đánh hoặc thời điểm sát thương; snapshot cũ giữ hiệu ứng cũ. Xem [QA đạn chiến đấu](COMBAT-VFX-QA.md).
+
+## 16/10/2026 — Số chiến đấu, băng và lá chắn
+
+Tiếp tục hoàn thiện phản hồi giao chiến trên mobile: số có kích thước theo pixel, lớp băng/khiên theo model và trạng thái snapshot. Profile hiển thị tùy chọn lưu trong database, admin phát hành cho trận mới; không tạo timer hoặc tác động combat mới. Bỏ lớp rune băng trùng khi dùng profile mới, giữ biểu tượng thanh máu. Đóng băng giữ pose của cả model nhập và model dự phòng. Xem [QA phản hồi tướng](UNIT-FEEDBACK-QA.md).

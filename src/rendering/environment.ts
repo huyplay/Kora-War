@@ -6,6 +6,7 @@ import { part as primitive, seeded } from './resources';
 import { arenaBlock } from './arena-block';
 import { arenaSurroundings } from './arena-surroundings';
 import { arenaBraziers } from './arena-torches';
+import { shadeArenaSurface } from './arena-surface-shading';
 
 export interface ArenaScene {
   scene: THREE.Scene;
@@ -131,6 +132,9 @@ export function buildEnvironment(world: ArenaScene) {
       const geometry = (
         object.geometry.index ? object.geometry.toNonIndexed() : object.geometry.clone()
       ).applyMatrix4(object.matrixWorld);
+      const material = object.material as THREE.MeshLambertMaterial;
+      if (ARENA_STONE.includes(material.color.getHex()) || ARENA_WALL.includes(material.color.getHex()))
+        shadeArenaSurface(geometry);
       if (offsetX) geometry.translate(-offsetX, 0, 0);
       const positions = geometry.getAttribute('position'),
         normals = geometry.getAttribute('normal'),
@@ -144,7 +148,6 @@ export function buildEnvironment(world: ArenaScene) {
           ny > 0.5 ? positions.getZ(i) / 2 : positions.getY(i) / 2,
         );
       }
-      const material = object.material as THREE.Material;
       if (!batches.has(material)) batches.set(material, []);
       batches.get(material)!.push(geometry);
     });

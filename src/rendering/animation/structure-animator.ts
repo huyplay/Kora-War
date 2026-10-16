@@ -33,7 +33,7 @@ export class StructureAnimator {
     this.root.receiveShadow = true;
     this.root.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   }
-  update(towers: Tower[], meshes: Map<string, THREE.Group>, dt: number) {
+  update(towers: Tower[], meshes: Map<string, THREE.Group>, dt: number, reducedMotion = false) {
     let changed = false;
     for (const tower of towers) {
       const mesh = meshes.get(tower.id);
@@ -54,7 +54,7 @@ export class StructureAnimator {
         this.scatter(mesh, tower.side, false);
       }
       if (state.dead) {
-        state.age = Math.min(1, state.age + dt / 0.65);
+        state.age = reducedMotion ? 1 : Math.min(1, state.age + dt / 0.65);
         const p = state.age,
           ease = 1 - Math.pow(1 - p, 3);
         const height = state.scale.y * (1 - ease * 0.78),
@@ -66,11 +66,12 @@ export class StructureAnimator {
         state.body.rotation.z = rotation;
       }
     }
-    const debrisChanged = this.rubbleDirty || (dt > 0 && this.debris.some((piece) => piece.age < 0.9));
+    const debrisChanged =
+      this.rubbleDirty || ((dt > 0 || reducedMotion) && this.debris.some((piece) => piece.age < 0.9));
     if (!debrisChanged) return changed;
     let count = 0;
     for (const piece of this.debris) {
-      piece.age = Math.min(0.9, piece.age + dt);
+      piece.age = reducedMotion ? 0.9 : Math.min(0.9, piece.age + dt);
       const p = piece.age / 0.9,
         spread = p * (1.1 + piece.size * 4);
       this.dummy.position.set(

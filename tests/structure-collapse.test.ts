@@ -115,6 +115,29 @@ test('shadow refresh batches motion, flushes the final pose and remains idle aft
   for (let frame = 0; frame < 120; frame++) assert.equal(refresh.update(false, 1 / 60, true), false);
 });
 
+test('reduced motion settles a new or interrupted collapse immediately without resuming airborne rubble', () => {
+  for (const interrupted of [false, true]) {
+    const f = fixture(),
+      animator = new StructureAnimator(),
+      dead = { ...f.tower, hp: 0 };
+    animator.update([f.tower], f.meshes, 0);
+    if (interrupted) animator.update([dead], f.meshes, 0.2);
+    assert.equal(animator.update([dead], f.meshes, 0, true), true);
+    assert.ok(Math.abs(f.body.scale.y - 1.8 * 0.22) < 1e-9);
+    const matrix = new THREE.Matrix4();
+    for (let i = 0; i < animator.root.count; i++) {
+      animator.root.getMatrixAt(i, matrix);
+      assert.ok(matrix.elements[13] < 0.17);
+    }
+    const settled = animator.root.instanceMatrix.array.slice();
+    assert.equal(animator.update([dead], f.meshes, 0.1, false), false);
+    assert.deepEqual(animator.root.instanceMatrix.array, settled);
+    animator.reset(f.meshes);
+    assert.equal(f.body.scale.y, 1.8);
+    animator.dispose();
+  }
+});
+
 test('shadow refresh flushes a paused pose and respects low quality without continuous updates', () => {
   const refresh = new StructureShadowRefresh();
   assert.equal(refresh.update(true, 1 / 60, true), true);

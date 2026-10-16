@@ -66,7 +66,8 @@ test('baked stone batches use vertex shading while architecture retains the tria
   });
   assert.ok(shaded > 0);
   assert.equal(batches, 36);
-  assert.equal(triangles, 32280);
+  // Reinforced gates add 2,160 triangles without adding a surface batch.
+  assert.equal(triangles, 34440);
   terrain.dispose();
   geometries.forEach((g) => g.dispose());
   materials.forEach((m) => m.dispose());

@@ -202,3 +202,7 @@ Nâng cấp bệ/chậu đuốc và lửa nhiều lớp; geometry, sprite và ng
 ## 16/10/2026 — Sắc độ đá và vòng đời vật liệu
 
 Kiến trúc đá có sắc độ vertex tĩnh theo mặt/khe/khối, giữ geometry, UV và tint texture của database. Vật liệu có/không có màu đỉnh dùng biến thể phù hợp; nạp PBR theo generation, thay/clear đủ các kênh và dọn texture bị thay thế hoặc tới muộn. Không đổi gameplay, asset hay config phát hành. Xem [QA vật liệu sân](ARENA-SURFACES-QA.md).
+
+## 16/10/2026 — Cổng gia cố Elyndra
+
+Cổng thành có mũ đá, ngưỡng nền, đai/đinh tán và huy hiệu Aether hai phe; trụ cổng có lớp đá rõ hơn. Chi tiết tĩnh bake cùng batch, giữ mặt đánh theo coreX và scale cấu hình; không thêm vật cản, HP hay đổi combat/database. Xem [QA cổng thành](FORTRESS-DETAILS-QA.md).

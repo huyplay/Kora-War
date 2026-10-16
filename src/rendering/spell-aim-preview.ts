@@ -3,6 +3,7 @@ import type { Unit, Side } from '../core/types';
 import { spellAffectsUnit } from '../core/physics/spell-area';
 import type { GameplayConfig, SpellConfig } from '../data/gameplay';
 import { LANES } from '../data/map';
+import { createAimArea, createAimMarkers } from './aim-primitives';
 
 export interface SpellAimAnchor {
   position: { x: number; z: number };
@@ -12,36 +13,8 @@ export interface SpellAimAnchor {
 /** Current eligibility only: the warning window can change which units are eventually affected. */
 export class SpellAimPreview {
   readonly root = new THREE.Group();
-  readonly area = new THREE.Mesh(
-    new THREE.PlaneGeometry(1, 1),
-    new THREE.ShaderMaterial({
-      uniforms: { color: { value: new THREE.Color() }, size: { value: new THREE.Vector2(1, 1) } },
-      vertexShader: `varying vec2 vUv;
-        void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-      fragmentShader: `uniform vec3 color; uniform vec2 size; varying vec2 vUv;
-        void main(){
-          vec2 edge=min(vUv,1.-vUv)*size;
-          float border=1.-smoothstep(.065,.10,min(edge.x,edge.y));
-          gl_FragColor=vec4(mix(color,vec3(1.),border*.2),mix(.08,.9,border));
-          #include <colorspace_fragment>
-        }`,
-      transparent: true,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      toneMapped: false,
-    }),
-  );
-  readonly markers = new THREE.InstancedMesh(
-    new THREE.RingGeometry(0.88, 1, 32),
-    new THREE.MeshBasicMaterial({
-      transparent: true,
-      opacity: 0.78,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      toneMapped: false,
-    }),
-    100,
-  );
+  readonly area = createAimArea();
+  readonly markers = createAimMarkers();
   private dummy = new THREE.Object3D();
   constructor() {
     this.root.name = 'SpellAimPreview';

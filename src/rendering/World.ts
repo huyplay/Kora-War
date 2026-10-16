@@ -5,13 +5,14 @@ import { UnitOverlays } from './unit-overlays';
 import { ArenaBackdrop } from './arena-backdrop';
 import { DeploymentGuidance } from './deployment-guidance';
 import { SpellAimPreview } from './spell-aim-preview';
+import { PulseAimPreview } from './pulse-aim-preview';
 import { portraitCamera } from './portrait-camera';
 import { HeroShowcase } from './hero-showcase';
 import { canDeployInRange } from '../core/physics/deployment-range';
 import * as THREE from 'three';
 import type { Battle, GameEvent, Unit } from '../core/index';
 import { pickDeployment } from '../core/physics/lane-space';
-import type { ContentConfig } from '../data/content';
+import { defaultContent, type ContentConfig } from '../data/content';
 import { LANES, ORIGINS, type Hero } from '../data/index';
 import { animateUnit } from './animation/unit-animator';
 import { createHeroPrefabs } from './assets/hero-prefabs';
@@ -38,6 +39,7 @@ import { unitVisualMetrics } from './unit-visual-metrics';
 import { HeroProjectiles } from './vfx/hero-projectiles';
 import { UnitStatusBodies } from './vfx/unit-status-bodies';
 import { combatEventAnchors, type CombatAnchor } from './combat-anchors';
+const AIM_VFX = defaultContent().vfx;
 interface Visual {
   group: THREE.Group;
   feedback: UnitFeedback;
@@ -117,6 +119,7 @@ export class World {
   instanceColor = new THREE.Color();
   private deploymentGuidance = new DeploymentGuidance();
   private spellAim = new SpellAimPreview();
+  private pulseAim = new PulseAimPreview();
   private placementState?: Battle;
   private hoverRequest?: { x: number; y: number; ability: boolean; spellId?: SpellId };
   deployZone = this.deploymentGuidance.root;
@@ -170,6 +173,7 @@ export class World {
     this.scene.add(this.contactShadows.root, this.numbers.root, this.structures.root);
     this.scene.add(this.deployZone);
     this.scene.add(this.spellAim.root);
+    this.scene.add(this.pulseAim.root);
     this.deployZone.visible = false;
     this.hoverRing = new THREE.Mesh(
       new THREE.RingGeometry(0.65, 0.73, 40),
@@ -455,29 +459,21 @@ export class World {
         : false,
     );
     const spell = spellId ? gameplay.spells[spellId] : undefined;
-    this.hoverRing.visible = !spell && !!p && p.spellValid;
+    const pulse = ability && !spellId;
+    this.hoverRing.visible = !spell && !pulse && !!p && p.spellValid;
     if (spell && p?.spellValid) {
       this.spellAim.update(
         { side: 0, lane: p.lane, x: p.x },
         spell,
         gameplay.board,
         this.placementState?.units ?? [],
-        (unit) => {
-          const visual = this.units.get(unit.id);
-          return visual
-            ? {
-                position: visual.group.position,
-                // Weapon/wing bounds can be much wider than the feet of a large model.
-                radius:
-                  Math.min(
-                    visual.imported?.footprintRadius ?? 0.7,
-                    (this.content?.models[unit.heroId]?.height ?? 2.65) * 0.3,
-                  ) * visual.group.scale.x,
-              }
-            : undefined;
-        },
+        (unit) => this.aimAnchor(unit),
       );
     } else this.spellAim.clear();
+    // Pulse commands choose the nearest lane whenever a ground ray is picked,
+    // including outside the painted lane. Keep preview and existing click parity.
+    if (pulse && p && gameplay.resonance.enabled) this.updatePulseAim(p.lane);
+    else this.pulseAim.clear();
     if (p) {
       this.hoverRing.position.set(p.x, 0.27, LANES[p.lane]);
       this.hoverRing.scale.setScalar(ability ? 3 : 1);
@@ -486,10 +482,37 @@ export class World {
     }
     return p;
   }
+  private aimAnchor(unit: Unit) {
+    const visual = this.units.get(unit.id);
+    return visual
+      ? {
+          position: visual.group.position,
+          // Weapon/wing bounds can be much wider than the feet of a large model.
+          radius:
+            Math.min(
+              visual.imported?.footprintRadius ?? 0.7,
+              (this.content?.models[unit.heroId]?.height ?? 2.65) * 0.3,
+            ) * visual.group.scale.x,
+        }
+      : undefined;
+  }
+  private updatePulseAim(lane?: number) {
+    const gameplay =
+      this.placementState?.gameplay ?? (this.content ? gameplayOf(this.content) : COMPAT_GAMEPLAY);
+    this.pulseAim.update(
+      gameplay.board,
+      this.placementState?.content?.vfx ?? this.content?.vfx ?? AIM_VFX,
+      0,
+      lane,
+      this.placementState?.units ?? [],
+      (unit) => this.aimAnchor(unit),
+    );
+  }
   clearHover() {
     this.hoverRequest = undefined;
     this.hoverRing.visible = false;
     this.spellAim.clear();
+    this.pulseAim.clear();
     this.selectedLane = -1;
   }
   refreshHover() {
@@ -578,6 +601,7 @@ export class World {
     this.backdrop.dispose();
     this.deploymentGuidance.dispose();
     this.spellAim.dispose();
+    this.pulseAim.dispose();
     this.lighting.dispose();
     this.structureShadows.dispose();
     this.mapInstances.forEach((m) => m.dispose());
@@ -762,7 +786,14 @@ export class World {
       side: e.side,
     });
   }
-  render(battle: Battle, dt: number, selected: boolean, spellTarget = false, animationRate = 1) {
+  render(
+    battle: Battle,
+    dt: number,
+    selected: boolean,
+    spellTarget = false,
+    animationRate = 1,
+    pulseTarget = false,
+  ) {
     if (this.showcase) return;
     this.placementState = battle;
     this.arenaCamera.update(dt);
@@ -771,7 +802,7 @@ export class World {
     const animationDt = battle.phase === 'playing' ? dt * animationRate : 0;
     this.clock += animationDt;
     this.atmosphere.update(this.clock, this.camera, this.quality === 'low');
-    this.deployZone.visible = selected && !spellTarget && battle.phase === 'playing';
+    this.deployZone.visible = selected && !spellTarget && !pulseTarget && battle.phase === 'playing';
     if (this.deployZone.visible) this.deploymentGuidance.update(battle, this.clock);
     if (!selected || battle.phase !== 'playing') this.clearHover();
     const ids = new Set(battle.units.map((u) => u.id));
@@ -847,6 +878,9 @@ export class World {
     }
     this.unitOverlays.end();
     this.statusBodies.end();
+    if (selected && pulseTarget && battle.phase === 'playing' && battle.gameplay.resonance.enabled)
+      this.updatePulseAim();
+    else this.pulseAim.clear();
     if (selected && battle.phase === 'playing') this.refreshHover();
     this.spellEffects.setConfig(battle.gameplay);
     this.spellEffects.update(

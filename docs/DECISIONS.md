@@ -138,3 +138,9 @@ Người dùng chọn admin hủy kết quả, hoàn tác phần Elo của trậ
 ## 15/10/2026 — Công thành, phòng thủ cuối lane và màn hình chạm
 
 Người dùng xác nhận cả ba cổng là phần hiển thị của lõi chung: đánh cổng trừ HP lõi, không tạo HP tường hoặc vật cản. Cổng được căn theo `board.coreX`, giữ khoảng đánh hiện tại của từng tướng. Triệu hồi cuối lane không di chuyển quân địch; renderer dành chỗ cho quân mới sau khi bố trí quân đang có. Các màn game chuyển sang trang cố định và vuốt ngang thay vì cuộn tài liệu. Xem [triển khai và QA](SIEGE-MOBILE.md).
+
+## 16/10/2026 — Bộ sưu tập tướng trên mobile
+
+Theo ảnh tham chiếu mới, đội hình 14 thẻ hiển thị đồng thời thành hai hàng model có animation trên bệ; bộ sưu tập ở dải thẻ vuốt ngang bên dưới. Chạm mở chi tiết, bỏ/thêm hoặc chọn ô để thay thẻ; bản nháp giữ nguyên khi xem và nâng cấp. Đây là cuộn ngang nội bộ có giới hạn, không cuộn trang game.
+
+Nâng cấp dùng ví server, `collection.copiesPerLevel`, `collection.maxLevel` và `economy.upgradeBase` từ content database. Cấp vẫn là cấp sưu tập, chỉ số combat chuẩn hóa; không thêm tiền tệ, deck preset hoặc powerup từ ảnh. Một renderer WebGL được dùng chung với chiến trường; close trả canvas/trạng thái về World, giảm chuyển động và tab ẩn dừng animation. Xem [QA bộ sưu tập](ROSTER-QA.md).

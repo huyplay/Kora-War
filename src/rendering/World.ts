@@ -5,6 +5,7 @@ import { UnitOverlays } from './unit-overlays';
 import { ArenaBackdrop } from './arena-backdrop';
 import { DeploymentGuidance } from './deployment-guidance';
 import { portraitCamera } from './portrait-camera';
+import { HeroShowcase } from './hero-showcase';
 import { canDeployInRange } from '../core/physics/deployment-range';
 import * as THREE from 'three';
 import type { Battle, GameEvent, Unit } from '../core/index';
@@ -52,6 +53,7 @@ interface Effect {
 }
 export class World {
   private models = new ModelLibrary();
+  private showcase?: HeroShowcase;
   private terrain = new TerrainStyle();
   private content?: ContentConfig;
   private templates = new Map<string, ModelInstance>();
@@ -171,6 +173,7 @@ export class World {
     this.resize(container);
   }
   resize(el: HTMLElement) {
+    if (this.showcase) return;
     const w = el.clientWidth,
       h = el.clientHeight;
     if (!w || !h) return;
@@ -344,6 +347,27 @@ export class World {
     if (originalParent) originalParent.add(model);
     return url;
   }
+  rosterShowcase(host: HTMLElement) {
+    this.showcase?.dispose();
+    const stage = this.canvas.parentElement!;
+    return (this.showcase = new HeroShowcase(
+      this.renderer,
+      host,
+      (id) =>
+        this.content?.heroes.find((h) => h.id === id)
+          ? ORIGINS[this.content.heroes.find((h) => h.id === id)!.origin].color
+          : (gameplayOf(this.content ?? {}).spells[id as SpellId]?.color ?? '#8fdcff'),
+      async (id) => {
+        const binding = this.content?.models[id];
+        return binding && this.templates.has(id) ? this.models.instance(binding) : undefined;
+      },
+      (id) => this.prefabs.get(id)(),
+      () => {
+        this.showcase = undefined;
+        this.resize(stage);
+      },
+    ));
+  }
   pick(clientX: number, clientY: number, spellTarget = false, friendly: boolean | 'all' = false) {
     const r = this.canvas.getBoundingClientRect();
     this.pointer.set(((clientX - r.left) / r.width) * 2 - 1, (-(clientY - r.top) / r.height) * 2 + 1);
@@ -478,6 +502,7 @@ export class World {
     } else v.imported?.dispose();
   }
   dispose() {
+    this.showcase?.dispose();
     if (this.disposed) return;
     this.disposed = true;
     this.resizeObserver.disconnect();
@@ -651,6 +676,7 @@ export class World {
     });
   }
   render(battle: Battle, dt: number, selected: boolean, spellTarget = false, animationRate = 1) {
+    if (this.showcase) return;
     this.placementState = battle;
     this.arenaCamera.update(dt);
     this.backdrop.update(this.camera);
@@ -761,7 +787,8 @@ export class World {
       this.camera,
       this.canvas.clientHeight,
     );
-    structureChanged = this.structures.update(battle.towers, this.towerMeshes, animationDt) || structureChanged;
+    structureChanged =
+      this.structures.update(battle.towers, this.towerMeshes, animationDt) || structureChanged;
     for (const side of [0, 1]) {
       const alive = battle.cores[side] > 0;
       structureChanged ||= this.coreShadowAlive[side] !== alive;

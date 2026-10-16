@@ -162,3 +162,7 @@ Tiếp tục hoàn thiện đồ họa theo yêu cầu người dùng: profile V
 ## 16/10/2026 — Số chiến đấu, băng và lá chắn
 
 Tiếp tục hoàn thiện phản hồi giao chiến trên mobile: số có kích thước theo pixel, lớp băng/khiên theo model và trạng thái snapshot. Profile hiển thị tùy chọn lưu trong database, admin phát hành cho trận mới; không tạo timer hoặc tác động combat mới. Bỏ lớp rune băng trùng khi dùng profile mới, giữ biểu tượng thanh máu. Đóng băng giữ pose của cả model nhập và model dự phòng. Xem [QA phản hồi tướng](UNIT-FEEDBACK-QA.md).
+
+## 16/10/2026 — Giảm lớp sáng che tướng
+
+Tiếp tục hoàn thiện đồ họa theo yêu cầu người dùng: profile database tùy chọn điều khiển độ rõ/kích thước/trộn màu/nhịp và ngân sách atlas sự kiện theo vùng. Khi profile có mặt, sprite không bị vẽ trùng thêm vòng generic. Vệt chém căn theo model/đội hình và hỗ trợ giảm chuyển động. Không đổi combat, asset hay cấu hình lịch sử. Xem [QA độ rõ giao chiến](DENSE-COMBAT-QA.md).

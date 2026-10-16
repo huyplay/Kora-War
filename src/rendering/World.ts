@@ -912,8 +912,11 @@ export class World {
         return group
           ? {
               x: group.position.x,
+              y: group.position.y,
               z: group.position.z,
               scale: group.scale.x,
+              radius:
+                (this.templates.get(this.units.get(id)!.unit.heroId)?.footprintRadius ?? 0.8) * group.scale.x,
               height: this.content?.models[this.units.get(id)!.unit.heroId]?.height ?? 2.4,
             }
           : undefined;

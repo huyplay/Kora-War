@@ -94,6 +94,7 @@ let wins = saved.wins,
   selected: string | null = null,
   skillSelected = false;
 let selectionRevision = 0;
+let arenaGestures: ArenaGestures | undefined;
 let tutorial = 0,
   debug = false,
   autoPlayer = false,
@@ -394,6 +395,7 @@ async function startBattle(withTutorial = false) {
   }
   if (starting) return;
   if (landscape.blocked) return;
+  arenaGestures?.cancel();
   sound.unlock();
   starting = true;
   let remote;
@@ -407,6 +409,7 @@ async function startBattle(withTutorial = false) {
   starting = false;
   if (landscape.blocked) return;
   gestures.cancel();
+  arenaGestures?.cancel();
   closeModal();
   clearTimeout(toastTimer);
   $('#combat-message').classList.remove('show');
@@ -500,6 +503,7 @@ function showOpening() {
   );
 }
 function lobby() {
+  arenaGestures?.cancel();
   defenseFeedback.reset();
   quickChat.reset();
   quickChat.configure(gameSession.content);
@@ -725,8 +729,14 @@ const screenContext: ScreenContext = {
 const openStory = (tutorialStart = false) => storyScreen(screenContext, tutorialStart);
 const openRoster = (focusId = deck[0]) => rosterScreen(screenContext, focusId);
 const settings = () => settingsScreen(screenContext);
-const pause = () => pauseScreen(screenContext);
-const result = () => resultScreen(screenContext);
+const pause = () => {
+  arenaGestures?.cancel();
+  pauseScreen(screenContext);
+};
+const result = () => {
+  arenaGestures?.cancel();
+  resultScreen(screenContext);
+};
 function updateDragPreview(id: string, x: number, y: number) {
   const onBoard = document.elementFromPoint(x, y) === world.canvas;
   const p = onBoard ? world.setHover(x, y, isSpell(id), isSpell(id) ? id : undefined) : null;
@@ -802,16 +812,23 @@ const gestures = lifetime.own(
 const landscape = lifetime.own(
   new LandscapeController(() => {
     gestures.cancel();
+    arenaGestures?.cancel();
     if (!pvp.active) pause();
     runner.reset();
   }),
 );
 $('#fullscreen').onclick = () => void landscape.fullscreen();
-const arenaGestures = lifetime.own(
+arenaGestures = lifetime.own(
   new ArenaGestures(
     world.canvas,
     world,
-    () => mode === 'battle' && !landscape.blocked,
+    () =>
+      mode === 'battle' &&
+      battle.phase === 'playing' &&
+      !landscape.blocked &&
+      !document.hidden &&
+      !$('#modal-root').children.length &&
+      (!pvp.active || pvp.connected),
     () => {
       gestures.cancel();
       clearSelection();
@@ -850,7 +867,7 @@ world.canvas.addEventListener(
   (e) => {
     if (
       gestures.suppressClick ||
-      arenaGestures.suppressClick ||
+      arenaGestures?.suppressClick ||
       mode !== 'battle' ||
       battle.phase !== 'playing'
     )
@@ -1043,6 +1060,7 @@ world.canvas.addEventListener(
   'webglcontextlost',
   (e) => {
     e.preventDefault();
+    arenaGestures?.cancel();
     if (mode === 'battle') pause();
     toast('Mất ngữ cảnh đồ họa. Hãy tải lại trang nếu hình ảnh không trở lại.');
   },
@@ -1054,6 +1072,7 @@ updateHud();
 pvp.onError = toast;
 pvp.onConnectionChange = (connected) => {
   if (!connected) {
+    arenaGestures?.cancel();
     quietHandPacket = true;
     handFeedback.suspend();
     manaDisplay.suspend();
@@ -1100,6 +1119,7 @@ pvp.onState = (packet: PvpPacket) => {
     manaDisplay.reset();
     defenseFeedback.reset();
     gestures.cancel();
+    arenaGestures?.cancel();
     closeModal();
     world.reset();
     battle = packet.loadout.cards

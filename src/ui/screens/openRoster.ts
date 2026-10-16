@@ -118,7 +118,7 @@ export function openRoster(ctx: ScreenContext, focusId = ctx.cards[0], forge = f
       return `<button class="showcase-slot ${id === inspected ? 'is-inspected' : ''}" data-slot="${i}" aria-label="${escapeHTML(info(id).name)}${isSpell(id) ? '' : `, cấp sưu tập ${p.level}`}. ${replacing ? 'Thay thẻ này' : 'Xem chi tiết'}"><span class="figure-art" data-preview="${id}"></span><span class="figure-name">${escapeHTML(info(id).name)}</span><span class="figure-level"><span class="figure-mana">${info(id).cost}</span><b>${isSpell(id) ? '◆' : `Cấp ${p.level}`}</b></span>${meter(id)}</button>`;
     }).join('');
     $('#draft-count').textContent = replacing ? 'Chọn thẻ cần thay' : `${draft.length}/${rules.size}`;
-    const error = cardDeckError(draft, config);
+    const error = cardDeckError(draft, config, ctx.heroes);
     $('#deck-error').textContent = error ?? '';
     $('#deck-error').hidden = !error;
     $('#save-deck').toggleAttribute('disabled', !!error);
@@ -243,7 +243,7 @@ export function openRoster(ctx: ScreenContext, focusId = ctx.cards[0], forge = f
   };
   $('#roster-close').onclick = closeModal;
   $('#save-deck').onclick = () => {
-    if (cardDeckError(draft, config)) return;
+    if (cardDeckError(draft, config, ctx.heroes)) return;
     ctx.cards = draft.slice();
     ctx.deck = [...new Set(draft.filter((id) => !isSpell(id)))];
     ctx.spells = [...new Set(draft.filter(isSpell))];

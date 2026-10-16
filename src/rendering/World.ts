@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import type { Battle, GameEvent, Unit } from '../core/index';
 import { pickDeployment } from '../core/physics/lane-space';
 import type { ContentConfig } from '../data/content';
-import { HERO_MAP, LANES, ORIGINS, type Hero } from '../data/index';
+import { LANES, ORIGINS, type Hero } from '../data/index';
 import { animateUnit } from './animation/unit-animator';
 import { createHeroPrefabs } from './assets/hero-prefabs';
 import { ModelLibrary, type ModelInstance } from './assets/model-library';
@@ -206,6 +206,8 @@ export class World {
   }
   async prepareContent(content: ContentConfig) {
     this.content = content;
+    this.prefabs.dispose();
+    this.prefabs = createHeroPrefabs(content.heroes);
     const arena = presentationOf(content).arena;
     this.lighting.configure(arena.lighting);
     this.atmosphere.setNight(arena.lighting.mode === 'night');
@@ -653,7 +655,7 @@ export class World {
     const mesh = new THREE.Mesh(
       geo(kind === 'bolt' ? 'orb' : 'ring'),
       new THREE.MeshBasicMaterial({
-        color: e.heroId ? HERO_MAP[e.heroId].accent : color,
+        color: this.content?.heroes.find((h) => h.id === e.heroId)?.accent ?? color,
         transparent: true,
         opacity: kind === 'pulse' ? 0.4 : 0.7,
         depthWrite: false,

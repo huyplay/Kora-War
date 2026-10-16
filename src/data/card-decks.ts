@@ -1,4 +1,5 @@
-import { HEROES, HERO_MAP } from './heroes';
+import { HEROES } from './heroes';
+import type { Hero } from './types';
 import { SPELLS, isSpell } from './spells';
 import { COMPAT_GAMEPLAY, deckError, type GameplayConfig } from './gameplay';
 
@@ -22,12 +23,18 @@ export const ENEMY_CARD_DECK = [
   'shield',
   'weaken',
 ];
-export function cardDeckError(value: unknown, config?: GameplayConfig): string | null {
-  if (config) return deckError(value, config);
+export function cardDeckError(
+  value: unknown,
+  config?: GameplayConfig,
+  heroes: readonly Hero[] = HEROES,
+): string | null {
+  if (config) return deckError(value, config, heroes);
   if (!Array.isArray(value) || value.length !== CARD_DECK_SIZE) return 'Deck cần đúng 14 thẻ.';
   if (new Set(value).size !== value.length) return 'Mỗi thẻ chỉ được có 1 bản trong deck.';
   if (
-    value.some((id) => typeof id !== 'string' || (!Object.hasOwn(HERO_MAP, id) && !Object.hasOwn(SPELLS, id)))
+    value.some(
+      (id) => typeof id !== 'string' || (!heroes.some((h) => h.id === id) && !Object.hasOwn(SPELLS, id)),
+    )
   )
     return 'Deck chứa thẻ không hợp lệ.';
   if (value.filter((id) => !isSpell(id)).length < 4 || !value.some(isSpell))
@@ -37,7 +44,8 @@ export function cardDeckError(value: unknown, config?: GameplayConfig): string |
 export function validateCardDeck(
   value: unknown,
   config: GameplayConfig = COMPAT_GAMEPLAY,
+  heroes: readonly Hero[] = HEROES,
 ): asserts value is string[] {
-  const error = cardDeckError(value, config);
+  const error = cardDeckError(value, config, heroes);
   if (error) throw new Error(error);
 }

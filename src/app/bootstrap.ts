@@ -55,9 +55,9 @@ const HERO_MAP = Object.fromEntries(HEROES.map((h) => [h.id, h]));
 const GAMEPLAY = gameplayOf(gameSession.content);
 const pvp = lifetime.own(new PvpSession());
 let onlineStarted = false;
-let saved = parseSave(null, GAMEPLAY);
+let saved = parseSave(null, GAMEPLAY, HEROES);
 try {
-  saved = loadSave(localStorage, GAMEPLAY);
+  saved = loadSave(localStorage, GAMEPLAY, HEROES);
 } catch {
   /* Storage may be disabled. */
 }
@@ -67,6 +67,7 @@ let cardDeck = fitDeck(
   saved.cards ??
     [...new Set([...deck, ...spells, ...GAMEPLAY.deck.defaultCards])].slice(0, GAMEPLAY.deck.size),
   GAMEPLAY,
+  HEROES,
 );
 deck = [...new Set(cardDeck.filter((id) => !isSpell(id)))];
 spells = cardDeck.filter(isSpell);
@@ -121,7 +122,7 @@ function persist() {
     /* No persistence required to play. */
   }
 }
-$('#app').innerHTML = renderShell();
+$('#app').innerHTML = renderShell(HEROES.length);
 const manaDisplay = new ManaDisplay($('.mana-panel'), $('#mana-track'), $('#mana'));
 const handFeedback = lifetime.own(new HandFeedback($('#hand'), $('.draw-back'), (cue) => sound.tone(cue)));
 const defenseFeedback = lifetime.own(new DefenseFeedback((cue) => sound.tone(cue)));
@@ -178,7 +179,7 @@ function renderDeck() {
   $('#hand').classList.toggle('large-hand', cards.length > 6);
   $('#hand').style.setProperty('--hand-columns', String(Math.ceil(cards.length / 2)));
   $('#hand').style.setProperty('--hand-size', String(cards.length));
-  const counts = traits([...new Set(deck)]);
+  const counts = traits([...new Set(deck)], mode === 'battle' ? battle.heroes : HERO_MAP);
   $('#synergies').innerHTML =
     Object.entries(counts)
       .sort((a, b) => b[1] - a[1])

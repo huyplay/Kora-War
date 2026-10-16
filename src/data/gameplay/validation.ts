@@ -3,8 +3,10 @@ import { validateDeploymentRule } from '../deployment';
 import { defaultGameplay } from './defaults';
 import { deckError } from './deck';
 import type { GameplayConfig, TraitId } from './types';
+import { HEROES } from '../heroes';
+import type { Hero } from '../types';
 
-export function validateGameplay(value: unknown, maxMana: number) {
+export function validateGameplay(value: unknown, maxMana: number, heroes: readonly Hero[] = HEROES) {
   const g = value as GameplayConfig;
   const fail = (path: string): never => {
     throw new Error(`Gameplay ${path} không hợp lệ.`);
@@ -156,7 +158,7 @@ export function validateGameplay(value: unknown, maxMana: number) {
     }
   }
   for (const key of ['defaultCards', 'aiCards'] as const) {
-    const error = deckError(d[key], g);
+    const error = deckError(d[key], g, heroes);
     if (error) throw new Error(`Gameplay deck.${key}: ${error}`);
   }
 }

@@ -15,6 +15,7 @@ import { composeRuleModules } from '../src/data/rule-modules';
 import { RuleModuleStore } from './rule-module-store';
 
 export class GameDatabase {
+  private transactionDepth = 0;
   readonly db: DatabaseSync;
   readonly ruleModules: RuleModuleStore;
   constructor(
@@ -92,14 +93,20 @@ export class GameDatabase {
     }
   }
   transaction<T>(fn: () => T): T {
-    this.db.exec('BEGIN IMMEDIATE');
+    const depth = this.transactionDepth,
+      savepoint = `kora_nested_${depth}`;
+    this.db.exec(depth ? `SAVEPOINT ${savepoint}` : 'BEGIN IMMEDIATE');
+    this.transactionDepth = depth + 1;
     try {
       const value = fn();
-      this.db.exec('COMMIT');
+      this.db.exec(depth ? `RELEASE ${savepoint}` : 'COMMIT');
       return value;
     } catch (e) {
-      this.db.exec('ROLLBACK');
+      if (depth) this.db.exec(`ROLLBACK TO ${savepoint}; RELEASE ${savepoint}`);
+      else this.db.exec('ROLLBACK');
       throw e;
+    } finally {
+      this.transactionDepth = depth;
     }
   }
   audit(action: string, detail: unknown) {
@@ -245,6 +252,9 @@ export class GameDatabase {
         .run(json, revision);
       const modules = this.ruleModules.write('published', current.draft);
       this.ruleModules.snapshot(revision);
+      // New published heroes start at level 1 / zero shards; never reset existing progression.
+      const addCard = this.db.prepare('INSERT OR IGNORE INTO cards(player,hero) SELECT id,? FROM players');
+      for (const hero of current.draft.heroes) addCard.run(hero.id);
       this.audit('config.publish', { revision, modules });
       return this.config();
     });
@@ -283,16 +293,20 @@ export class GameDatabase {
       this.db
         .prepare('INSERT INTO players(id,gold) VALUES(?,?)')
         .run(id, gameplayOf(this.config().published).collection.initialGold);
-      for (const h of defaultContent().heroes)
+      for (const h of this.config().published.heroes)
         this.db.prepare('INSERT INTO cards(player,hero) VALUES(?,?)').run(id, h.id);
       return id;
     });
   }
   wallet(player: string) {
+    const heroes = new Set(this.config().published.heroes.map((hero) => hero.id));
     return {
       player,
       gold: (this.db.prepare('SELECT gold FROM players WHERE id=?').get(player) as { gold: number }).gold,
-      cards: this.db.prepare('SELECT hero,level,copies FROM cards WHERE player=? ORDER BY hero').all(player),
+      cards: this.db
+        .prepare('SELECT hero,level,copies FROM cards WHERE player=? ORDER BY hero')
+        .all(player)
+        .filter((card) => heroes.has(String(card.hero))),
       ledger: this.db
         .prepare('SELECT delta,reason,created FROM ledger WHERE player=? ORDER BY id DESC LIMIT 30')
         .all(player),

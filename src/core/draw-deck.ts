@@ -1,6 +1,8 @@
 import { validateCardDeck } from '../data/card-decks';
 import { isSpell } from '../data/spells';
 import { COMPAT_GAMEPLAY, type GameplayConfig } from '../data/gameplay';
+import { HEROES } from '../data/heroes';
+import type { Hero } from '../data/types';
 export interface HandCard {
   id: string;
   uid: number;
@@ -23,8 +25,9 @@ export class DrawDeck {
     cards: string[],
     private random: () => number,
     private config: GameplayConfig = COMPAT_GAMEPLAY,
+    heroes: readonly Hero[] = HEROES,
   ) {
-    validateCardDeck(cards, config);
+    validateCardDeck(cards, config, heroes);
     this.pile = cards.slice();
     if (config.deck.shuffle) this.shuffle(this.pile);
     // A single seeded shuffle, followed by minimal swaps to satisfy the opening composition.

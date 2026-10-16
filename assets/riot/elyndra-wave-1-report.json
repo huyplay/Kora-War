@@ -1,0 +1,81 @@
+[
+  {
+    "hero": "elara",
+    "champion": "leona",
+    "url": "https://cdn.modelviewer.lol/lol/models/leona/89000/model.glb",
+    "sourceSha256": "4540d5b41cafbaaad8ff6ffbe734f2f90f3c8ea086a523086d3bbf2401adb0ba",
+    "sha256": "3c26b2868b784e07c315b92a9d9137bc9d366f3175e897cc280fd3b484cf9190",
+    "sourceBytes": 5470968,
+    "bytes": 2004972,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle1",
+      "Run",
+      "Spell1"
+    ],
+    "triangles": 8634,
+    "nodes": 83,
+    "skins": 1
+  },
+  {
+    "hero": "seryn",
+    "champion": "ahri",
+    "url": "https://cdn.modelviewer.lol/lol/models/ahri/103000/model.glb",
+    "sourceSha256": "c918f75464749af145eafb9714489465239182a973663fdca7a79f57bcb1e789",
+    "sha256": "ed7b1ae666bc78e457d607b7be0c9732c5c259eb16bbaee833436ce3b0be6f10",
+    "sourceBytes": 17344824,
+    "bytes": 4125460,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Spell1",
+      "Respawn",
+      "Run",
+      "Idle1",
+      "Stunned"
+    ],
+    "triangles": 21678,
+    "nodes": 213,
+    "skins": 1
+  },
+  {
+    "hero": "kharos",
+    "champion": "zed",
+    "url": "https://cdn.modelviewer.lol/lol/models/zed/238000/model.glb",
+    "sourceSha256": "d3be6dc895f9302deaf5a85ef0c69275bd2b1c23d0622c99439455291c0c8b0c",
+    "sha256": "25f761894dbad801282992a611de3444d1de6b3bf7b3cf7c4608fd2950db09e6",
+    "sourceBytes": 7879320,
+    "bytes": 1909448,
+    "clips": [
+      "Zed_attack1.anm",
+      "Death",
+      "Zed_idle1.anm",
+      "Zed_run.anm",
+      "Zed_spell1.anm"
+    ],
+    "triangles": 8703,
+    "nodes": 86,
+    "skins": 1
+  },
+  {
+    "hero": "torvyn",
+    "champion": "volibear",
+    "url": "https://cdn.modelviewer.lol/lol/models/volibear/106000/model.glb",
+    "sourceSha256": "0eaa34d0f9b71eca3678d8bb8d2b816497f4c34fa8f0b438831b74e6178f6b32",
+    "sha256": "37152a6186283a4d30a75046b0bad87e073a08a8a8f2476369df007a566f18d8",
+    "sourceBytes": 18169792,
+    "bytes": 3505228,
+    "clips": [
+      "Attack1",
+      "Death",
+      "Idle_Base",
+      "Spell1",
+      "Volibear_spell1_run.anm",
+      "Respawn"
+    ],
+    "triangles": 18146,
+    "nodes": 143,
+    "skins": 1
+  }
+]

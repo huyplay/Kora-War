@@ -1,5 +1,5 @@
 import { defaultContent, validateContent, type ContentConfig } from '../data/content';
-import { DEFAULT_DECK, ENEMY_DECK, HERO_MAP, LANES, RULES, STEP, traits, type Hero } from '../data/index';
+import { DEFAULT_DECK, ENEMY_DECK, LANES, RULES, STEP, traits, type Hero } from '../data/index';
 import { runAI } from './ai/heuristic';
 import { quickDeploymentX } from './physics/deployment-range';
 import { castAbility } from './systems/cast-ability';
@@ -105,17 +105,17 @@ export class Battle {
       if (
         (!this.cycling && d.length !== 4) ||
         new Set(d).size !== d.length ||
-        d.some((id) => !Object.hasOwn(HERO_MAP, id))
+        d.some((id) => !Object.hasOwn(this.heroes, id))
       )
         throw new Error('Deck cần đúng 4 tướng khác nhau.');
     this.decks = [deck.slice(), enemyDeck.slice()];
-    this.synergies = this.decks.map(traits);
+    this.synergies = this.decks.map((deck) => traits(deck, this.heroes));
     this.difficulty = difficulty;
     this.seed = seed >>> 0;
     this.rng = this.seed || 1;
     if (options?.cardDecks) {
       this.drawDecks = options.cardDecks.map(
-        (cards) => new DrawDeck(cards, () => this.random(), this.gameplay),
+        (cards) => new DrawDeck(cards, () => this.random(), this.gameplay, this.content.heroes),
       );
       this.hands = this.drawDecks.map((deck) => deck.hand);
       this.refreshDrawInfo();

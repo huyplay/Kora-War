@@ -229,7 +229,7 @@ export class World {
     this.prefabs = createHeroPrefabs(content.heroes);
     const arena = presentationOf(content).arena;
     this.lighting.configure(arena.lighting);
-    this.atmosphere.setNight(arena.lighting.mode === 'night');
+    this.atmosphere.configure(arena.lighting);
     for (const group of this.fortressSides)
       group.scale.set(arena.structures.wallThicknessScale, arena.structures.wallHeightScale, 1);
     alignFortressFrontages(
@@ -812,7 +812,8 @@ export class World {
     // Smooth render-frame motion, independent of the simulation's 20 Hz snapshots.
     const animationDt = battle.phase === 'playing' ? dt * animationRate : 0;
     this.clock += animationDt;
-    this.atmosphere.update(this.clock, this.camera, this.quality === 'low');
+    this.atmosphere.update(this.clock, this.camera, this.quality === 'low', this.reducedMotion.matches);
+    this.lighting.update(this.clock, this.reducedMotion.matches);
     this.deployZone.visible = selected && !spellTarget && !pulseTarget && battle.phase === 'playing';
     if (this.deployZone.visible) this.deploymentGuidance.update(battle, this.clock);
     if (!selected || battle.phase !== 'playing') this.clearHover();

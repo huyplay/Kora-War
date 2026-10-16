@@ -1,11 +1,18 @@
 import { LANES } from '../data/map';
 import * as THREE from 'three';
+import type { ArenaPresentation } from '../data/arena-presentation';
+import { ARENA_TORCHES, TORCH_BOWL_Y, TORCH_FLAME_Y, torchFlicker } from './arena-torches';
 
 /** Small, bounded scenery animation. Textures are local, mipmapped and shared. */
 export class ArenaAtmosphere {
   readonly root = new THREE.Group();
   private banners: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshStandardMaterial>[] = [];
   private flames: THREE.Sprite[] = [];
+  private flameCores: THREE.Sprite[] = [];
+  private halos: THREE.Sprite[] = [];
+  private torchStrength = 1;
+  private disposed = false;
+  private bannerTime = NaN;
   private seals: THREE.InstancedMesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>[] = [];
   private textures: THREE.CanvasTexture[] = [];
   private embers = new THREE.InstancedMesh(
@@ -73,25 +80,71 @@ export class ArenaAtmosphere {
     const fire = new THREE.CanvasTexture(canvas);
     fire.colorSpace = THREE.SRGBColorSpace;
     this.textures.push(fire);
-    const flameMaterial = new THREE.SpriteMaterial({
+    const haloMaterial = new THREE.SpriteMaterial({
       map: fire,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-    for (const x of [-12.7, 12.7])
-      for (const z of [-6.5, 6.5]) {
-        const flame = new THREE.Sprite(flameMaterial);
-        flame.position.set(x, 1.53, z);
-        this.flames.push(flame);
-        this.root.add(flame);
-      }
+    const tongue = document.createElement('canvas');
+    tongue.width = 64;
+    tongue.height = 128;
+    const ink = tongue.getContext('2d')!;
+    const heat = ink.createLinearGradient(0, 123, 0, 5);
+    heat.addColorStop(0, '#fff6b7');
+    heat.addColorStop(0.25, '#ffdd6a');
+    heat.addColorStop(0.65, '#ff8c32');
+    heat.addColorStop(1, '#ff4b1600');
+    ink.fillStyle = heat;
+    ink.beginPath();
+    ink.moveTo(32, 5);
+    ink.bezierCurveTo(44, 30, 25, 43, 46, 62);
+    ink.bezierCurveTo(64, 90, 49, 117, 32, 123);
+    ink.bezierCurveTo(8, 119, 0, 92, 16, 65);
+    ink.bezierCurveTo(25, 48, 25, 27, 32, 5);
+    ink.closePath();
+    ink.fill();
+    const flameTexture = new THREE.CanvasTexture(tongue);
+    flameTexture.colorSpace = THREE.SRGBColorSpace;
+    this.textures.push(flameTexture);
+    const flameMaterial = new THREE.SpriteMaterial({
+      map: flameTexture,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const coreMaterial = flameMaterial.clone();
+    coreMaterial.color.set(0xfff2bd);
+    for (const { x, z } of ARENA_TORCHES) {
+      const flame = new THREE.Sprite(flameMaterial);
+      flame.name = 'BrazierFlame';
+      flame.center.set(0.5, 0.28);
+      flame.position.set(x, TORCH_FLAME_Y, z);
+      const core = new THREE.Sprite(coreMaterial);
+      core.name = 'BrazierFlameCore';
+      core.center.set(0.5, 0.44);
+      core.position.copy(flame.position);
+      const halo = new THREE.Sprite(haloMaterial);
+      halo.name = 'BrazierHalo';
+      halo.position.copy(flame.position);
+      this.flames.push(flame);
+      this.flameCores.push(core);
+      this.halos.push(halo);
+      this.root.add(halo, flame, core);
+    }
     this.embers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.embers.frustumCulled = false;
     this.root.add(this.embers);
   }
-  setNight(night: boolean) {
-    for (const flame of this.flames) flame.material.opacity = night ? 1 : 0.55;
-    this.embers.material.opacity = night ? 1 : 0.45;
+  configure(lighting: ArenaPresentation['lighting']) {
+    if (this.disposed) return;
+    const night = lighting.mode === 'night';
+    this.torchStrength = Math.min(1, Math.sqrt(lighting.torchIntensity / 28));
+    for (const flame of this.flames) flame.material.opacity = this.torchStrength * (night ? 1 : 0.55);
+    for (const core of this.flameCores) core.material.opacity = this.torchStrength * (night ? 0.85 : 0.5);
+    for (const halo of this.halos) halo.material.opacity = this.torchStrength * (night ? 0.28 : 0.08);
+    this.embers.material.opacity = this.torchStrength * (night ? 1 : 0.45);
+    [...this.flames, ...this.flameCores, ...this.halos].forEach((sprite) => {
+      sprite.visible = this.torchStrength > 0;
+    });
   }
   private seal() {
     const canvas = document.createElement('canvas');
@@ -189,33 +242,41 @@ export class ArenaAtmosphere {
     this.textures.push(texture);
     return texture;
   }
-  update(time: number, camera: THREE.Camera, low: boolean) {
-    this.banners.forEach((banner, index) => {
-      const positions = banner.geometry.attributes.position;
-      for (let i = 0; i < positions.count; i++) {
-        const free = (1.35 - positions.getY(i)) / 2.7;
-        positions.setZ(
-          i,
-          free * (0.08 + Math.sin(time * 2.3 + free * 4 + positions.getX(i) * 3 + index) * 0.085),
-        );
-      }
-      positions.needsUpdate = true;
-      banner.geometry.computeVertexNormals();
-    });
+  update(time: number, camera: THREE.Camera, low: boolean, reducedMotion = false) {
+    if (this.disposed) return;
+    const sceneTime = reducedMotion ? 0 : time;
+    if (sceneTime !== this.bannerTime)
+      this.banners.forEach((banner, index) => {
+        const positions = banner.geometry.attributes.position;
+        for (let i = 0; i < positions.count; i++) {
+          const free = (1.35 - positions.getY(i)) / 2.7;
+          positions.setZ(
+            i,
+            free * (0.08 + Math.sin(sceneTime * 2.3 + free * 4 + positions.getX(i) * 3 + index) * 0.085),
+          );
+        }
+        positions.needsUpdate = true;
+        banner.geometry.computeVertexNormals();
+      });
+    this.bannerTime = sceneTime;
     this.seals.forEach((seal, i) => {
-      seal.material.opacity = 0.34 + Math.sin(time * 1.4 + i) * 0.04;
+      seal.material.opacity = reducedMotion ? 0.34 : 0.34 + Math.sin(time * 1.4 + i) * 0.04;
     });
     this.flames.forEach((flame, i) => {
-      const flicker = Math.sin(time * 11 + i * 2) * 0.07 + Math.sin(time * 17 + i) * 0.035;
-      flame.scale.set(0.62 + flicker, 1.1 - flicker, 1);
+      const flicker = torchFlicker(time, i, reducedMotion);
+      flame.scale.set(0.48 / flicker, 0.95 * flicker, 1);
+      flame.position.y = TORCH_BOWL_Y + flame.scale.y * flame.center.y;
+      this.flameCores[i].scale.set(0.22 / flicker, 0.62 * flicker, 1);
+      this.flameCores[i].position.y = TORCH_BOWL_Y + this.flameCores[i].scale.y * this.flameCores[i].center.y;
+      this.halos[i].scale.setScalar(0.9 * flicker);
     });
-    this.embers.count = low ? 12 : 24;
+    this.embers.count = reducedMotion || this.torchStrength === 0 ? 0 : low ? 12 : 24;
     for (let i = 0; i < this.embers.count; i++) {
       const source = this.flames[i % 4].position;
       const p = (time * (0.38 + (i % 3) * 0.07) + i * 0.173) % 1;
       this.dummy.position.set(
         source.x + Math.sin(time + i) * p * 0.25,
-        source.y + p * 1.55,
+        source.y + 0.35 + p * 1.55,
         source.z + Math.cos(i * 2) * p * 0.2,
       );
       this.dummy.quaternion.copy(camera.quaternion);
@@ -226,13 +287,15 @@ export class ArenaAtmosphere {
     this.embers.instanceMatrix.needsUpdate = true;
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.root.removeFromParent();
     const materials = new Set<THREE.Material>();
     this.banners.forEach((banner) => {
       banner.geometry.dispose();
       materials.add(banner.material);
     });
-    this.flames.forEach((flame) => materials.add(flame.material));
+    [...this.flames, ...this.flameCores, ...this.halos].forEach((flame) => materials.add(flame.material));
     this.seals.forEach((seal) => {
       materials.add(seal.material);
       seal.dispose();
@@ -243,5 +306,6 @@ export class ArenaAtmosphere {
     this.embers.material.dispose();
     this.embers.dispose();
     this.textures.forEach((texture) => texture.dispose());
+    this.root.clear();
   }
 }

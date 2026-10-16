@@ -5,6 +5,7 @@ import { LANES } from '../data/index';
 import { part as primitive, seeded } from './resources';
 import { arenaBlock } from './arena-block';
 import { arenaSurroundings } from './arena-surroundings';
+import { arenaBraziers } from './arena-torches';
 
 export interface ArenaScene {
   scene: THREE.Scene;
@@ -118,10 +119,8 @@ export function buildEnvironment(world: ArenaScene) {
       world.scene.add(tower);
       world.towerMeshes.set(`${side}-${lane}`, tower);
     }
-    for (const z of [-6.5, 6.5]) {
-      part(stage, 'cylinder', bronze, sign * 12.7, 0.6, z, 0.2, 1.1, 0.2);
-    }
   }
+  arenaBraziers(stage, ARENA_WALL, bronze, part);
   const fortresses: THREE.Group[] = [];
   const gateFrontages: THREE.Group[] = [];
   const bake = (source: THREE.Group, target: THREE.Group | THREE.Scene, offsetX = 0) => {

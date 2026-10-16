@@ -194,3 +194,7 @@ Vùng báo trước/đang tác động dùng cùng footprint chữ nhật với 
 ## 16/10/2026 — Hủy pinch bị ngắt trên mobile
 
 Pinch mất capture/thêm ngón hoặc bị ngắt bởi vòng đời màn hình sẽ hủy và chặn click tới khi các ngón đã kết thúc. Dọn trạng thái khi pause, đổi trận, xoay dọc và mất kết nối; nhận release ngoài canvas để không kẹt input. Giữ tap dùng thẻ, giới hạn zoom và toàn bộ luật/config hiện hành. Xem [QA cử chỉ sân](ARENA-GESTURES-QA.md).
+
+## 16/10/2026 — Chậu đuốc và ánh lửa ngày/đêm
+
+Nâng cấp bệ/chậu đuốc và lửa nhiều lớp; geometry, sprite và nguồn sáng dùng chung mốc. Cường độ/mode từ presentation snapshot điều khiển cả lửa và ánh sáng, bao gồm tắt hoàn toàn. Đồng bộ dao động với render clock, pause và reduced motion; không đổi gameplay hay database. Xem [QA ánh lửa](ARENA-TORCHES-QA.md).

@@ -878,7 +878,7 @@ export class World {
       const change = v.feedback.update(u, animationDt);
       if (change) {
         const point = v.group.position.clone();
-        point.y = metrics.barY + 0.15;
+        point.y += metrics.barY + 0.15;
         this.numbers.emit(change.damage, point);
         this.numbers.emit(change.healing, point, true);
       }

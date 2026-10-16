@@ -731,12 +731,14 @@ export class World {
     }
     const profile = this.content?.vfx.combat;
     if (e.type === 'projectile' && e.heroId && profile?.heroes[e.heroId]) {
-      const bodyPoint = (anchor: CombatAnchor) =>
-        new THREE.Vector3(
-          anchor.position.x,
-          (this.content?.models[anchor.unit.heroId]?.height ?? 2.4) * anchor.scale * 0.55,
-          anchor.position.z,
+      const bodyPoint = (anchor: CombatAnchor) => {
+        const body = unitBodyPoint(
+          anchor.position,
+          this.content?.models[anchor.unit.heroId]?.height ?? 2.4,
+          anchor.scale,
         );
+        return new THREE.Vector3(body.x, body.y, body.z);
+      };
       const from = anchors?.source ? bodyPoint(anchors.source) : new THREE.Vector3(e.x, 1.2, LANES[e.lane]);
       const tower = this.placementState?.towers.find(
         (tower) => tower.lane === e.lane && tower.side !== e.side && Math.abs(tower.x - (e.toX ?? 0)) < 0.01,
@@ -1038,11 +1040,12 @@ export class World {
       (id) => {
         const visual = this.units.get(id);
         if (!visual) return undefined;
-        return new THREE.Vector3(
-          visual.group.position.x,
-          (this.content?.models[visual.unit.heroId]?.height ?? 2.4) * visual.group.scale.x * 0.55,
-          visual.group.position.z,
+        const body = unitBodyPoint(
+          visual.group.position,
+          this.content?.models[visual.unit.heroId]?.height ?? 2.4,
+          visual.group.scale.x,
         );
+        return new THREE.Vector3(body.x, body.y, body.z);
       },
       this.reducedMotion.matches,
     );

@@ -1,5 +1,9 @@
 # Các quyết định đang áp dụng
 
+## 16/10/2026 — Vệt đạn và dấu va chạm của tướng
+
+Tiếp tục yêu cầu hoàn thiện đồ họa: vệt đạn thuôn/mờ dần, dấu trúng đòn mềm và rõ trên thân tướng. Giữ profile combat từ database đã khóa, pool giới hạn và luật sát thương hiện hành. Đạn bám torso hiển thị, xử lý pause/tọa độ lỗi/giảm chuyển động và disposal an toàn. Không thêm schema hoặc phát hành content. Xem [QA đường đạn tướng](HERO-PROJECTILES-QA.md).
+
 ## 16/10/2026 — Model và khung bộ sưu tập
 
 Tiếp tục hoàn thiện đồ họa: admin bật/tắt phần model bằng material trong database và chỉnh góc bộ sưu tập độc lập chân dung. Renderer chỉ tính khung theo phần được vẽ, bỏ ảnh hưởng của đạo cụ ẩn/dữ liệu đỉnh dùng chung; giữ nguyên gameplay. Gói chỉnh Kael/Vesper/Orin/Torvyn và hướng mô hình Aurelia có backup, bảo vệ tùy chỉnh admin và snapshot lịch sử. Xem [QA và cài đặt](MODEL-PRESENTATION-QA.md).

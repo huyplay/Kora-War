@@ -1,5 +1,7 @@
 # Kora War — phân tích project và MVP Tactical Card Arena
 
+> Tài liệu lịch sử ngày 13/10. Hiện trạng và ưu tiên mới: [khảo sát ngày 17/10/2026](PROJECT-AUDIT-2026-10-17.md), gồm catalog 14 tướng, cycle deck, ranked và đánh giá model/animation.
+
 Ngày: 13/10/2026. Nguồn yêu cầu: `Game_desgin.md` và xác nhận trực tiếp của người dùng về MVP 4 tướng + 2 phép, mana 4, PvP chuẩn hóa. Các đoạn hướng phát triển Phase 2/3 trong tài liệu là lộ trình, không phải tính năng đã hoàn thành.
 
 ## 1. Hiện trạng trước triển khai

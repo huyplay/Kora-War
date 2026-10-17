@@ -8,7 +8,7 @@ npm run dev
 npm run check
 ```
 
-`check` chạy kiểm tra ranh giới dependency, TypeScript, toàn bộ test và build production. `npm run smoke` kiểm entrypoint/static bundles/API trên database tạm; `npm run package` tạo gói runtime theo allowlist. CI chạy Ubuntu/Windows và build ASP.NET; xem [quy trình hai agent](TEAM-WORKFLOW.md). `npm run preview` phục vụ `dist` để kiểm tra bundle thực tế. Nếu đổi source sau khi build, phải build lại trước khi preview.
+`check` chạy kiểm tra ranh giới dependency, TypeScript, toàn bộ test và build production. `npm run smoke` kiểm entrypoint/static bundles/API trên database tạm; `npm run package` tạo gói runtime theo allowlist. CI/CD đang tắt; Codex QA và tích hợp thủ công theo [quy trình hiện hành](TEAM-WORKFLOW.md). `npm run preview` phục vụ `dist` để kiểm tra bundle thực tế. Nếu đổi source sau khi build, phải build lại trước khi preview.
 
 ## Chỉnh dữ liệu
 
@@ -24,7 +24,7 @@ Không đặt HP/damage trong model 3D; không đưa raycast/DOM vào simulation
 
 ## Kiểm tra thủ công khi sửa UI/renderer
 
-1. Mở sảnh và màn hình 10 tướng; thử lưu deck thiếu tướng.
+1. Mở sảnh và catalog đang phát hành (hiện 14 tướng); thử lưu deck không hợp lệ.
 2. Xem hoặc bỏ qua truyện, thực hiện hướng dẫn, thả quân vào cả ba lane.
 3. Kiểm tra mana, chặn vị trí sai, pause/resume và đổi cài đặt.
 4. Chơi đến kết quả, bấm chơi lại, về sảnh rồi bắt đầu lần nữa.
@@ -38,7 +38,7 @@ Xem [module engine](ENGINE.md), [asset](../assets/README.md) và [giao diện mo
 - Projectile hiện là VFX; sát thương tầm xa áp dụng tại tick tấn công theo luật prototype.
 - `Battle.snapshot()` dùng cho chẩn đoán và regression; không chứa đủ trạng thái để resume/replay trận.
 - Hệ số synergy được triển khai trong các combat system; tên/mô tả ở data. Thêm một hiệu ứng synergy mới cần triển khai và test logic tương ứng.
-- Mô hình thủ tục có chuyển động bộ phận; chưa phải skeletal animation từ GLB.
+- Model nhập dùng skeleton và AnimationMixer riêng; model thủ tục là fallback. `models.<id>.animation` trong snapshot cấu hình nhịp đánh/cast/chuyển clip; không quyết định damage. Xem [QA hoạt ảnh](HERO-ANIMATION-QA.md).
 
 ## Content Studio và backend
 

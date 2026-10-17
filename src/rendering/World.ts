@@ -16,6 +16,7 @@ import { pickDeployment } from '../core/physics/lane-space';
 import { defaultContent, type ContentConfig } from '../data/content';
 import { LANES, ORIGINS, type Hero } from '../data/index';
 import { animateUnit } from './animation/unit-animator';
+import { modelAnimationTiming } from '../data/model-animation';
 import { createHeroPrefabs } from './assets/hero-prefabs';
 import { ModelLibrary, type ModelInstance } from './assets/model-library';
 import { buildEnvironment } from './environment';
@@ -894,7 +895,15 @@ export class World {
         );
       }
       if (v.imported) v.imported.update(u, battle.time, battle.phase, animationDt);
-      else animateUnit(v.group, u, battle.time, this.clock, battle.phase);
+      else
+        animateUnit(
+          v.group,
+          u,
+          battle.time,
+          this.clock,
+          battle.phase,
+          modelAnimationTiming(this.content?.models[u.heroId]?.animation),
+        );
       v.imported?.setHitFlash(v.feedback.flash);
       this.unitOverlays.add(
         u,

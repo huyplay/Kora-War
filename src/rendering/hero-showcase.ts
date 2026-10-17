@@ -2,8 +2,12 @@ import * as THREE from 'three';
 import { isSpell } from '../data/spells';
 import { spellMiniature } from './spell-miniature';
 import type { ModelInstance } from './assets/model-library';
-import type { HeroRig } from './animation/unit-animator';
 import { visibleModelBounds } from './assets/model-parts';
+import { animateUnit } from './animation/unit-animator';
+import { DEFAULT_MODEL_ANIMATION } from '../data/model-animation';
+import type { Unit } from '../core/types';
+
+export type ShowcaseAction = 'idle' | 'walk' | 'attack' | 'cast';
 
 export interface ShowcaseView {
   id: string;
@@ -17,6 +21,8 @@ interface Figure {
   fallback?: THREE.Group;
   height: number;
   width: number;
+  action: ShowcaseAction;
+  actionAge: number;
 }
 
 /** A roster borrows World's renderer; no extra WebGL context or asset downloads. */
@@ -110,7 +116,7 @@ export class HeroShowcase {
                   instance.binding.yaw) *
                   Math.PI) /
                 180;
-              instance.play('walk');
+              instance.play(figure.action, true);
               instance.tick(0.2);
               figure.pivot.add(instance.root);
               this.measure(figure);
@@ -123,6 +129,30 @@ export class HeroShowcase {
       }
     this.dirty = true;
     this.wake();
+  }
+  /** Reduced motion shows a representative static pose after an explicit tap. */
+  preview(id: string, action: ShowcaseAction) {
+    const figure = this.figures.get(id);
+    if (this.disposed || !figure || isSpell(id) || !this.views.some((view) => view.id === id)) return false;
+    if (figure.instance && !figure.instance.binding.clips[action]) return false;
+    figure.action = action;
+    figure.actionAge = 0;
+    figure.instance?.play(action, true);
+    if (this.reduced.matches) {
+      const timing = figure.instance?.animationTiming ?? DEFAULT_MODEL_ANIMATION;
+      const age =
+        action === 'cast'
+          ? timing.castSeconds * 0.45
+          : action === 'attack'
+            ? timing.attackSeconds * 0.45
+            : 0.15;
+      figure.instance?.tick(age);
+      if (figure.fallback) this.pose(figure, age);
+    }
+    this.previous = 0;
+    this.dirty = true;
+    this.wake();
+    return true;
   }
   private resource<T extends THREE.BufferGeometry | THREE.Material>(value: T): T {
     this.owned.add(value);
@@ -153,6 +183,8 @@ export class HeroShowcase {
       camera: new THREE.OrthographicCamera(),
       height: 2.4,
       width: 2,
+      action: 'walk',
+      actionAge: 0,
     };
     this.measure(figure);
     const pedestal = new THREE.Mesh(
@@ -218,13 +250,21 @@ export class HeroShowcase {
         if (!updated.has(view.id)) {
           updated.add(view.id);
           if (!this.reduced.matches) {
+            figure.actionAge += dt;
+            const timing = figure.instance?.animationTiming ?? DEFAULT_MODEL_ANIMATION;
+            const duration =
+              figure.action === 'attack'
+                ? timing.attackSeconds
+                : figure.action === 'cast'
+                  ? timing.castSeconds
+                  : Infinity;
+            if (figure.actionAge >= duration) {
+              figure.action = 'idle';
+              figure.instance?.play('idle');
+            }
             figure.instance?.tick(dt);
             if (figure.fallback) {
-              const rig = figure.fallback.userData as HeroRig;
-              rig.leftLeg.rotation.x = Math.sin(this.clock * 6) * 0.35;
-              rig.rightLeg.rotation.x = -Math.sin(this.clock * 6) * 0.35;
-              rig.armR.rotation.x = -Math.sin(this.clock * 6) * 0.18;
-              rig.body.position.y = Math.abs(Math.sin(this.clock * 6)) * 0.035;
+              this.pose(figure, figure.actionAge);
             }
             figure.pivot.rotation.y = isSpell(view.id)
               ? this.clock * 0.65
@@ -253,6 +293,17 @@ export class HeroShowcase {
     }
     if (!this.reduced.matches || this.dirty) this.wake();
   };
+  private pose(figure: Figure, age: number) {
+    const unit = {
+      id: 0,
+      born: -10,
+      skillAt: figure.action === 'cast' ? 0 : -10,
+      attackAt: figure.action === 'attack' ? 0 : -10,
+      stunUntil: 0,
+      state: figure.action === 'walk' ? 'move' : 'attack',
+    } as Unit;
+    animateUnit(figure.fallback!, unit, age, this.clock, 'playing');
+  }
   dispose() {
     if (this.disposed) return;
     this.disposed = true;

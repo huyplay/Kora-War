@@ -487,6 +487,41 @@
   min-width: 0;
   min-height: 0;
 }
+.detail-figure:has(.model-preview-actions) .detail-preview {
+  top: 52px;
+}
+.model-preview-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+.model-preview-actions button {
+  flex: 1;
+  max-width: 88px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px;
+  color: #c8d9e5;
+  background: #172f41ed;
+  border: 1px solid #8eb0c84d;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.model-preview-actions button[aria-pressed='true'] {
+  color: #ffe7ab;
+  border-color: #d7b36e;
+  background: #3e3829ee;
+}
+.model-preview-actions button:focus-visible {
+  outline: 2px solid #fff0bc;
+  outline-offset: 2px;
+}
 .detail-preview {
   position: absolute;
   inset: 0 0 68px;

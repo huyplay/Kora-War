@@ -67,6 +67,11 @@ export class AssetPreview {
       this.model.play('idle', true);
     }
   }
+  action(state: 'idle' | 'walk' | 'attack' | 'cast') {
+    if (!this.model?.binding.clips[state]) return false;
+    this.model.play(state, true);
+    return true;
+  }
   dispose() {
     this.generation++;
     cancelAnimationFrame(this.frame);

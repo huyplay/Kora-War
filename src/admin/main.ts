@@ -229,6 +229,12 @@ async function save() {
   notice('Đã lưu bản nháp.');
 }
 function wire() {
+  document.querySelectorAll<HTMLButtonElement>('[data-model-action]').forEach((button) => {
+    button.onclick = () => {
+      if (!preview?.action(button.dataset.modelAction as 'idle' | 'walk' | 'attack' | 'cast'))
+        notice('Model chưa nạp hoặc chưa được gán clip này.');
+    };
+  });
   const addReadability = document.querySelector<HTMLButtonElement>('#add-vfx-readability');
   if (addReadability)
     addReadability.onclick = () => {

@@ -9,6 +9,7 @@ import { spellCard } from '../spell-card';
 import { swipeRibbon } from '../swipe-ribbon';
 import { collectionState } from '../collection-state';
 import type { ScreenContext } from '../screen-context';
+import type { ShowcaseAction } from '../../rendering/hero-showcase';
 
 export function openRoster(ctx: ScreenContext, focusId = ctx.cards[0], forge = false) {
   if (ctx.mode === 'battle') {
@@ -159,6 +160,29 @@ export function openRoster(ctx: ScreenContext, focusId = ctx.cards[0], forge = f
       refresh();
     };
     const upgrade = detail.querySelector<HTMLButtonElement>('#upgrade-hero');
+    if (!spell) {
+      const controls = document.createElement('nav');
+      controls.className = 'model-preview-actions';
+      controls.setAttribute('aria-label', `Xem hoạt ảnh ${data.name}`);
+      controls.innerHTML = (['idle', 'walk', 'attack', 'cast'] as const)
+        .map(
+          (action, i) =>
+            `<button type="button" data-preview-action="${action}" aria-pressed="${action === 'walk'}" aria-label="Xem ${['đứng', 'di chuyển', 'đánh thường', 'kỹ năng'][i]} của ${escapeHTML(data.name)}">${['Đứng', 'Đi', 'Đánh', 'Chiêu'][i]}</button>`,
+        )
+        .join('');
+      detail.querySelector('.detail-figure')!.append(controls);
+      controls.onclick = (event) => {
+        const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-preview-action]');
+        if (!button) return;
+        if (!showcase.preview(id, button.dataset.previewAction as ShowcaseAction)) {
+          ctx.toast('Model chưa có hoạt ảnh này.');
+          return;
+        }
+        controls
+          .querySelectorAll('button')
+          .forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+      };
+    }
     if (upgrade)
       upgrade.onclick = async () => {
         if (busy || !progress(id).canUpgrade) return;
@@ -182,6 +206,7 @@ export function openRoster(ctx: ScreenContext, focusId = ctx.cards[0], forge = f
       };
     updateCollection();
     views();
+    if (!spell) showcase.preview(id, 'walk');
     $('#detail-close').focus({ preventScroll: true });
   };
   $('#deck-slots').onclick = (e) => {

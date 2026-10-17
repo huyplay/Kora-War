@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "description": "Presentation timings for the verified Elyndra catalog. Native clips stay unchanged; no combat windup or lockout.",
+  "heroes": [
+    {
+      "hero": "solan",
+      "expectedSha256": "0aefcaa5e041ed379bd66da1fcb0fa91edff11d486286a9cc9c38ec9d9503c03",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.55,
+        "castSeconds": 0.65,
+        "crossFadeSeconds": 0.07
+      }
+    },
+    {
+      "hero": "aurelia",
+      "expectedSha256": "38e2decf5c1ad782fd08cb4013a52b9b0733cfc49f5388a28940c57cd6827356",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.45,
+        "castSeconds": 0.65,
+        "crossFadeSeconds": 0.1
+      }
+    },
+    {
+      "hero": "lyra",
+      "expectedSha256": "0b1819d45f4a4c54460df542989ec9628016006728e71ada6ab76bebe9b80fb7",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.45,
+        "castSeconds": 0.6,
+        "crossFadeSeconds": 0.06
+      }
+    },
+    {
+      "hero": "brann",
+      "expectedSha256": "2568f7bc32415f826754896aa9f75b4dea971730e40cdb738c509394219f3ff7",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.6,
+        "castSeconds": 0.8,
+        "crossFadeSeconds": 0.1
+      }
+    },
+    {
+      "hero": "nyx",
+      "expectedSha256": "1103b6162cda18e698d21805a5b979da9cc270c8a1d8cd694da4f2dfe6d86b89",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.4,
+        "castSeconds": 0.5,
+        "crossFadeSeconds": 0.05
+      }
+    },
+    {
+      "hero": "vesper",
+      "expectedSha256": "9cf4232248eb9df34185b3924cce0b23930201831bf085784e4c9c25dd3b0cc6",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1_0"
+      },
+      "animation": {
+        "attackSeconds": 0.6,
+        "castSeconds": 0.7,
+        "crossFadeSeconds": 0.1
+      }
+    },
+    {
+      "hero": "kael",
+      "expectedSha256": "455b9e1e70323299543e1edbfc4b150fbd771b1123c983f5a0e03851b634df94",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.6,
+        "castSeconds": 0.65,
+        "crossFadeSeconds": 0.1
+      }
+    },
+    {
+      "hero": "mira",
+      "expectedSha256": "47c7e76abce9951dd471682934166502e9032e69eae36af95486e676dd1555da",
+      "clips": {
+        "attack": "Nami_attack1.anm",
+        "cast": "Nami_spell1.anm"
+      },
+      "animation": {
+        "attackSeconds": 0.5,
+        "castSeconds": 0.75,
+        "crossFadeSeconds": 0.1
+      }
+    },
+    {
+      "hero": "raiko",
+      "expectedSha256": "b99b12a464aa73e7dcf0b31da13b25dd8c43ca0602794cb159f9ce63869e9995",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.4,
+        "castSeconds": 0.55,
+        "crossFadeSeconds": 0.06
+      }
+    },
+    {
+      "hero": "orin",
+      "expectedSha256": "6eda8f9c8516ae27ce9b0552e2c4eb331998815e84672a6414e79b21910ec920",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.6,
+        "castSeconds": 0.5,
+        "crossFadeSeconds": 0.08
+      }
+    },
+    {
+      "hero": "elara",
+      "expectedSha256": "3c26b2868b784e07c315b92a9d9137bc9d366f3175e897cc280fd3b484cf9190",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.5,
+        "castSeconds": 0.65,
+        "crossFadeSeconds": 0.08
+      }
+    },
+    {
+      "hero": "seryn",
+      "expectedSha256": "ed7b1ae666bc78e457d607b7be0c9732c5c259eb16bbaee833436ce3b0be6f10",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.4,
+        "castSeconds": 0.5,
+        "crossFadeSeconds": 0.07
+      }
+    },
+    {
+      "hero": "kharos",
+      "expectedSha256": "25f761894dbad801282992a611de3444d1de6b3bf7b3cf7c4608fd2950db09e6",
+      "clips": {
+        "attack": "Zed_attack1.anm",
+        "cast": "Zed_spell1.anm"
+      },
+      "animation": {
+        "attackSeconds": 0.45,
+        "castSeconds": 0.6,
+        "crossFadeSeconds": 0.05
+      }
+    },
+    {
+      "hero": "torvyn",
+      "expectedSha256": "64ca4fce06b7dcc97fd46fc8a8aa98384754bdb325f70226c4432411002aac9c",
+      "clips": {
+        "attack": "Attack1",
+        "cast": "Spell1"
+      },
+      "animation": {
+        "attackSeconds": 0.6,
+        "castSeconds": 0.7,
+        "crossFadeSeconds": 0.08
+      }
+    }
+  ]
+}

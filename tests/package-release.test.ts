@@ -33,6 +33,8 @@ test('release rebuild removes stale output and excludes runtime data and build c
     file('backend/AssetApi/obj/cache');
     file('backend/AssetApi/bin/runtime.dll');
     file('public/design/image.png');
+    file('tools/install-model-animation.ts');
+    file('tools/unrelated-private-fixture.txt');
     file('.data/game.sqlite', 'test-only private data');
     file('.env', 'test-only secret');
     file('assets/.env.local', 'test-only nested secret');
@@ -68,6 +70,7 @@ test('release rebuild removes stale output and excludes runtime data and build c
       'backend/AssetApi/obj',
       'backend/AssetApi/bin',
       'server/removed.ts',
+      'tools/unrelated-private-fixture.txt',
     ])
       assert.equal(existsSync(join(output, name)), false, name + ' excluded after rebuild');
     for (const name of [
@@ -75,6 +78,7 @@ test('release rebuild removes stale output and excludes runtime data and build c
       'server/index.ts',
       'backend/AssetApi/source.cs',
       'public/design/image.png',
+      'tools/install-model-animation.ts',
       'START.md',
       'RELEASE.json',
     ])

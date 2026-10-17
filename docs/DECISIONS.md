@@ -1,5 +1,9 @@
 # Các quyết định đang áp dụng
 
+## 17/10/2026 — Xuất hiện và tan biến của tướng
+
+Tiếp tục đồ họa: content hiện hành dùng scale nhẹ và phủ dần lúc xuất hiện, model tử trận bỏ vòng phe rồi mờ trong cửa sổ giữ model có sẵn. Giữ clip/asset database, material riêng, giới hạn 12 model, pause/reduced motion và cleanup; content lịch sử giữ đường cũ. Không đổi luật hoặc phát hành content. Xem [QA vòng đời tướng](HERO-TRANSITIONS-QA.md).
+
 ## 16/10/2026 — Dấu hỗ trợ dưới chân tướng
 
 Tiếp tục đồ họa: tăng tốc dùng chevron theo hướng phe, suy yếu dùng ấn đứt đoạn, gom một lượt vẽ và bám bán kính/origin hiển thị. Màu và style từ snapshot database; legacy giữ vòng cũ. Không đổi luật, thời hạn hoặc phát hành content; hỗ trợ pause/reduced motion/reset/disposal. Xem [QA dấu hỗ trợ](SUPPORT-AURAS-QA.md).

@@ -78,6 +78,8 @@ export class ModelInstance {
   private clips: THREE.AnimationClip[];
   private ownedMaterials: THREE.Material[] = [];
   private hitUniform = { value: 0 };
+  private visibilityUniform = { value: 1 };
+  private disposed = false;
   private impactMaterialsReady = false;
   private motion = new THREE.Group();
   constructor(
@@ -116,6 +118,7 @@ export class ModelInstance {
     });
   }
   play(state: string, restart = false, elapsedSeconds?: number) {
+    if (this.disposed) return;
     if (this.state === state && !restart) return;
     const mapped = this.binding.clips[state as keyof ModelBinding['clips']];
     const fallback = this.binding.clips.idle;
@@ -148,6 +151,7 @@ export class ModelInstance {
       next.time = Math.max(0, Math.min(clip.duration, (elapsedSeconds * clip.duration) / duration));
   }
   update(unit: Unit, time: number, phase: Phase, dt: number) {
+    if (this.disposed) return;
     // Pausing preserves the current pose and action; it must not crossfade to idle.
     if (phase !== 'playing') return;
     const state = animationState(unit, time, phase, this.animationTiming);
@@ -178,12 +182,21 @@ export class ModelInstance {
     }
   }
   tick(dt: number) {
-    this.mixer.update(dt);
+    if (!this.disposed && Number.isFinite(dt) && dt > 0) this.mixer.update(dt);
   }
   setHitFlash(strength: number) {
+    if (this.disposed || !Number.isFinite(strength)) return;
     this.hitUniform.value = Math.max(0, Math.min(1, strength));
     this.motion.rotation.x = -this.hitUniform.value * 0.08;
-    if (this.impactMaterialsReady || strength <= 0) return;
+    if (strength > 0) this.feedbackMaterials();
+  }
+  setVisibility(coverage: number) {
+    if (this.disposed || !Number.isFinite(coverage)) return;
+    this.visibilityUniform.value = THREE.MathUtils.clamp(coverage, 0, 1);
+    if (coverage < 1) this.feedbackMaterials();
+  }
+  private feedbackMaterials() {
+    if (this.impactMaterialsReady) return;
     this.impactMaterialsReady = true;
     const variants = new Map<THREE.Material, THREE.Material>();
     this.model.traverse((object) => {
@@ -194,13 +207,23 @@ export class ModelInstance {
         const material = source.clone(),
           compile = source.onBeforeCompile,
           key = source.customProgramCacheKey();
-        material.customProgramCacheKey = () => `${key}:kora-impact-v1`;
+        material.customProgramCacheKey = () => `${key}:kora-model-feedback-v2`;
         material.onBeforeCompile = (shader, renderer) => {
           compile.call(material, shader, renderer);
           shader.uniforms.koraImpact = this.hitUniform;
+          shader.uniforms.koraVisibility = this.visibilityUniform;
           shader.fragmentShader = shader.fragmentShader.replace(
             '#include <common>',
-            '#include <common>\nuniform float koraImpact;',
+            '#include <common>\nuniform float koraImpact; uniform float koraVisibility;',
+          );
+          shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <alphatest_fragment>',
+            `if(koraVisibility < 1.) {
+              vec2 cell=mod(floor(gl_FragCoord.xy),4.);
+              float low=mod(2.*mod(cell.x,2.)+3.*mod(cell.y,2.),4.);
+              float high=mod(2.*floor(cell.x/2.)+3.*floor(cell.y/2.),4.);
+              if(koraVisibility < (low*4.+high+.5)/16.) discard;
+            }\n#include <alphatest_fragment>`,
           );
           shader.fragmentShader = shader.fragmentShader.replace(
             '#include <opaque_fragment>',
@@ -217,6 +240,7 @@ export class ModelInstance {
     });
   }
   teamPalette(side: number) {
+    if (this.disposed) return;
     if (side !== 1) return;
     const variants = new Map<THREE.Material, THREE.Material>();
     this.model.traverse((o) => {
@@ -246,6 +270,7 @@ export class ModelInstance {
     });
   }
   tint(color: string) {
+    if (this.disposed) return;
     const tint = new THREE.Color(color),
       variants = new Map<THREE.Material, THREE.Material>();
     this.model.traverse((object) => {
@@ -266,6 +291,8 @@ export class ModelInstance {
     });
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.model);
     this.ownedMaterials.forEach((m) => m.dispose());

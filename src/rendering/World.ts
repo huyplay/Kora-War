@@ -35,6 +35,7 @@ import { FloatingNumbers } from './vfx/floating-numbers';
 import { StructureAnimator } from './animation/structure-animator';
 import { StructureShadowRefresh } from './animation/structure-shadow-refresh';
 import { UnitFeedback } from './animation/unit-feedback';
+import { FallenHeroes, heroEntrance } from './animation/hero-transitions';
 import { FormationLayout } from './formation-layout';
 import { presentationOf } from '../data/presentation';
 import { unitBodyPoint, unitVisualMetrics } from './unit-visual-metrics';
@@ -68,10 +69,7 @@ export class World {
   private templates = new Map<string, ModelInstance>();
   private mapInstances: ModelInstance[] = [];
   private coreModels: ModelInstance[] = [];
-  private corpses: {
-    model: ModelInstance;
-    age: number;
-  }[] = [];
+  private corpses = new FallenHeroes();
   private prefabs = createHeroPrefabs();
   private sprites = new SpriteEffects();
   private resizeObserver: ResizeObserver;
@@ -554,8 +552,7 @@ export class World {
     this.towerHealth.reset();
     this.structureDamage.reset();
     this.unitOverlays.reset();
-    this.corpses.forEach((c) => c.model.dispose());
-    this.corpses = [];
+    this.corpses.reset();
     this.sprites.reset();
     this.clock = 0;
     this.clearHover();
@@ -582,11 +579,9 @@ export class World {
     }
   }
   disposeUnit(v: Visual, death = false) {
-    if (v.imported && death && this.corpses.length < 12) {
-      v.imported.play('death', true);
-      this.scene.add(v.imported.root);
-      this.corpses.push({ model: v.imported, age: 0 });
-    } else v.imported?.dispose();
+    if (v.imported && death)
+      this.corpses.add(v.imported, this.scene, !!this.content?.vfx.readability, this.reducedMotion.matches);
+    else v.imported?.dispose();
   }
   dispose() {
     this.showcase?.dispose();
@@ -597,6 +592,7 @@ export class World {
     this.scene.remove(this.sprites.root);
     this.prefabs.dispose();
     this.reset();
+    this.corpses.dispose();
     this.spellEffects.dispose();
     this.accents.dispose();
     this.heroProjectiles.dispose();
@@ -656,6 +652,7 @@ export class World {
         }
         v.imported = instance;
         const ring = new THREE.Mesh(unitRingGeometry, teamRings[u.side]);
+        ring.name = 'UnitTeamRing';
         ring.rotation.x = -Math.PI / 2;
         ring.position.y = 0.21;
         ring.scale.setScalar(1.25);
@@ -868,8 +865,15 @@ export class World {
       const z = point.z;
       v.group.position.x = point.x;
       v.group.position.z = z;
-      const born = Math.min(1, (battle.time - u.born) * 3 + 0.15);
+      const entrance = heroEntrance(
+        battle.time,
+        u.born,
+        this.reducedMotion.matches,
+        !!this.content?.vfx.readability,
+      );
+      const born = entrance.scale;
       v.group.scale.setScalar(born * point.scale);
+      v.imported?.setVisibility(entrance.visibility);
       anchors?.set(u.id, { unit: u, position: v.group.position.clone(), scale: v.group.scale.x });
       const metrics = unitVisualMetrics(this.content?.models[u.heroId]?.height ?? 2.4, v.group.scale.y);
       this.statusBodies.add(
@@ -1088,17 +1092,7 @@ export class World {
       },
       this.reducedMotion.matches,
     );
-    for (let i = this.corpses.length - 1; i >= 0; i--) {
-      const corpse = this.corpses[i];
-      if (battle.phase === 'playing') {
-        corpse.age += animationDt;
-        corpse.model.tick(animationDt);
-      }
-      if (corpse.age > 1.1) {
-        corpse.model.dispose();
-        this.corpses.splice(i, 1);
-      }
-    }
+    this.corpses.update(animationDt, this.reducedMotion.matches);
     this.coreModels.forEach((model, side) => {
       model.root.scale.setScalar(battle.cores[side] <= 0 ? 0.05 : 1);
       model.root.position.x = (side ? 1 : -1) * (battle.gameplay.board.coreX + 1);

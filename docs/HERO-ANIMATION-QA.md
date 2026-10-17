@@ -45,3 +45,5 @@ Edge trên Windows, cùng bộ model GLB thật. Kiểm desktop, CSS viewport **
 ## Giới hạn
 
 Chưa benchmark Android/iOS vật lý, kiểm WAN hoặc tải nhiều người. Chunk Three.js vẫn khoảng 590kB minified và còn cảnh báo 500kB của Vite. Không đổi timing death/corpse, model/texture bytes, chiêu hoặc công thức damage. Preview chỉ xem clip, chưa dựng sandbox đối thủ để chứng minh tác dụng kỹ năng. Đánh giá pose/vũ khí ở toàn bộ frame của mọi rig và cue kỹ năng theo đúng recipient vẫn nằm trong backlog báo cáo khảo sát.
+
+Cập nhật tiếp nối #92: đã bổ sung ID người tung/nhận và glyph theo nhóm hiệu ứng; xem [QA mục tiêu kỹ năng](SKILL-TARGETS-QA.md). Preview clip vẫn giữ phạm vi như trên.

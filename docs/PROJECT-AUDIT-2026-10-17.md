@@ -139,8 +139,8 @@ Nhịp mới là lựa chọn trình bày cho lượt polish này, không phải
 
 | Ưu tiên | Công việc cụ thể | Nghiệm thu / phụ thuộc |
 |---|---|---|
-| P1: kỹ năng | Event cycle ghi ID người tung và danh sách người nhận từng hiệu ứng; renderer không đoán theo tướng/vị trí | Hai bản cùng tướng sát nhau vẫn phát cue đúng người; legacy thiếu metadata giữ fallback; đối xứng PvP, deterministic và golden không đổi |
-| P1: bản sắc chiêu | Hiệu ứng riêng theo nhóm damage/heal/shield/control, gắn đúng mục tiêu đã xác nhận | Nhìn thấy chủ thể và kết quả; pool hữu hạn, không thêm damage/windup, ưu tiên cue hữu ích khi đông quân |
+| Đã làm: ID kỹ năng (#92) | Event cycle ghi đúng ID người tung và danh sách người nhận từng hiệu ứng; renderer tra ID | Hai bản cùng tướng, lethal/missing, legacy và đảo phe có regression; đối chiếu 24 trường hợp giữ nguyên combat, xem [QA](SKILL-TARGETS-QA.md) |
+| Đã làm: nhóm hiệu ứng (#92) | Dấu damage/heal/shield/slow/stun gắn đúng người nhận, pool hữu hạn; giữ sprite hiện có | Kiểm renderer/model thật; asset chiêu riêng từng tướng và playtest đông quân vẫn cần tiếp tục |
 | P1: căn khung model | QA từng rig khi đánh/cast, nhất là kiếm dài, khiên và model bay; kiểm đội đông trên 3 lane | Không cắt vũ khí trong portrait/detail, không đè HP bar, không thay vị trí logic để sửa hình |
 | P1: animation | Playtest nhịp mới trong giao tranh, căn tốc độ đi theo rig và bộ clip phù hợp | Thấy rõ đòn nhưng không trượt chân quá mức; snapshot trễ/freeze/death cùng hoạt động; không thêm luật timing vào renderer |
 | P1: cân bằng | Chạy trận nhiều seed/deck, đo thời gian kết thúc, chi phí/mức hiệu quả, tỷ lệ dùng từng thẻ | Có số liệu và playtest trước đề xuất đổi chỉ số; admin publish revision riêng khi được duyệt |
@@ -154,4 +154,4 @@ Các thay đổi như đạn chạm mới gây sát thương, cast windup, chu k
 
 ## 9. QA và phạm vi bàn giao
 
-Xem [QA hoạt ảnh](HERO-ANIMATION-QA.md) cho test, browser, installer và giới hạn cụ thể. Không có chứng cứ để tuyên bố đã đạt toàn bộ tiêu chuẩn sản xuất của Castle Crush hoặc hết mọi lỗi. Đợt này hoàn thành báo cáo khảo sát và một gói nâng cấp model/animation có thể kiểm tra; roadmap ở trên vẫn là việc tiếp theo.
+Xem [QA hoạt ảnh](HERO-ANIMATION-QA.md) và [QA mục tiêu kỹ năng](SKILL-TARGETS-QA.md) cho test, browser, installer và giới hạn cụ thể. Không có chứng cứ để tuyên bố đã đạt toàn bộ tiêu chuẩn sản xuất của Castle Crush hoặc hết mọi lỗi. Đã hoàn thành báo cáo, gói nhịp model/animation và lớp dấu kỹ năng theo ID; các mục chưa đánh dấu hoàn thành ở roadmap vẫn cần tiếp tục.

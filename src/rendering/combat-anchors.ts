@@ -1,8 +1,13 @@
-import type { GameEvent, Unit } from '../core/types';
+import type { GameEvent, SkillTarget, Unit } from '../core/types';
 export interface CombatAnchor {
   unit: Unit;
   position: { x: number; y: number; z: number };
   scale: number;
+}
+export interface CombatEventAnchors {
+  source: CombatAnchor | undefined;
+  target: CombatAnchor | undefined;
+  recipients?: { trace: SkillTarget; anchor: CombatAnchor | undefined }[];
 }
 function matches(hit: GameEvent | undefined, shot: GameEvent) {
   return (
@@ -19,21 +24,24 @@ export function combatEventAnchors(
   events: readonly GameEvent[],
   index: number,
   anchors: ReadonlyMap<number, CombatAnchor>,
-) {
+): CombatEventAnchors {
   const event = events[index];
-  const source = Array.from(anchors.values())
-    .filter(
-      (anchor) =>
-        anchor.unit.side === event.side &&
-        anchor.unit.lane === event.lane &&
-        (!event.heroId || anchor.unit.heroId === event.heroId),
-    )
-    .sort(
-      (a, b) =>
-        Math.abs(a.unit.x - event.x) - Math.abs(b.unit.x - event.x) ||
-        Math.abs(a.unit.attackAt - event.time) - Math.abs(b.unit.attackAt - event.time) ||
-        a.unit.id - b.unit.id,
-    )[0];
+  const source =
+    event.sourceId !== undefined
+      ? anchors.get(event.sourceId)
+      : Array.from(anchors.values())
+          .filter(
+            (anchor) =>
+              anchor.unit.side === event.side &&
+              anchor.unit.lane === event.lane &&
+              (!event.heroId || anchor.unit.heroId === event.heroId),
+          )
+          .sort(
+            (a, b) =>
+              Math.abs(a.unit.x - event.x) - Math.abs(b.unit.x - event.x) ||
+              Math.abs(a.unit.attackAt - event.time) - Math.abs(b.unit.attackAt - event.time) ||
+              a.unit.id - b.unit.id,
+          )[0];
   let targetId = event.targetId;
   if (event.type === 'projectile') {
     const hit = event.heroId
@@ -73,5 +81,11 @@ export function combatEventAnchors(
       targetId = hit.targetId;
   }
   const target = targetId === undefined ? undefined : anchors.get(targetId);
-  return { source, target };
+  return {
+    source,
+    target,
+    ...(event.skillTargets === undefined
+      ? {}
+      : { recipients: event.skillTargets.map((trace) => ({ trace, anchor: anchors.get(trace.unitId) })) }),
+  };
 }

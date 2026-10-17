@@ -39,6 +39,7 @@ import { FormationLayout } from './formation-layout';
 import { presentationOf } from '../data/presentation';
 import { unitBodyPoint, unitVisualMetrics } from './unit-visual-metrics';
 import { HeroProjectiles } from './vfx/hero-projectiles';
+import { SkillTargetEffects } from './vfx/skill-targets';
 import { UnitStatusBodies } from './vfx/unit-status-bodies';
 import { combatEventAnchors, type CombatAnchor } from './combat-anchors';
 const AIM_VFX = defaultContent().vfx;
@@ -79,6 +80,7 @@ export class World {
   private atmosphere = new ArenaAtmosphere();
   private accents = new CombatAccents();
   private heroProjectiles = new HeroProjectiles();
+  private skillTargets = new SkillTargetEffects();
   private statusBodies = new UnitStatusBodies();
   private reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   private contactShadows = new ContactShadows();
@@ -172,6 +174,7 @@ export class World {
       this.atmosphere.root,
       this.accents.root,
       this.heroProjectiles.root,
+      this.skillTargets.root,
       this.statusBodies.root,
     );
     this.scene.add(this.contactShadows.root, this.numbers.root, this.structures.root);
@@ -263,6 +266,7 @@ export class World {
     await this.models.supportTextures(this.renderer);
     this.sprites.configure(content.vfx);
     this.heroProjectiles.configure(content.vfx.combat);
+    this.skillTargets.configure(content.vfx, content.heroes, content.models);
     this.accents.configure(content.vfx.readability, [content.vfx.ally, content.vfx.enemy]);
     this.statusBodies.configure(content.vfx.feedback?.bodies);
     this.numbers.configure(content.vfx.feedback?.numbers);
@@ -539,6 +543,7 @@ export class World {
     this.spellEffects.reset();
     this.accents.reset();
     this.heroProjectiles.reset();
+    this.skillTargets.reset();
     this.statusBodies.reset();
     this.numbers.reset();
     this.contactShadows.begin();
@@ -595,6 +600,7 @@ export class World {
     this.spellEffects.dispose();
     this.accents.dispose();
     this.heroProjectiles.dispose();
+    this.skillTargets.dispose();
     this.statusBodies.dispose();
     this.atmosphere.dispose();
     this.numbers.dispose();
@@ -699,6 +705,12 @@ export class World {
     }
   }
   effect(e: GameEvent, anchors?: ReturnType<typeof combatEventAnchors>) {
+    if (e.type === 'skill' && e.skillTargets !== undefined && this.content?.vfx.readability) {
+      const now = this.placementState?.time ?? e.time,
+        age = now - e.time;
+      if (age < -1e-8 || age >= this.content.vfx.readability.maxDuration) return;
+      this.skillTargets.emit(e, anchors, now, this.reducedMotion.matches);
+    }
     // Modern HP feedback supplies the recipient; historical heal events have no target ID.
     if (e.type === 'heal' && this.sprites.recoveryManaged) return;
     const point = ['hit', 'death'].includes(e.type)
@@ -1054,6 +1066,13 @@ export class World {
     this.accents.observe(battle.units, battle.time, meleePosition, this.reducedMotion.matches);
     this.accents.update(animationDt, this.camera, this.reducedMotion.matches, meleePosition);
     this.sprites.update(animationDt, this.reducedMotion.matches, meleePosition);
+    this.skillTargets.update(
+      animationDt,
+      this.camera,
+      meleePosition,
+      this.reducedMotion.matches,
+      this.canvas.clientHeight,
+    );
     this.heroProjectiles.update(
       animationDt,
       this.camera,

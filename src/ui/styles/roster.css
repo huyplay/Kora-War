@@ -522,6 +522,21 @@
   outline: 2px solid #fff0bc;
   outline-offset: 2px;
 }
+.model-preview-status {
+  position: absolute;
+  top: 48px;
+  left: 4px;
+  right: 4px;
+  z-index: 3;
+  margin: 0;
+  padding: 5px;
+  border-radius: 6px;
+  background: #162131ed;
+  color: #f0d29c;
+  font-size: 11px;
+  text-align: center;
+  pointer-events: none;
+}
 .detail-preview {
   position: absolute;
   inset: 0 0 68px;

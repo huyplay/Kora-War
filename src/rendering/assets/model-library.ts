@@ -82,6 +82,10 @@ export class ModelInstance {
   private disposed = false;
   private impactMaterialsReady = false;
   private motion = new THREE.Group();
+  /** Read-only shared clips for isolated presentation sampling; callers must not edit them. */
+  get animationClips(): readonly THREE.AnimationClip[] {
+    return this.clips;
+  }
   constructor(
     source: THREE.Object3D,
     clips: THREE.AnimationClip[],

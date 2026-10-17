@@ -6,6 +6,12 @@ import { visibleModelBounds } from './assets/model-parts';
 import { animateUnit } from './animation/unit-animator';
 import { DEFAULT_MODEL_ANIMATION } from '../data/model-animation';
 import type { Unit } from '../core/types';
+import {
+  frameShowcase,
+  showcaseEnvelope,
+  showcaseWorldBounds,
+  type ShowcaseFraming,
+} from './animation/showcase-framing';
 
 export type ShowcaseAction = 'idle' | 'walk' | 'attack' | 'cast';
 
@@ -19,10 +25,14 @@ interface Figure {
   camera: THREE.OrthographicCamera;
   instance?: ModelInstance;
   fallback?: THREE.Group;
-  height: number;
-  width: number;
+  bounds: THREE.Box3;
+  framing?: ShowcaseFraming;
+  actionBounds?: ShowcaseFraming['actions'];
+  framedBounds?: THREE.Box3;
+  framedAspect?: number;
   action: ShowcaseAction;
   actionAge: number;
+  preparing?: boolean;
 }
 
 /** A roster borrows World's renderer; no extra WebGL context or asset downloads. */
@@ -100,32 +110,52 @@ export class HeroShowcase {
       if (!this.figures.has(id)) {
         const figure = this.create(id);
         this.figures.set(id, figure);
-        if (!isSpell(id))
+        if (!isSpell(id)) {
+          figure.preparing = true;
           void this.load(id)
-            .then((instance) => {
+            .then(async (instance) => {
               if (!instance) return;
               if (this.disposed) {
+                instance.dispose();
+                return;
+              }
+              instance.root.rotation.y =
+                (((instance.binding.showcaseYaw ?? instance.binding.portraitYaw ?? 0) -
+                  instance.binding.yaw) *
+                  Math.PI) /
+                180;
+              let envelope: ShowcaseFraming | undefined;
+              try {
+                envelope = await showcaseEnvelope(instance, this.lifetime.signal);
+              } catch {
+                // Keep the procedural preview if the imported rig cannot be measured safely.
+              }
+              if (this.disposed || !envelope) {
                 instance.dispose();
                 return;
               }
               figure.pivot.clear();
               figure.fallback = undefined;
               figure.instance = instance;
-              instance.root.rotation.y =
-                (((instance.binding.showcaseYaw ?? instance.binding.portraitYaw ?? 0) -
-                  instance.binding.yaw) *
-                  Math.PI) /
-                180;
-              instance.play(figure.action, true);
-              instance.tick(0.2);
               figure.pivot.add(instance.root);
-              this.measure(figure);
+              this.measure(figure, envelope);
+              figure.framing = envelope;
+              if (envelope && !envelope.actions[figure.action]) figure.action = 'idle';
+              if (!envelope || envelope.actions[figure.action]) {
+                instance.play(figure.action, true);
+                instance.tick(0.2);
+              } else instance.mixer.stopAllAction();
+              figure.actionAge = 0;
               this.dirty = true;
               this.wake();
             })
             .catch(() => {
               /* Keep the procedural figure if a model is unavailable. */
+            })
+            .finally(() => {
+              figure.preparing = false;
             });
+        }
       }
     this.dirty = true;
     this.wake();
@@ -134,7 +164,9 @@ export class HeroShowcase {
   preview(id: string, action: ShowcaseAction) {
     const figure = this.figures.get(id);
     if (this.disposed || !figure || isSpell(id) || !this.views.some((view) => view.id === id)) return false;
+    if (figure.preparing) return false;
     if (figure.instance && !figure.instance.binding.clips[action]) return false;
+    if (figure.framing && !figure.framing.actions[action]) return false;
     figure.action = action;
     figure.actionAge = 0;
     figure.instance?.play(action, true);
@@ -181,8 +213,7 @@ export class HeroShowcase {
       pivot,
       fallback,
       camera: new THREE.OrthographicCamera(),
-      height: 2.4,
-      width: 2,
+      bounds: new THREE.Box3(),
       action: 'walk',
       actionAge: 0,
     };
@@ -209,7 +240,7 @@ export class HeroShowcase {
     scene.add(pedestal, band);
     return figure;
   }
-  private measure(figure: Figure) {
+  private measure(figure: Figure, envelope?: ShowcaseFraming) {
     figure.pivot.scale.setScalar(1);
     figure.pivot.position.set(0, 0, 0);
     figure.pivot.rotation.set(0, 0, 0);
@@ -221,8 +252,20 @@ export class HeroShowcase {
     figure.pivot.position.x = (-(box.min.x + box.max.x) * scale) / 2;
     figure.pivot.position.z = (-(box.min.z + box.max.z) * scale) / 2;
     figure.pivot.position.y = -box.min.y * scale;
-    figure.height = 3.05;
-    figure.width = Math.max(2.3, (box.max.x - box.min.x) * scale * 1.15);
+    figure.bounds = showcaseWorldBounds(
+      envelope?.rest ?? box.clone().expandByVector(box.getSize(new THREE.Vector3()).multiplyScalar(0.15)),
+      scale,
+      figure.pivot.position,
+      !figure.fallback && !figure.instance,
+    );
+    figure.actionBounds = envelope
+      ? Object.fromEntries(
+          Object.entries(envelope.actions).map(([state, bounds]) => [
+            state,
+            showcaseWorldBounds(bounds, scale, figure.pivot.position),
+          ]),
+        )
+      : undefined;
   }
   private wake() {
     if (!this.frame && !this.disposed && !document.hidden) this.frame = requestAnimationFrame(this.render);
@@ -260,7 +303,8 @@ export class HeroShowcase {
                   : Infinity;
             if (figure.actionAge >= duration) {
               figure.action = 'idle';
-              figure.instance?.play('idle');
+              if (!figure.framing || figure.framing.actions.idle) figure.instance?.play('idle');
+              else figure.instance?.mixer.stopAllAction();
             }
             figure.instance?.tick(dt);
             if (figure.fallback) {
@@ -271,18 +315,14 @@ export class HeroShowcase {
               : Math.sin(this.clock * 0.7) * 0.14;
           }
         }
-        const aspect = box.width / box.height,
-          height = Math.max(figure.height, figure.width / aspect);
         const c = figure.camera;
-        c.left = (-height * aspect) / 2;
-        c.right = -c.left;
-        c.top = height / 2;
-        c.bottom = -c.top;
-        c.near = 0.1;
-        c.far = 30;
-        c.position.set(0, 2.85, 8);
-        c.lookAt(0, 1.3, 0);
-        c.updateProjectionMatrix();
+        const bounds = figure.actionBounds?.[figure.action] ?? figure.bounds,
+          aspect = box.width / box.height;
+        if (figure.framedBounds !== bounds || figure.framedAspect !== aspect) {
+          frameShowcase(c, bounds, aspect);
+          figure.framedBounds = bounds;
+          figure.framedAspect = aspect;
+        }
         r.setViewport(box.left - rect.left, rect.bottom - box.bottom, box.width, box.height);
         r.setScissor(box.left - rect.left, rect.bottom - box.bottom, box.width, box.height);
         r.render(figure.scene, c);

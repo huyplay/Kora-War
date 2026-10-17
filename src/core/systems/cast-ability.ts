@@ -1,7 +1,7 @@
 import type { TargetQuery } from '../../data/abilities';
 import type { Hero } from '../../data/index';
 import type { Battle } from '../Battle';
-import type { Unit } from '../types';
+import type { SkillTarget, Unit } from '../types';
 import { applySlowEffect } from './slow-effects';
 interface AbilityContext {
   caster: Unit;
@@ -89,8 +89,11 @@ export function castAbility(battle: Battle, caster: Unit, hero: Hero, enemies: U
         engaged.x + (caster.side === 0 ? 1 : -1) * definition.engage!.offset,
       ),
     );
+  const recipients = battle.cycling ? new Map<number, SkillTarget>() : undefined;
   for (const effect of definition.effects) {
     for (const unit of selectTargets(effect.targets, ctx)) {
+      const hp = unit.hp,
+        shield = unit.shield;
       switch (effect.kind) {
         case 'damage':
           battle.damage(unit, effect.amount, caster.side, caster);
@@ -113,6 +116,23 @@ export function castAbility(battle: Battle, caster: Unit, hero: Hero, enemies: U
           unit.stunUntil = battle.time + (effect.duration ?? 0);
           break;
       }
+      // Observe the existing operation without filtering/reordering combat targets.
+      const applied =
+        effect.kind === 'damage'
+          ? unit.hp < hp || unit.shield < shield
+          : effect.kind === 'heal'
+            ? unit.hp > hp
+            : effect.kind === 'shield'
+              ? unit.hp > 0 && unit.shield > shield
+              : unit.hp > 0 && (effect.duration ?? 0) > 0;
+      if (recipients && applied) {
+        let recipient = recipients.get(unit.id);
+        if (!recipient) {
+          recipient = { unitId: unit.id, x: unit.x, side: unit.side, effects: [] };
+          recipients.set(unit.id, recipient);
+        }
+        if (!recipient.effects.includes(effect.kind)) recipient.effects.push(effect.kind);
+      }
     }
   }
   caster.skillAt = battle.time;
@@ -125,6 +145,7 @@ export function castAbility(battle: Battle, caster: Unit, hero: Hero, enemies: U
     toX: target?.x,
     heroId: hero.id,
     label: hero.ability,
+    ...(recipients ? { sourceId: caster.id, skillTargets: [...recipients.values()] } : {}),
   });
   return true;
 }

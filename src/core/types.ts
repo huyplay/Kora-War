@@ -1,3 +1,4 @@
+import type { AbilityEffect } from '../data/abilities';
 export type Side = 0 | 1;
 export type Phase = 'ready' | 'playing' | 'paused' | 'ended';
 export type Difficulty = 'story' | 'normal' | 'hard';
@@ -44,6 +45,13 @@ export interface Tower {
   maxHp: number;
   cooldown: number;
 }
+/** Presentation trace of effects already resolved by combat, never client command input. */
+export interface SkillTarget {
+  unitId: number;
+  x: number;
+  side: Side;
+  effects: AbilityEffect['kind'][];
+}
 export interface GameEvent {
   id: number;
   time: number;
@@ -53,6 +61,8 @@ export interface GameEvent {
   x: number;
   toX?: number;
   targetId?: number;
+  sourceId?: number;
+  skillTargets?: SkillTarget[];
   value?: number;
   heroId?: string;
   label?: string;

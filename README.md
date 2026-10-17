@@ -104,6 +104,8 @@ PvP có phòng bạn bè, hàng chờ ranked/casual và Thử thách. Mô phỏn
 
 [Khảo sát toàn project, REA và đối chiếu Castle Crush/TFT/Liên Quân ngày 17/10](docs/PROJECT-AUDIT-2026-10-17.md). Chi tiết tướng có nút xem Đứng/Đi/Đánh/Chiêu; admin cấu hình nhịp từng model. Chạy `npm run presentation:animation` để cài gói nhịp 14 tướng có backup và giữ tùy chỉnh admin; xem [QA và hướng dẫn](docs/HERO-ANIMATION-QA.md).
 
+Kỹ năng cycle ghi đúng người tung và từng người nhận damage/heal/shield/slow/stun; dấu hiệu ứng bám ID model, hỗ trợ đảo phe PvP và replay cũ. Xem [QA mục tiêu kỹ năng](docs/SKILL-TARGETS-QA.md).
+
 ## Chơi PvP
 
 Chạy `npm run start`, mở game ở hai trình duyệt/profile khác nhau để có hai cookie người chơi. Chọn bộ bài trước trận; người thứ nhất bấm **PvP · Đấu bạn bè → Tạo phòng**, người thứ hai nhập mã và bấm **Vào phòng**. Chọn tối đa 2 thẻ đổi rồi chốt bài; sau 15 giây server tự giữ bài nếu chưa chốt. Cả hai luôn thấy đội mình bên trái, chỉ thấy lưng bài đối thủ. Trận không tạm dừng khi ẩn tab. Server mặc định chỉ nghe loopback; chơi qua Internet cần triển khai cùng origin/HTTPS riêng.

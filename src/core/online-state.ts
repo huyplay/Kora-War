@@ -22,6 +22,15 @@ export function onlineState(b: Battle, viewer: Side) {
       side: side(e.side),
       x: x(e.x),
       ...(e.toX === undefined ? {} : { toX: x(e.toX) }),
+      ...(e.skillTargets === undefined
+        ? {}
+        : {
+            skillTargets: e.skillTargets.map((target) => ({
+              ...target,
+              x: x(target.x),
+              side: side(target.side),
+            })),
+          }),
     })),
     spellZones: b.spellZones.map((z) => ({ ...z, side: side(z.side), x: x(z.x) })),
     ...(b.cycling

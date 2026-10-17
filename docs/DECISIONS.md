@@ -1,5 +1,9 @@
 # Các quyết định đang áp dụng
 
+## 17/10/2026 — Căn khung hoạt ảnh bộ sưu tập
+
+Preview đo vùng chuyển động theo từng clip trên skeleton riêng, giữ camera ổn định trong động tác và tính cả chiều sâu/sway. Cache và công việc chuẩn bị có giới hạn/hủy; giữ shared resources và quy ước reduced motion. Clip có extent bất thường bị từ chối trong preview, theo dõi sửa asset ở #96; không đổi combat hoặc publish content. Xem [QA căn khung](SHOWCASE-FRAMING-QA.md).
+
 ## 17/10/2026 — Xuất hiện và tan biến của tướng
 
 Tiếp tục đồ họa: content hiện hành dùng scale nhẹ và phủ dần lúc xuất hiện, model tử trận bỏ vòng phe rồi mờ trong cửa sổ giữ model có sẵn. Giữ clip/asset database, material riêng, giới hạn 12 model, pause/reduced motion và cleanup; content lịch sử giữ đường cũ. Không đổi luật hoặc phát hành content. Xem [QA vòng đời tướng](HERO-TRANSITIONS-QA.md).

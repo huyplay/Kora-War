@@ -170,14 +170,21 @@ export function openRoster(ctx: ScreenContext, focusId = ctx.cards[0], forge = f
             `<button type="button" data-preview-action="${action}" aria-pressed="${action === 'walk'}" aria-label="Xem ${['đứng', 'di chuyển', 'đánh thường', 'kỹ năng'][i]} của ${escapeHTML(data.name)}">${['Đứng', 'Đi', 'Đánh', 'Chiêu'][i]}</button>`,
         )
         .join('');
-      detail.querySelector('.detail-figure')!.append(controls);
+      const previewStatus = document.createElement('p');
+      previewStatus.className = 'model-preview-status';
+      previewStatus.setAttribute('role', 'status');
+      previewStatus.hidden = true;
+      detail.querySelector('.detail-figure')!.append(controls, previewStatus);
       controls.onclick = (event) => {
         const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-preview-action]');
         if (!button) return;
         if (!showcase.preview(id, button.dataset.previewAction as ShowcaseAction)) {
-          ctx.toast('Model chưa có hoạt ảnh này.');
+          previewStatus.textContent = 'Hoạt ảnh chưa sẵn sàng.';
+          previewStatus.hidden = false;
           return;
         }
+        previewStatus.hidden = true;
+        previewStatus.textContent = '';
         controls
           .querySelectorAll('button')
           .forEach((item) => item.setAttribute('aria-pressed', String(item === button)));

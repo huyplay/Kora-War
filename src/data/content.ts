@@ -1,4 +1,5 @@
 import { defaultArenaPresentation } from './arena-presentation';
+import { validateModelAnimation, type ModelAnimationTiming } from './model-animation';
 import { defaultCompetition, validateCompetition, type CompetitionConfig } from './competition';
 import { ABILITIES, DEFAULT_ENGAGE, type AbilityDefinition } from './abilities';
 import { HEROES } from './heroes';
@@ -33,6 +34,7 @@ export interface ModelBinding {
   hiddenMaterials?: string[];
   clips: Partial<Record<'idle' | 'walk' | 'attack' | 'cast' | 'stunned' | 'spawn' | 'death', string>>;
   animationAssetId?: string;
+  animation?: Partial<ModelAnimationTiming>;
 }
 export interface MapProp {
   assetId: string;
@@ -273,6 +275,7 @@ export function validateContent(input: unknown): asserts input is ContentConfig 
   if (!c.models || Object.keys(c.models).some((id) => !c.heroes.some((h) => h.id === id)))
     fail('Model gán vào tướng không tồn tại.');
   for (const m of Object.values(c.models)) {
+    if (m.animation !== undefined) validateModelAnimation(m.animation);
     if (
       !asset(m.assetId) ||
       !num(m.height, 0.2, 5) ||

@@ -1,0 +1,79 @@
+{
+  "source": {
+    "evidenceId": "ev_75afd93e01c589e1897a5bbe8f4b390b187400741fdf13cfca8c424e403bb2eb",
+    "artifactSha256": "da7578ae8ba05cf023f3d837d41bd29669954d5316726fe8fa5745c0fd3d4931",
+    "statistics": {
+      "relevant_files": 162,
+      "nested_asar_containers": 0,
+      "text_bytes_read": 686365,
+      "invalid_utf8_files": 0,
+      "parsed_javascript_files": 162,
+      "visited_ast_nodes": 113485,
+      "findings": 1542,
+      "modules": 0,
+      "parse_failures": 0
+    },
+    "nodes": 1428,
+    "edges": 1528,
+    "kinds": {
+      "javascript-module": 1249,
+      "javascript-asset": 162,
+      "endpoint": 13,
+      "storage": 3,
+      "artifact": 1
+    },
+    "semanticNodes": 65533,
+    "semanticRelations": 50886,
+    "coverage": {
+      "status": "partial",
+      "truncated": false,
+      "omitted_count": null,
+      "limits": []
+    },
+    "limitations": [
+      "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+      "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+      "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+      "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+      "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+      "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+    ]
+  },
+  "server": {
+    "evidenceId": "ev_962f1a7748afd641d86b30f68a03b17f97ecf23491501a0f1007f4947fd35424",
+    "artifactSha256": "21cc50bb98b6ba68cf9d6526afcc5201820235a28d9dfce309f24e77ac9c95a1",
+    "statistics": {
+      "relevant_files": 19,
+      "nested_asar_containers": 0,
+      "text_bytes_read": 121820,
+      "invalid_utf8_files": 0,
+      "parsed_javascript_files": 19,
+      "visited_ast_nodes": 19097,
+      "findings": 260,
+      "modules": 0,
+      "parse_failures": 0
+    },
+    "nodes": 214,
+    "edges": 246,
+    "kinds": {
+      "javascript-asset": 19,
+      "javascript-module": 194,
+      "artifact": 1
+    },
+    "semanticNodes": 12375,
+    "semanticRelations": 10668,
+    "coverage": {
+      "status": "complete",
+      "truncated": false,
+      "omitted_count": 0,
+      "limits": []
+    },
+    "limitations": [
+      "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+      "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+      "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+      "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+      "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+    ]
+  }
+}

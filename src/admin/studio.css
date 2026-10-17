@@ -1057,3 +1057,12 @@ main > header {
   min-height: 20px;
   flex: 0 0 20px;
 }
+.animation-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.animation-preview-actions button {
+  min-height: 44px;
+}

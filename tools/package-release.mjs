@@ -27,12 +27,15 @@ for (const name of [
   'backend',
   'assets',
   'public',
+  'tools/install-model-animation.ts',
 ])
-  if (existsSync(name))
+  if (existsSync(name)) {
+    mkdirSync(dirname(join(target, name)), { recursive: true });
     cpSync(name, join(target, name), {
       recursive: true,
       filter: (path) => !/[\\/](node_modules|bin|obj|\.data|\.env[^\\/]*)([\\/]|$)/.test(path),
     });
+  }
 writeFileSync(
   join(target, 'RELEASE.json'),
   JSON.stringify(

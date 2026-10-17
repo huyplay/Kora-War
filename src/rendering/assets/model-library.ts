@@ -4,6 +4,7 @@ import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import type { Phase, Unit } from '../../core/types';
 import type { ModelBinding } from '../../data/content';
+import { modelAnimationTiming } from '../../data/model-animation';
 import { animationState } from '../animation/unit-animator';
 import { selectModelLod } from './model-lod';
 import { hideModelMaterials, visibleModelBounds } from './model-parts';
@@ -65,6 +66,7 @@ export class ModelLibrary {
   }
 }
 export class ModelInstance {
+  readonly animationTiming;
   readonly root = new THREE.Group();
   readonly footprintRadius: number;
   readonly mixer: THREE.AnimationMixer;
@@ -83,6 +85,7 @@ export class ModelInstance {
     clips: THREE.AnimationClip[],
     readonly binding: ModelBinding,
   ) {
+    this.animationTiming = modelAnimationTiming(binding.animation);
     this.model = clone(source);
     selectModelLod(this.model);
     this.ownedMaterials.push(...hideModelMaterials(this.model, binding.hiddenMaterials));
@@ -112,7 +115,7 @@ export class ModelInstance {
       }
     });
   }
-  play(state: string, restart = false) {
+  play(state: string, restart = false, elapsedSeconds?: number) {
     if (this.state === state && !restart) return;
     const mapped = this.binding.clips[state as keyof ModelBinding['clips']];
     const fallback = this.binding.clips.idle;
@@ -126,20 +129,28 @@ export class ModelInstance {
     // An idle fallback must keep looping, even if requested for spawn or attack.
     const once =
       ['attack', 'cast', 'death', 'spawn'].includes(state) && clip.name === mapped && mapped !== fallback;
-    const duration = ({ attack: 0.35, cast: 0.5, spawn: 0.3, death: 1.05 } as Record<string, number>)[state];
+    const timing = this.animationTiming;
+    const duration = (
+      { attack: timing.attackSeconds, cast: timing.castSeconds, spawn: 0.3, death: 1.05 } as Record<
+        string,
+        number
+      >
+    )[state];
     if (this.action !== next) {
-      next.reset().setEffectiveWeight(1).fadeIn(0.08).play();
-      this.action?.fadeOut(0.08);
+      next.reset().setEffectiveWeight(1).fadeIn(timing.crossFadeSeconds).play();
+      this.action?.fadeOut(timing.crossFadeSeconds);
       this.action = next;
     } else if (restart && once) next.reset().play();
     next.setEffectiveTimeScale(once && duration ? clip.duration / duration : 1);
     next.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, once ? 1 : Infinity);
     next.clampWhenFinished = once;
+    if (once && elapsedSeconds !== undefined && Number.isFinite(elapsedSeconds))
+      next.time = Math.max(0, Math.min(clip.duration, (elapsedSeconds * clip.duration) / duration));
   }
   update(unit: Unit, time: number, phase: Phase, dt: number) {
     // Pausing preserves the current pose and action; it must not crossfade to idle.
     if (phase !== 'playing') return;
-    const state = animationState(unit, time, phase);
+    const state = animationState(unit, time, phase, this.animationTiming);
     if (state === 'stunned') return;
     const restart =
       state === 'attack'
@@ -149,7 +160,16 @@ export class ModelInstance {
           : false;
     this.lastStrike = unit.attackAt;
     this.lastCast = unit.skillAt;
-    this.play(state, restart);
+    const age =
+      state === 'attack'
+        ? time - unit.attackAt
+        : state === 'cast'
+          ? time - unit.skillAt
+          : state === 'spawn'
+            ? time - unit.born
+            : undefined;
+    // Start at the observed action age, including when the first PvP packet arrives late.
+    this.play(state, restart, age === undefined ? undefined : Math.max(0, age - dt));
     if (phase === 'playing') {
       const rate = state === 'walk' && unit.slowUntil > time ? unit.slowFactor : 1;
       this.mixer.update(

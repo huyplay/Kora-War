@@ -21,6 +21,7 @@
     "assets:presentation": "tsx tools/import-model-presentation.ts",
     "presentation:combat": "tsx tools/install-combat-presentation.ts",
     "presentation:feedback": "tsx tools/install-unit-feedback.ts",
+    "presentation:animation": "tsx tools/install-model-animation.ts",
     "presentation:readability": "tsx tools/install-vfx-readability.ts",
     "format": "prettier --write \"src/**/*.{ts,css}\" \"server/**/*.ts\" \"tools/*.ts\" \"tests/*.ts\"",
     "assets:media:download": "python tools/download-media.py",

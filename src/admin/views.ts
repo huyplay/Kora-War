@@ -5,6 +5,7 @@ import { competitionEditor } from './competition-editor';
 import type { ModelBinding } from '../data/content';
 import { abilityEditor } from './ability-editor';
 import { esc, input } from './html';
+import { modelAnimationEditor } from './model-animation-editor';
 import type { State } from './types';
 import { audioEditor } from './audio-editor';
 import { eventVfxEditor } from './vfx-editor';
@@ -66,7 +67,7 @@ export function renderStudioPage(state: State, section: string, hero: string, se
     );
   }
   function bindingForm(binding: ModelBinding | undefined) {
-    return `${bindingControls(binding)}<fieldset id="model-parts"><legend>Phần hiển thị của model</legend><p>Chọn model để xem các phần hiển thị.</p></fieldset>`;
+    return `${bindingControls(binding)}${modelAnimationEditor(hero, binding)}<fieldset id="model-parts"><legend>Phần hiển thị của model</legend><p>Chọn model để xem các phần hiển thị.</p></fieldset>`;
   }
   function bindingControls(binding: ModelBinding | undefined) {
     const b: ModelBinding = binding || { assetId: '', height: 2.2, yaw: 0, clips: {} };

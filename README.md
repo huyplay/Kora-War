@@ -36,7 +36,7 @@ npm run preview
 ## Đã triển khai
 
 - Sân đá PBR ba đường, camera nghiêng và zoom 1–1,85×; cờ vải chuyển động, đuốc/tàn lửa, ba trụ mỗi bên và hai lõi 1.500 HP.
-- 10 tướng gốc, 5 tộc, 5 hệ; xây deck **14 thẻ khác nhau** từ catalog 18 thẻ và lưu trên thiết bị.
+- 14 tướng (10 gốc và Elara/Seryn/Kharos/Torvyn), 5 tộc, 5 hệ; xây deck **14 thẻ khác nhau** từ catalog 22 thẻ và lưu trên thiết bị.
 - Tay **6 thẻ**, mở đầu ít nhất 4 tướng + 1 phép, được đổi tối đa 2 thẻ. Dùng thẻ rút thẻ kế tiếp vào cùng ô; hết chồng rút chỉ xáo các thẻ đã dùng, giữ các thẻ đang cầm.
 - Tám phép: Gió/Lửa/Sét/Băng và Hồi Sinh Lực/Khiên Aether/Suy Yếu/Gia Tốc. Băng đóng băng di chuyển/đánh/kỹ năng 2 giây; Nyx ưu tiên áp sát hậu tuyến đánh xa. Mana chung, hồi chiêu riêng, vùng cảnh báo và hiệu ứng theo fixed tick; bắt đầu 4/10.
 - Phòng PvP có mã mời, chỉ số chuẩn hóa, server quyết định trận; reconnect cùng profile trong 30 giây, đầu hàng và kết quả.
@@ -100,7 +100,9 @@ npm run preview
 - [Ghi chú triển khai](docs/06-implementation/aetherfall-v0.1.md): luật chính xác và giới hạn.
 - [Hồ sơ nghiên cứu Castle Crush trước đó](docs/README.md): tài liệu tham khảo lịch sử, không phải cam kết parity của Aetherfall.
 
-PvP MVP dùng phòng riêng trong bộ nhớ một Node process; restart server làm mất phòng. Chưa có matchmaking/ranked, tài khoản đa thiết bị hay benchmark iOS/Android thật. Luyện tập mô phỏng trên client và được replay để xác minh thưởng; PvP chạy trên server, chưa phát thưởng vàng. Số FPS trong inspector là số đo runtime, không phải cam kết 60 FPS trên mọi máy.
+PvP có phòng bạn bè, hàng chờ ranked/casual và Thử thách. Mô phỏng active vẫn nằm trong một Node process; restart không resume trận và ghi void cho trận active đã lưu. Kết quả/Elo/moderation lưu SQLite. Chưa có tài khoản đa thiết bị hay benchmark iOS/Android thật. Luyện tập mô phỏng trên client và được replay để xác minh thưởng; PvP chạy trên server, chưa phát thưởng vàng. Số FPS trong inspector là số đo runtime, không phải cam kết 60 FPS trên mọi máy.
+
+[Khảo sát toàn project, REA và đối chiếu Castle Crush/TFT/Liên Quân ngày 17/10](docs/PROJECT-AUDIT-2026-10-17.md). Chi tiết tướng có nút xem Đứng/Đi/Đánh/Chiêu; admin cấu hình nhịp từng model. Chạy `npm run presentation:animation` để cài gói nhịp 14 tướng có backup và giữ tùy chỉnh admin; xem [QA và hướng dẫn](docs/HERO-ANIMATION-QA.md).
 
 ## Chơi PvP
 

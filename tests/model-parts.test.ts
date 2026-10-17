@@ -11,6 +11,7 @@ import { GameDatabase } from '../server/database';
 import { importAsset } from '../server/assets';
 import { inspectModelMaterials } from '../server/model-materials';
 import { installModelPresentation } from '../server/model-presentation';
+import { installModelAnimation } from '../server/model-animation-presentation';
 import { modelPartsEditor } from '../src/admin/model-parts';
 import { selectAnimationClips } from '../tools/animation-mapping';
 
@@ -268,4 +269,110 @@ test('normal loops win over spell/transition/homeguard animation names and admin
   assert.match(html, /&lt;script&gt;/);
   assert.doesNotMatch(html, /<script>/);
   assert.match(html, /data-model-part="Poro"\s*>/);
+});
+
+test('animation installer verifies assets, preserves drafts/history and is idempotent', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'kora-animation-')),
+    store = new GameDatabase(dir, 'test');
+  t.after(() => {
+    store.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+  const asset = importAsset(store, fixture(), {
+    name: 'Model',
+    author: 'Test',
+    license: 'CC0',
+    sourceUrl: 'https://example.com/model',
+    rightsConfirmed: true,
+  });
+  const state = store.config();
+  state.draft.models.solan = {
+    assetId: asset.id,
+    height: 2,
+    yaw: 0,
+    clips: { idle: 'Idle', attack: 'Walk', cast: 'Custom' },
+  };
+  store.saveDraft(state.draft, state.version);
+  store.publish(store.config().version);
+  const old = store.config(),
+    history = store.db.prepare('SELECT * FROM revisions').all();
+  old.draft.models.solan.animation = { castSeconds: 1.1 };
+  old.draft.economy.winGold = 123;
+  store.saveDraft(old.draft, old.version);
+  const update = {
+    hero: 'solan',
+    expectedSha256: asset.sha256,
+    clips: { attack: 'Walk', cast: 'Custom' },
+    animation: { attackSeconds: 0.6, castSeconds: 0.8, crossFadeSeconds: 0.1 },
+  };
+  const result = installModelAnimation(store, [update]);
+  assert.ok(existsSync(result.backup!));
+  const current = store.config();
+  assert.deepEqual(current.published.models.solan.animation, update.animation);
+  assert.deepEqual(current.draft.models.solan.animation, { castSeconds: 1.1 });
+  assert.equal(current.draft.economy.winGold, 123);
+  assert.equal(current.published.economy.winGold, 80);
+  assert.deepEqual(store.db.prepare('SELECT * FROM revisions WHERE id<=?').all(old.revision), history);
+  assert.deepEqual(installModelAnimation(store, [update]).changed, []);
+  assert.deepEqual(store.config(), current);
+  const cleared = store.config();
+  delete cleared.draft.models.solan.animation;
+  store.saveDraft(cleared.draft, cleared.version);
+  const revision = store.config().revision;
+  installModelAnimation(store, [update]);
+  assert.equal(
+    store.config().revision,
+    revision,
+    'draft-only provisioning does not publish a duplicate revision',
+  );
+  assert.deepEqual(store.config().draft.models.solan.animation, update.animation);
+});
+
+test('animation installer skips custom assets/clips and rolls back a failed publish', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'kora-animation-fail-')),
+    store = new GameDatabase(dir, 'test');
+  t.after(() => {
+    store.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+  const asset = importAsset(store, fixture(), {
+    name: 'Model',
+    author: 'Test',
+    license: 'CC0',
+    sourceUrl: 'https://example.com/model',
+    rightsConfirmed: true,
+  });
+  const state = store.config();
+  state.draft.models.solan = {
+    assetId: asset.id,
+    height: 2,
+    yaw: 0,
+    clips: { idle: 'Idle', attack: 'Walk', cast: 'Custom' },
+  };
+  store.saveDraft(state.draft, state.version);
+  store.publish(store.config().version);
+  const update = {
+    hero: 'solan',
+    expectedSha256: asset.sha256,
+    clips: { attack: 'Walk', cast: 'Custom' },
+    animation: { attackSeconds: 0.6, castSeconds: 0.8, crossFadeSeconds: 0.1 },
+  };
+  const before = store.config();
+  assert.deepEqual(installModelAnimation(store, [{ ...update, expectedSha256: '0'.repeat(64) }]).changed, []);
+  assert.deepEqual(
+    installModelAnimation(store, [{ ...update, clips: { attack: 'Custom', cast: 'Walk' } }]).changed,
+    [],
+  );
+  assert.deepEqual(store.config(), before);
+  const publish = store.publish;
+  store.publish = () => {
+    throw Error('Injected publish failure');
+  };
+  assert.throws(() => installModelAnimation(store, [update]), /Injected/);
+  store.publish = publish;
+  assert.deepEqual(store.config(), before);
+  assert.throws(() =>
+    installModelAnimation(store, [{ ...update, animation: { ...update.animation, castSeconds: NaN } }]),
+  );
+  assert.deepEqual(store.config(), before);
 });
